@@ -1,3 +1,11 @@
+# Research strategy additions — 15 September 2026 UTC
+
+- Add six fixed candidates across daily trend/momentum, volatility expansion and support with RSI recovery, bringing the population to 22. Document primary research, exact adaptations and limits in STRATEGY_RESEARCH.md.
+- Build daily indicators from complete UTC days only; reset daily warmup at gaps. Reuse the existing paper-runner history with a strict signal-time boundary.
+- Use daily ATR for the new brackets and decision ATR for entry-gap limits. Preserve dollar-risk, fee, qualification and real-money activation controls.
+- Show training examples by strategy and final-test differences against the original 16 candidates. Comparisons cannot choose a winner or change qualification.
+- Advance the engine, policy and report versions; retain saved candles and account state while requiring fresh model qualification.
+
 # More historical-practice coins — 15 September 2026 UTC
 
 - Add 10 defaults to BTC, ETH and SOL: HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH and DOT.

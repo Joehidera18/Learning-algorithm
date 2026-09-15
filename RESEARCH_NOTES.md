@@ -1,3 +1,5 @@
+> Current V11.1 extensions and exact rules are documented in [STRATEGY_RESEARCH.md](STRATEGY_RESEARCH.md). The V7 discussion below records the original design; the current population contains 22 candidates across seven families.
+
 # Crypto strategy research for a $500 account
 
 V11 automatic learning is documented in [V11_LEARNING.md](V11_LEARNING.md). The earlier references below describe the fixed-template foundation; V11 learns conditional preferences within those templates.
@@ -63,7 +65,7 @@ Lower verified costs can improve net performance without inventing a stronger si
 
 ## How the validation limits false confidence
 
-The researcher chooses rules using earlier data, freezes those rules, and evaluates them in later windows. The final 20% is kept outside final parameter selection. A 24-hour purge exceeds the new strategies' 12-hour maximum planned holding time. Every test starts with $500, so the program does not sum separately reset account returns.
+The researcher chooses rules using earlier data, freezes those rules, and evaluates them in later windows. The final 20% is kept outside final parameter selection. For the original 12-hour strategies, a 24-hour purge exceeds maximum planned holding time. Current swing candidates can hold longer; the learning path admits only labels whose exit candle closed before the training cutoff, in addition to the 24-hour separation. Every test starts with $500, so the program does not sum separately reset account returns.
 
 A historical profile requires positive base and 1.5× cost-stressed holdout results, sufficient trades, at least two profitable walk-forward windows, acceptable holdout drawdown, and a positive lower bound for historical mean net R under a moving-block bootstrap.
 

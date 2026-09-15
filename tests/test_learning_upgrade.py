@@ -181,7 +181,7 @@ class HistoricalCoverageTests(unittest.TestCase):
                 self.assertEqual(len(simulations), 3)
                 stopped = False
                 resumed = learn_history(rows, "BTC-USD", DEFAULTS, checkpoint=checkpoint)
-                self.assertEqual(len(simulations), 16)
+                self.assertEqual(len(simulations), 22)
             fresh = learn_history(rows, "BTC-USD", DEFAULTS)
         self.assertGreater(resumed["historical_examples"], 100)
         self.assertGreater(resumed["model"]["observations"], 0)

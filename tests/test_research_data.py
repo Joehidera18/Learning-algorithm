@@ -101,18 +101,21 @@ class ResearchTests(unittest.TestCase):
 
     def test_candidate_set_is_small_distinct_and_long_only(self):
         candidates = profit_candidates()
-        self.assertEqual(len(candidates),16)
-        self.assertEqual(len({json.dumps(x,sort_keys=True) for x in candidates}),16)
+        self.assertEqual(len(candidates),22)
+        self.assertEqual(len({json.dumps(x,sort_keys=True) for x in candidates}),22)
         self.assertEqual({x["direction"] for x in candidates},{"LONG"})
-        self.assertEqual(len({x["family"] for x in candidates}),4)
+        self.assertEqual(len({x["family"] for x in candidates}),7)
 
     def test_each_strategy_has_an_explicit_trigger_and_volatility_guard(self):
         base = {"atr_regime":1,"range_expansion":1,"regime":"BULL","_pullback_long":True,
                 "rsi":50,"adx":20,"signed_volume_pressure":0,"volume_z":1,
                 "breakout55":True,"breakout":True,"_trend_long":True,"obv_slope":.1,
-                "sweep_low":True,"lower_wick":.5}
+                "sweep_low":True,"lower_wick":.5, "rsi_previous":35, "support_reclaim":True,
+                "prior_compression":True, "daily":{"ready":True,"atr":5.,"trend_up":True,"momentum7":.03}}
         for p in profit_candidates():
             f = dict(base,regime="CHOP") if p["family"]=="range_reclaim_simple" else base
+            if p["family"] == "volatility_expansion_simple":
+                f = dict(f,range_expansion=2.)
             self.assertIsNotNone(simple_signal(f,p)[0])
             self.assertIsNone(simple_signal(dict(f,atr_regime=3),p)[0])
 
@@ -139,9 +142,9 @@ class ResearchTests(unittest.TestCase):
         self.assertEqual(result["selected_params"],test_calls[0][2])
         self.assertFalse(result["upgrade_comparison"]["selection_uses_comparison"])
         self.assertEqual(result["upgrade_comparison"]["net_pnl_difference"],-10)
-        self.assertEqual(result["candidate_count"],16)
+        self.assertEqual(result["candidate_count"],22)
         records = result["candidate_selection"]["candidates"]
-        self.assertEqual(len(records),16)
+        self.assertEqual(len(records),22)
         self.assertEqual(sum(r["validation"] is not None for r in records),5)
         chosen = [r for r in records if r["selection_status"]=="selected"]
         self.assertEqual([r["params"] for r in chosen],[result["selected_params"]])

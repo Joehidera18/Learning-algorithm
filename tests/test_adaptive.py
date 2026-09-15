@@ -68,7 +68,7 @@ class OnlineModelTests(unittest.TestCase):
         self.assertIsNone(policy.choose(F))
         self.assertEqual(policy.last_diagnostics["rejections"]["low_estimated_return"],1)
         policy.choose(dict(F,atr_regime=3))
-        self.assertEqual(policy.last_diagnostics["rejections"],{"extreme_volatility":16})
+        self.assertEqual(policy.last_diagnostics["rejections"],{"extreme_volatility":22})
 
     def test_replay_reports_candidate_blocks_without_inventing_trades(self):
         rows=candles(250)
@@ -155,7 +155,7 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertFalse(result["holdout_trades"])
         self.assertEqual(result["data_hours"],750)
         diagnostics=result["training_diagnostics"]
-        self.assertEqual(len(diagnostics["candidates"]),16)
+        self.assertEqual(len(diagnostics["candidates"]),22)
         self.assertEqual(sum(c["resolved_examples"] for c in diagnostics["candidates"]),0)
         self.assertGreater(sum(diagnostics["totals"]["rejections"].values()),0)
         self.assertIn("No completed training examples",result["rejection_reasons"][0])
@@ -186,7 +186,8 @@ class LearningProtocolTests(unittest.TestCase):
             calls.append((start,end,training,kwargs.get("policy")))
             indices=[240+i*35 for i in range(100)] if training else [start+i for i in range(40)]
             payoff=(1. if data[-1]["close"]==100 else -1.) if start>=4000 else 1.
-            if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation):
+            if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation
+                                 or kwargs["policy"].legacy_candidates_only):
                 payoff=2.  # Neither diagnostic can replace the updating policy.
             trades=[{"features":F,"r_multiple":payoff,"pnl":payoff,"entry_ts":data[i]["ts"],
                 "exit_ts":data[i]["ts"],"strategy_family":params["family"],"reason":"TARGET2"} for i in indices]
@@ -203,6 +204,9 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertGreater(b["frozen_holdout"]["net_pnl"],0)
         self.assertGreater(b["upgrade_comparison"]["baseline"]["net_pnl"],0)
         self.assertLess(b["upgrade_comparison"]["net_pnl_difference"],0)
+        self.assertGreater(b["strategy_expansion_comparison"]["baseline"]["net_pnl"],0)
+        self.assertLess(b["strategy_expansion_comparison"]["net_pnl_difference"],0)
+        self.assertFalse(b["strategy_expansion_comparison"]["selection_uses_comparison"])
         self.assertFalse(b["upgrade_comparison"]["selection_uses_comparison"])
         self.assertLess(b["learning_pnl_difference"],0)
         self.assertTrue(all(end<=3904 for start,end,training,_ in calls if training))

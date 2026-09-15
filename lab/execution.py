@@ -5,7 +5,7 @@ When intrabar order is unknown, assume the stop was reached first.
 """
 import math
 import statistics
-from .trade_quality import net_payoff, cooldown_minutes
+from .trade_quality import net_payoff, cooldown_minutes, signal_atr
 
 
 def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
@@ -114,7 +114,8 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
             else:
                 funnel["qualified_setups"] += 1
                 funnel["entry_attempts"] += 1
-                atr = max(float(f["_atr"]), signal["close"] * .002)
+                atr = max(signal_atr(f, trade_params), signal["close"] * .002)
+                gap_atr = max(float(f["_atr"]), signal["close"] * .002)
                 mode = trade_params.get("entry_mode", "MARKET_NEXT_OPEN")
                 raw = candle["open"]
                 if mode == "RETRACE_LIMIT":
@@ -124,7 +125,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                     if not retrace:
                         reject("retrace_not_confirmed", entry=True)
                         raw = None
-                if raw is not None and abs(raw - signal["close"]) / max(atr, 1e-12) > trade_params.get("max_gap_atr", .6):
+                if raw is not None and abs(raw - signal["close"]) / max(gap_atr, 1e-12) > trade_params.get("max_gap_atr", .6):
                     reject("entry_gap_too_large", entry=True)
                     raw = None
                 if raw is not None:
