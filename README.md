@@ -2,7 +2,7 @@
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** No real historical training run or Coinbase account connection was completed here. The supplied models start untrained; the program downloads and studies history when you run it.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The supplied models start untrained; the program downloads and studies history when you run it. An initial exported Coinbase-history report exposed training and missing-data limitations addressed in this update. Its profitability still needs a new real-history evaluation.
 
 ## Start here
 
@@ -11,13 +11,13 @@ A trading program that studies market history, learns which setups work in diffe
 3. Click **Practice on real market history** to train before starting current-market monitoring.
 4. Review the historical results, then use **Start learning & paper trading** for ongoing practice on new prices.
 
-Historical practice requests real Coinbase BTC, ETH and SOL candles for up to three years. The simulated clock advances through the recorded prices as quickly as the computer can process them; one hour of market history does not require one hour of waiting. Downloads still take time. Decisions use only information available at the past signal close, and a result updates learning only after its trade closes. Missing or unavailable data produces a failed report; the app never replaces it with generated prices.
+Historical practice requests real Coinbase BTC, ETH and SOL candles for up to three years. The simulated clock advances through the recorded prices as quickly as the computer can process them; one hour of market history does not require one hour of waiting. Downloads still take time. Decisions use only information available at the past signal close, and a result updates learning only after its trade closes. The app keeps observed price sections on both sides of gaps and never replaces missing or unavailable data with generated prices. Invalid or insufficient data produces a failed report.
 
 The practice control uses the candle interval in Settings (5 minutes, 15 minutes or 1 hour), saves qualifying models, and finishes without starting live feeds or trading runners. Existing runners, if already started, keep their current state. Separate later historical periods check what the learner learned. Changing intervals requires a separate qualification; it does not create independent copies of the same market evidence.
 
 The program handles the research work in the background. It loads the market scanner, requests up to three years of history for five liquid Coinbase USD markets, trains models, and tests them on later data. Qualified models can open paper trades and update after those trades close. Unqualified markets stay out of the account.
 
-The first download can take time. Completed download chunks, candidate training labels, and results are saved. A restart within 24 hours resumes the same training cutoff and skips completed candidates; an interrupted candidate restarts. A complete first study of five markets with three years each represents 131,400 market-data hours; these are summed across coins and are not 131,400 independent hours of market history. The dashboard shows the hours actually processed. If prices contain gaps, only the most recent continuous portion is used, with excluded history disclosed.
+The first download can take time. Completed download chunks, candidate training labels, and results are saved. A restart within 24 hours resumes the same training cutoff and skips completed candidates; an interrupted candidate restarts. A complete first study of five markets with three years each represents 131,400 market-data hours; these are summed across coins and are not 131,400 independent hours of market history. The dashboard shows the hours actually processed. Indicators restart after each gap with 240 observed candles of warmup. A training trade interrupted by missing prices has no known outcome and cannot teach the model; a policy account test interrupted while holding a position is marked incomplete and cannot qualify.
 
 Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
 
@@ -25,7 +25,7 @@ Pause entries keeps existing paper positions monitored. Stop stops automatic lea
 
 The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 16 stop/target variants within four defined trade types: trend pullback, volume breakout, range reclaim, and combined confirmations. Each variant combines an overall estimate with evidence for rising, falling, or sideways conditions when enough examples exist. The templates remain long-only, so bearish conditions can mean no eligible trades or training examples.
 
-Candidates must cover modeled fees, slippage, and spread before they are ranked. Historical tests also apply the configured daily loss halt. Reports compare the updating policy with pooled learning, frozen learning, holding cash, and buying and holding the market. These comparisons can show deterioration; they do not select a winner after seeing the final test.
+Historical training explores signal-matched setups even when their modeled costs or reward would block a trading entry. These independent hypothetical examples still pay all modeled fees, slippage and spread, so costly losses can be learned. They are not account returns. Policy tests and paper/live trading keep the cost and net-reward checks, evidence requirements, and account-risk limits. Historical policy tests also apply the configured daily loss halt. Reports compare the updating policy with pooled learning, frozen learning, holding cash, and buying and holding the market. These comparisons can show deterioration; they do not select a winner after seeing the final test.
 
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
@@ -52,7 +52,7 @@ Use the V11 source files, preserve your database and persistent storage, and sto
 
 Your database is research.sqlite3 by default. Set RESEARCH_DB_PATH and RESEARCH_DATA_DIR for persistent hosted storage; the included Render template already does this. Keep Coinbase keys outside the source folder and GitHub.
 
-Qualified markets are reviewed every 28 days while the controller runs. Rejected markets retry after a day and failed downloads after an hour. Changes to tested fee, sizing, interval, or daily-loss settings require a new review. Models expire after 30 days without fresh qualification. Retried reviews may overlap old test periods; they are not independent proof of improvement. A new historical model replaces the forward model on its next use, while the old trade journal and reports remain saved. The regime/cost upgrade requires retraining earlier model versions.
+Qualified markets are reviewed every 28 days while the controller runs. Rejected markets retry after a day and failed downloads after an hour. Changes to tested fee, sizing, interval, or daily-loss settings require a new review. Models expire after 30 days without fresh qualification. Retried reviews may overlap old test periods; they are not independent proof of improvement. A new historical model replaces the forward model on its next use, while the old trade journal and reports remain saved. This history/exploration update requires fresh practice with the new policy and report versions. Existing downloaded candles are reused when available; older reports are labeled **Updated learner · practice again** until replaced.
 
 To download real history and run accelerated practice without starting the server:
 

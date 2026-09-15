@@ -130,22 +130,27 @@ class ReplayRiskTests(unittest.TestCase):
 
 
 class HistoricalCoverageTests(unittest.TestCase):
-    def test_older_gap_uses_only_the_recent_continuous_history(self):
+    def test_older_gap_retains_recorded_history_on_both_sides(self):
         rows = candles(6000)
         del rows[1000]
         selected, quality, coverage = prepare_learning_history(rows, "15m")
-        self.assertEqual(selected, rows[1000:])
-        self.assertEqual(coverage["used_candles"], 4999)
+        self.assertEqual(selected, rows)
+        self.assertEqual(coverage["used_candles"], 5999)
         self.assertEqual(coverage["missing_intervals"], 1)
-        self.assertEqual(coverage["excluded_candles"], 1000)
-        self.assertEqual(coverage["used_hours"], 4999/4)
-        self.assertEqual(quality["gaps"], 0)
+        self.assertEqual(coverage["excluded_candles"], 0)
+        self.assertEqual(coverage["used_hours"], 5999/4)
+        self.assertEqual(quality["gaps"], 1)
+        self.assertEqual(coverage["segment_count"], 2)
+        self.assertEqual([s["candles"] for s in coverage["segments"]], [1000, 4999])
+        self.assertEqual(coverage["warmup_candles"], 480)
+        self.assertEqual(coverage["signal_ready_candles"], 5519)
 
-    def test_recent_gaps_and_invalid_old_prices_still_reject(self):
+    def test_recent_gap_keeps_earlier_history_but_invalid_old_prices_reject(self):
         rows = candles(6000)
         del rows[5000]
-        with self.assertRaisesRegex(ValueError, "999 consecutive"):
-            prepare_learning_history(rows, "15m")
+        selected, _, coverage = prepare_learning_history(rows, "15m")
+        self.assertEqual(selected, rows)
+        self.assertEqual([s["candles"] for s in coverage["segments"]], [5000, 999])
         rows = candles(6000)
         del rows[1000]
         rows[0]["close"] = float("nan")

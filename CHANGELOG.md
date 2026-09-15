@@ -1,3 +1,11 @@
+# Historical training repair — 15 September 2026 UTC
+
+- Keep recorded price sections before and after gaps; restart indicators with 240 observed warmup candles and never fill missing prices.
+- Let independent historical examples explore cost-rejected setups with full fees and slippage charged. Preserve policy qualification, trading costs, signal, sizing, and account controls.
+- Exclude unresolved training outcomes across missing prices. Mark policy tests interrupted with an open position incomplete and ineligible instead of inventing an exit or account return.
+- Separate signal failures, entry failures, explored costly setups, and unknown outcomes in the dashboard and report. Label old reports for fresh practice.
+- Advance policy to `online-net-r-v3-historical-exploration` and report to version 5. Reuse saved candles; require fresh model qualification.
+
 # Direct practice on real history — 15 September 2026 UTC
 
 - Add **Practice on real market history** to run accelerated learning on recorded Coinbase BTC, ETH and SOL candles without starting a live ticker, scanner or trading runner. Existing runners are not restarted or stopped by this action.

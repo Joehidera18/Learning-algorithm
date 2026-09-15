@@ -161,16 +161,21 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertIn("No completed training examples",result["rejection_reasons"][0])
         json.dumps(result,allow_nan=False)
 
-    def test_training_diagnostics_expose_cost_blocks_on_valid_signals(self):
+    def test_cost_rejected_training_learns_losses_without_qualifying_trades(self):
         rows=candles(3000)
         fs=[dict(F,_atr=.01) for _ in rows]
         with patch("lab.learning_research.build_feature_cache",return_value={"features":fs}):
-            result=learn_history(rows,"BTC-USD",dict(DEFAULTS,fee_rate=.02))
+            result=learn_history(rows,"BTC-USD",dict(DEFAULTS,fee_rate=.004))
         totals=result["training_diagnostics"]["totals"]
         self.assertGreater(totals["qualified_setups"],0)
-        self.assertGreater(totals["rejections"]["trading_cost_too_high"],0)
-        self.assertEqual(totals["entries_opened"],0)
-        self.assertEqual(result["historical_examples"],0)
+        self.assertGreater(totals["training_cost_overrides"]["trading_cost_too_high"],0)
+        self.assertGreater(totals["entries_opened"],0)
+        self.assertEqual(totals["entries_opened"],totals["exploratory_entries"])
+        self.assertGreater(result["historical_examples"],0)
+        self.assertGreater(result["model"]["observations"],0)
+        self.assertTrue(all(m["sum_r"]<0 for m in result["model"]["models"].values()))
+        self.assertEqual(result["costs"]["fee_per_side"],.004)
+        self.assertEqual(result["holdout"]["trades"],0)
         self.assertFalse(result["validated"])
 
     def test_future_outcomes_cannot_change_the_pre_holdout_model_or_select_frozen_results(self):

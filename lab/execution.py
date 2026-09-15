@@ -10,7 +10,7 @@ from .trade_quality import net_payoff, cooldown_minutes
 
 def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
-             training_examples=False, daily_loss_limit=None):
+             training_examples=False, daily_loss_limit=None, bar_interval_ms=None):
     from .engine import evaluate_signal
     cash, position, next_entry_ts = float(balance), None, 0
     trades, curve = [], [cash]
@@ -18,7 +18,16 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
     sign = 1 if direction == "LONG" else -1
     end = min(int(end), len(rows))
     funnel = {"candles_checked": 0, "features_available": 0, "qualified_setups": 0,
-              "entry_attempts": 0, "entries_opened": 0, "rejections": {}}
+              "entry_attempts": 0, "entries_opened": 0, "rejections": {},
+              "entry_rejections": {}}
+    if training_examples and policy is not None:
+        raise ValueError("Independent training examples cannot be used for a policy account test")
+    if training_examples:
+        funnel.update(exploratory_entries=0, training_cost_overrides={}, gap_censored_examples=0)
+    if bar_interval_ms is not None and bar_interval_ms <= 0:
+        raise ValueError("Candle interval must be positive")
+    bar_ms = bar_interval_ms or (rows[1]["ts"]-rows[0]["ts"] if len(rows)>1 else 0)
+    complete, stopped_at = True, None
     learning_rejections = {}
     if policy:
         funnel["learning_candidate_rejections"] = learning_rejections
@@ -33,8 +42,10 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
             day_halted = True
             halted_days += 1
 
-    def reject(reason):
+    def reject(reason, entry=False):
         funnel["rejections"][reason] = funnel["rejections"].get(reason, 0) + 1
+        if entry:
+            funnel["entry_rejections"][reason] = funnel["entry_rejections"].get(reason, 0) + 1
 
     def close(raw, candle, reason):
         nonlocal cash, position, next_entry_ts
@@ -51,7 +62,6 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                  outcome="WIN" if pnl > 0 else "LOSS", balance_after=cash)
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
-        bar_ms = rows[1]["ts"] - rows[0]["ts"] if len(rows) > 1 else 0
         next_entry_ts = candle["ts"] + bar_ms + cooldown_minutes([t["pnl"] for t in trades],p["decision_params"]) * 60000
         if policy and reason != "END":
             policy.observe(p["decision_params"], p["learning"]["vector"],
@@ -65,6 +75,17 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         if cancelled and i % 500 == 0 and cancelled():
             raise InterruptedError("Learning cancelled")
         signal, candle = rows[i], rows[i + 1]
+        if bar_interval_ms is not None and candle["ts"]-signal["ts"] != bar_ms:
+            # At this point only the last observed bar is known. Do not invent a
+            # pre-gap exit, a missing-bar fill, or a profitable path through it.
+            reject("missing_market_candles")
+            if position:
+                if not training_examples:
+                    complete, stopped_at = False, signal["ts"]+bar_ms
+                    break
+                funnel["gap_censored_examples"] += 1
+                position, cash = None, float(balance)
+            continue
         current_day = candle["ts"]//86400000
         if current_day != day_id:
             day_id, day_start, day_halted = current_day, curve[-1], False
@@ -101,10 +122,10 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                     # at signal close, then simulate a taker fill at the next open.
                     retrace = f.get("bull_retrace" if sign == 1 else "bear_retrace")
                     if not retrace:
-                        reject("retrace_not_confirmed")
+                        reject("retrace_not_confirmed", entry=True)
                         raw = None
                 if raw is not None and abs(raw - signal["close"]) / max(atr, 1e-12) > trade_params.get("max_gap_atr", .6):
-                    reject("entry_gap_too_large")
+                    reject("entry_gap_too_large", entry=True)
                     raw = None
                 if raw is not None:
                     entry = raw * (1 + sign * base_slip)
@@ -116,17 +137,18 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                     cost_r = cost / max(distance, 1e-12)
                     unit_risk = abs(entry - stop_fill) + (entry + stop_fill) * fee_rate
                     quality = net_payoff(entry,stop,target,fee_rate,base_slip,direction)
+                    cost_reason = ("trading_cost_too_high" if cost_r > trade_params.get("max_cost_r", .8)
+                                   else "net_reward_too_small" if quality["net_rr"] < trade_params.get("min_net_rr",0)
+                                   else None)
                     if stop <= 0 or target <= 0 or not math.isfinite(unit_risk) or unit_risk <= 0:
-                        reject("invalid_stop_distance")
-                    elif cost_r > trade_params.get("max_cost_r", .8):
-                        reject("trading_cost_too_high")
-                    elif quality["net_rr"] < trade_params.get("min_net_rr",0):
-                        reject("net_reward_too_small")
+                        reject("invalid_stop_distance", entry=True)
+                    elif cost_reason and not training_examples:
+                        reject(cost_reason, entry=True)
                     else:
                         fraction = min(1.0, trade_params.get("max_notional_fraction", .30))
                         qty = min(cash * risk / unit_risk, cash * fraction / (entry * (1 + fee_rate)))
                         if qty * entry < 1:
-                            reject("position_size_zero")
+                            reject("position_size_zero", entry=True)
                         else:
                             entry_fee = entry * qty * fee_rate
                             cash -= entry_fee
@@ -139,6 +161,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                                 "stop": stop, "target1": target, "target2": target,
                                 "qty": qty, "qty_initial": qty, "risk_dollars": qty * unit_risk,
                                 "planned_cost_r": cost_r, "planned_net_rr":quality["net_rr"], "risk_multiplier": 1.0,
+                                "training_cost_override":cost_reason if training_examples else None,
                                 "effective_risk_fraction": risk, "t1_hit": False,
                                 "realized_partial": -entry_fee, "gross_pnl": 0.0, "fees_paid": entry_fee,
                                 "slippage_notional": abs(entry - raw) * qty, "regime": f.get("regime"),
@@ -146,6 +169,10 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                                 "edge_probability": detail.get("probability"), "score": score,
                                 "mfe_price": entry, "mae_price": entry}
                             funnel["entries_opened"] += 1
+                            if training_examples and cost_reason:
+                                funnel["exploratory_entries"] += 1
+                                counts = funnel["training_cost_overrides"]
+                                counts[cost_reason] = counts.get(cost_reason, 0)+1
         if position:
             p = position
             # Once a stop fills, do not mark through lower prices later in the bar.
@@ -180,7 +207,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
             mark -= liquidation * position["qty"] * fee_rate
         curve.append(mark)
         check_daily_limit(mark)
-    if position:
+    if position and complete:
         close(rows[end - 1]["close"], rows[end - 1], "END")
         curve.append(cash)
     for trade in trades:
@@ -209,4 +236,12 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         "fees_paid":sum(t["fees_paid"] for t in trades),
         "halted_utc_days":halted_days, "daily_loss_limit":daily_loss_limit,
         "family": params["family"], "direction": direction}
+    if bar_interval_ms is not None:
+        metrics.update(complete=complete, stopped_at_ts=stopped_at)
+        if not complete:
+            metrics.update(ending_balance=None, return_pct=None, net_pnl=None,
+                max_drawdown_pct=None, win_rate=None, profit_factor=None, expectancy_r=None,
+                unresolved_positions=1,
+                incomplete_reason="A position was open when market candles went missing. "
+                                  "The account test stopped; no exit or later account return was assumed.")
     return metrics, trades if keep_trades else []

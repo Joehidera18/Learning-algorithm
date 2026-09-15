@@ -13,7 +13,7 @@ from .strategies import profit_candidates, simple_signal
 from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
 
-POLICY_VERSION = "online-net-r-v2-regime-costs"
+POLICY_VERSION = "online-net-r-v3-historical-exploration"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
