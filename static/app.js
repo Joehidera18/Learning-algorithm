@@ -3,6 +3,7 @@
   const $ = function (id) { return document.getElementById(id); };
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
+  let practiceSelectionLoaded = false;
   const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
   const escape = function (value) { return String(value == null ? "—" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
   const finite = function (v) { return typeof v === "number" && Number.isFinite(v); };
@@ -174,6 +175,12 @@
   }
   function renderLearning(s) {
     learningState=s;
+    if (!practiceSelectionLoaded) {
+      const saved=s.practice_symbols || s.default_practice_symbols;
+      if (Array.isArray(saved) && saved.length) $("practiceSymbols").value=saved.map(function (symbol) { return symbol.replace(/-USD$/, ""); }).join(", ");
+      practiceSelectionLoaded=true;
+    }
+    $("practiceSymbols").disabled=!!s.enabled || s.phase==="stopping";
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
       learning:"Learning",testing:"Testing",watching:"Watching & learning",waiting:"Waiting for evidence",
       error:"Needs attention",stopping:"Stopping",completed:"Practice complete"};
@@ -260,10 +267,16 @@
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
     await api("/api/learning/start",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
   });
+  $("practiceSymbols").addEventListener("input",function () { practiceSelectionLoaded=true; });
   bind("practiceBtn",async function () {
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
-    await api("/api/learning/practice",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
+    const symbols=Array.from(new Set($("practiceSymbols").value.toUpperCase().split(/[,\s]+/).filter(Boolean).map(function (symbol) {
+      return symbol.endsWith("-USD") ? symbol : symbol+"-USD";
+    })));
+    if (!symbols.length || symbols.length>20) throw new Error("Choose one to twenty coins for historical practice.");
+    if (symbols.some(function (symbol) { return !/^[A-Z0-9]{2,16}-USD$/.test(symbol); })) throw new Error("Enter Coinbase USD tickers such as HBAR, XRP, XLM.");
+    await api("/api/learning/practice",{fee_rate:Number(input.value)/100,symbols:symbols}); settingsLoaded=false; await refresh();
   });
   bind("stopBtn",async function () { await api("/api/continuous/stop",{}); await refresh(); });
   bind("pauseBtn",async function () { await api("/api/continuous/pause",{paused:!(state && state.settings.entries_paused)}); await refresh(); });

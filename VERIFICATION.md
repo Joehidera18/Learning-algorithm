@@ -1,5 +1,13 @@
 # V11 verification
 
+## 15 September 2026 expanded practice selection
+
+**154 Python tests passed.** New checks cover the 13-market default list (10 additions to BTC/ETH/SOL), API normalization and duplicate removal, saved selections across service reconstruction, and continuation after a market-history failure. Invalid and over-limit lists are rejected before settings change. Historical practice accepts up to 20 markets and processes them sequentially.
+
+Node-based interaction checks verified the 13 defaults reach the practice API with unchanged fees, short/full tickers normalize, duplicate symbols collapse, blank/invalid/over-limit inputs do not submit, saved choices load, and subsequent status updates do not overwrite unsent edits. JavaScript syntax and diff checks passed. These checks use fixtures and a mocked document; they do not verify each market's current Coinbase history availability or mobile layout. Each actual download remains subject to the existing real-data validation and per-market errors.
+
+The supplied completed `learning-results 9.json` reports 9,571 BTC, 9,515 ETH and 10,270 SOL training examples (29,356 total); all three remain unqualified with zero final-test trades. Adding markets expands the research universe and does not establish profitable performance.
+
 ## 15 September 2026 exported-report training repair
 
 The supplied `learning-results 5.json` is an actual application export reporting Coinbase Exchange prices. In that older run, BTC had 3,436 signal matches and all 3,436 entry attempts failed the cost screen. ETH had 3,160 matches, 3,155 cost blocks, one net-reward block, and four completed examples. Only 12,461 candles per market were retained; 92,602 BTC and 92,600 ETH candles before the final gap were discarded. The export contains report aggregates and models, not the raw candles, so these observations do not independently verify the source prices.

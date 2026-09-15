@@ -21,6 +21,10 @@ from .research import ResearchManager, cost_signature
 
 HISTORY_DAYS = 1095
 TRAINING_MARKETS = 5
+MAX_PRACTICE_MARKETS = 20
+DEFAULT_PRACTICE_SYMBOLS = (
+    "BTC-USD", "ETH-USD", "SOL-USD", "HBAR-USD", "XRP-USD", "XLM-USD",
+    "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "BCH-USD", "DOT-USD")
 REVIEW_SECONDS = 28*86400
 UNQUALIFIED_REVIEW_SECONDS = 86400
 
@@ -62,6 +66,8 @@ class AutoLearner:
             market_data_hours=sum(r.get("data_hours",0) for r in reports),
             historical_examples=sum(r.get("historical_examples",0) for r in reports),
             history_days=HISTORY_DAYS, max_training_markets=TRAINING_MARKETS,
+            max_practice_markets=MAX_PRACTICE_MARKETS,
+            default_practice_symbols=list(DEFAULT_PRACTICE_SYMBOLS),
             paper_running=self.agent.runtime["running"],
             current_policy_version=POLICY_VERSION,
             current_report_version=LEARNING_REPORT_VERSION)
@@ -85,11 +91,15 @@ class AutoLearner:
 
     def start_history(self, symbols=None, fee_settings=None):
         """Replay recorded prices without starting a ticker or a paper/live runner."""
-        symbols = ["BTC-USD", "ETH-USD", "SOL-USD"] if symbols is None else symbols
-        if not isinstance(symbols, list) or not 1 <= len(symbols) <= TRAINING_MARKETS:
-            raise ValueError("Choose one to five Coinbase USD markets")
-        if any(not isinstance(s, str) or not re.fullmatch(r"[A-Z0-9]{2,16}-USD", s) for s in symbols):
+        symbols = list(DEFAULT_PRACTICE_SYMBOLS) if symbols is None else symbols
+        if not isinstance(symbols, list) or not 1 <= len(symbols) <= MAX_PRACTICE_MARKETS:
+            raise ValueError("Choose one to twenty Coinbase USD markets")
+        if any(not isinstance(s, str) for s in symbols):
             raise ValueError("Use Coinbase market names such as BTC-USD")
+        symbols = [s.strip().upper() for s in symbols]
+        symbols = [s if s.endswith("-USD") else s+"-USD" for s in symbols]
+        if any(not re.fullmatch(r"[A-Z0-9]{2,16}-USD", s) for s in symbols):
+            raise ValueError("Use Coinbase USD market names such as HBAR or HBAR-USD")
         symbols = list(dict.fromkeys(symbols))
         with self.lock:
             if self.worker and self.worker.is_alive():
@@ -100,7 +110,7 @@ class AutoLearner:
                 self.agent.configure(fee_settings)
             self.stop_event.clear()
             settings = dict(self.agent.settings)
-            self._update(enabled=True, mode="historical_replay", phase="starting",
+            self._update(enabled=True, mode="historical_replay", phase="starting", practice_symbols=symbols,
                 message="Preparing accelerated practice on recorded Coinbase prices.")
             self.worker = threading.Thread(target=self._run_history, args=(symbols, settings),
                 daemon=True, name="historical-practice")

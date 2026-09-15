@@ -1,3 +1,10 @@
+# More historical-practice coins — 15 September 2026 UTC
+
+- Add 10 defaults to BTC, ETH and SOL: HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH and DOT.
+- Add an editable, saved list of up to 20 Coinbase USD markets. Accept short tickers or full USD product names; normalize case and remove duplicates.
+- Process selected markets sequentially and report individual unavailable histories. The selection applies to historical practice; the continuous scanner and real-money allowlist retain their existing behavior.
+- Preserve fees, qualification, history checks and trading activation.
+
 # Historical training repair — 15 September 2026 UTC
 
 - Keep recorded price sections before and after gaps; restart indicators with 240 observed warmup candles and never fill missing prices.

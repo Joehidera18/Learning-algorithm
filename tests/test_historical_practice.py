@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 from lab.adaptive import POLICY_VERSION, approved_profile
 from lab.learning_research import LEARNING_REPORT_VERSION
+from lab.autolearn import DEFAULT_PRACTICE_SYMBOLS
 from lab.service import Service
 from tests.test_adaptive import F
 from tests.test_execution import candles
@@ -101,7 +102,7 @@ class HistoricalPracticeTests(unittest.TestCase):
     def test_invalid_or_overlapping_request_does_not_change_fee_settings(self):
         s = self.service
         before = dict(s.agent.settings)
-        for symbols in ([], ["../../other-USD"], [None], ["BTC-USD"]*6):
+        for symbols in ([], ["../../other-USD"], [None], ["BTC-USD"]*21, ["BTC-USDT"], [""]):
             with self.subTest(symbols=symbols):
                 code, _, _ = s.handle("POST", "/api/learning/practice",
                     body={"symbols":symbols,"fee_rate":.001}, headers={"Content-Type":"application/json"})
@@ -154,6 +155,48 @@ class HistoricalPracticeTests(unittest.TestCase):
                                  headers={"Content-Type":"application/json"})
         self.assertEqual(code, 401)
         start.assert_not_called()
+
+    def test_default_practice_includes_requested_coins(self):
+        s = self.service
+        with patch.object(s.autolearn, "_run_history") as run:
+            s.autolearn.start_history()
+            s.autolearn.worker.join(timeout=5)
+        self.assertEqual(run.call_args.args[0], list(DEFAULT_PRACTICE_SYMBOLS))
+        self.assertEqual(run.call_args.args[0], ["BTC-USD", "ETH-USD", "SOL-USD", "HBAR-USD", "XRP-USD", "XLM-USD",
+            "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "BCH-USD", "DOT-USD"])
+        self.assertFalse(s.agent.runtime["running"])
+
+    def test_custom_practice_normalizes_deduplicates_and_saves_selection(self):
+        s = self.service
+        with patch.object(s.autolearn, "_run_history") as run:
+            code, _, _ = s.handle("POST", "/api/learning/practice", body={
+                "symbols":[" hbar ", "XRP-USD", "xlm", "HBAR-USD", "ADA", "DOGE", "AVAX"],
+                "fee_rate":.004}, headers={"Content-Type":"application/json"})
+            self.assertEqual(code, 202)
+            s.autolearn.worker.join(timeout=5)
+        expected = ["HBAR-USD", "XRP-USD", "XLM-USD", "ADA-USD", "DOGE-USD", "AVAX-USD"]
+        self.assertEqual(run.call_args.args[0], expected)
+        restarted = Service(BASE, s.db_path, self.root/"data")
+        self.assertEqual(restarted.autolearn.status()["practice_symbols"], expected)
+        self.assertEqual(restarted.autolearn.status()["max_practice_markets"], 20)
+        self.assertFalse(restarted.agent.runtime["running"])
+
+    def test_unavailable_coin_does_not_prevent_later_coin_practice(self):
+        s = self.service
+        def history(symbol, *args, **kwargs):
+            if symbol == "HBAR-USD":
+                raise ValueError("Requested market history unavailable")
+            return candles(3000)
+        with patch.object(s.autolearn.downloader, "_history", side_effect=history) as download:
+            s.autolearn.start_history(["HBAR", "XRP", "XLM"])
+            s.autolearn.worker.join(timeout=5)
+        self.assertFalse(s.autolearn.worker.is_alive())
+        self.assertEqual([c.args[0] for c in download.call_args_list], ["HBAR-USD", "XRP-USD", "XLM-USD"])
+        results = s.autolearn.status()["results"]
+        self.assertIn("error", results[0])
+        self.assertNotIn("error", results[1])
+        self.assertNotIn("error", results[2])
+        self.assertEqual(s.autolearn.status()["completed_markets"], 3)
 
 
 class HistoricalCommandTests(unittest.TestCase):
