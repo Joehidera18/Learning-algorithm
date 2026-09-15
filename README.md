@@ -21,6 +21,22 @@ The first download can take time. Completed download chunks, candidate training 
 
 Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
 
+## Trade finances on the main screen
+
+The **Trade finances** panel above the learning controls shows completed trades,
+money won, money lost, net profit/loss, wins, losses, exact break-even results and
+win rate. Amounts use each trade's result after costs. Choose **Historical tests**,
+**Paper account**, or **Coinbase bot**; their totals stay separate. Historical tests
+can show one market or the sum of separate market simulations, with partial or
+unavailable reports clearly marked. Training examples and alternative test runs
+do not count as account trades. Test-window exits are identified separately.
+
+Paper and Coinbase totals use the entire saved closed-trade journal, including
+trades older than the visible table. Open or unfilled orders are excluded. Existing
+saved historical reports can populate the panel without retraining. Failed refreshes
+keep the last known numbers with a visible stale notice. Coinbase totals require
+the existing access-token protection. This display does not start any runner.
+
 ## What learns
 
 The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 22 stop/target variants within seven defined trade types: trend pullback, volume breakout, range reclaim, combined confirmations, daily trend/momentum, volatility expansion, and support with RSI recovery. The three new families use completed daily context and multi-day holding limits with the existing account-risk caps. See [the strategy research review](STRATEGY_RESEARCH.md) for sources, exact rules and limitations. Each variant combines an overall estimate with evidence for rising, falling, or sideways conditions when enough examples exist. The templates remain long-only, so bearish conditions can mean no eligible trades or training examples.

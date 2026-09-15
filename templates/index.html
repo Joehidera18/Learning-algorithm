@@ -10,11 +10,23 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.3</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.4</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
 <div id="accessPanel" class="panel" hidden><form id="accessForm" class="inline-form"><label>App access token <input id="accessToken" type="password" autocomplete="current-password" required></label><button class="primary">Connect</button></form></div>
+<section class="panel finance-panel" aria-labelledby="financeHeading">
+<div class="panel-title"><div><p class="eyebrow">YOUR RESULTS AT A GLANCE</p><h2 id="financeHeading">Trade finances</h2></div><span id="financeUpdated" class="badge" role="status">Loading totals…</span></div>
+<div class="finance-controls"><label>Results to show<select id="financeSource"><option value="history">Historical tests · simulated</option><option value="paper">Paper account · simulated</option><option value="coinbase">Coinbase bot · real money</option></select></label><label id="financeMarketLabel">Market<select id="financeMarket"><option value="*">All tested markets</option></select></label></div>
+<div class="metrics finance-metrics">
+<article class="metric"><span id="financeTradesLabel">Selected test trades</span><strong id="financeTrades">—</strong><small>Completed results</small></article>
+<article class="metric"><span>Money won</span><strong id="financeWon">—</strong><small>Sum of profitable trades after costs</small></article>
+<article class="metric"><span>Money lost</span><strong id="financeLost">—</strong><small>Sum of losing trades after costs</small></article>
+<article class="metric"><span>Net profit / loss</span><strong id="financeNet">—</strong><small>Money won minus money lost</small></article>
+</div>
+<div class="small-metrics finance-outcomes"><div>Winning trades<strong id="financeWins">—</strong></div><div>Losing trades<strong id="financeLosses">—</strong></div><div>Break-even trades<strong id="financeBreakEven">—</strong></div><div>Win rate<strong id="financeRate">—</strong></div></div>
+<p id="financeNote" class="footnote">Historical tests, the paper account and the Coinbase bot each have their own totals.</p>
+</section>
 <section class="panel learning-panel" aria-labelledby="learningHeading">
 <div class="panel-title"><h1 id="learningHeading">Your trading system</h1><span id="learningPhase" class="badge">Ready</span></div>
 <p id="learningMessage" role="status">Practice on recorded market prices first, then monitor new prices with paper money.</p>

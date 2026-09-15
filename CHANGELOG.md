@@ -1,3 +1,10 @@
+# Main-screen trade finances — 15 September 2026 UTC
+
+- Add a finance panel above learning controls with completed trades, money won/lost, net result, wins, losses, exact break-even outcomes and win rate.
+- Keep historical tests, paper money and Coinbase bot results in separate selectable views. Identify incomplete historical coverage and forced test-window exits.
+- Total complete saved journals rather than the latest visible table rows. Recover historical totals from saved reports without retraining or altering the exported source reports.
+- Preserve Coinbase authentication, report refresh failures visibly and keep all trading behavior unchanged.
+
 # Loss and near-break-even study — 15 September 2026 UTC
 
 - Continue independent training at normal entry spacing after losses, without account loss-streak pauses. Preserve full costs, risk sizes, signals, missing-data rules and actual account controls.

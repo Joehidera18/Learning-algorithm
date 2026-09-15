@@ -1,5 +1,13 @@
 # V11 verification
 
+## 15 September 2026: main-screen trade finances
+
+**217 Python tests passed in 40.252 seconds.** Eight new regressions cover net-result reconciliation, exact zero versus tiny losses, complete paper/Coinbase journals beyond visible table limits, open/rejected-order exclusion, account separation, restart persistence, incomplete historical reports, cached recovery from existing saved reports, unchanged original exports and Coinbase authentication boundaries. No request placed an exchange order.
+
+Both dashboard JavaScript check scripts passed. The finance checks exercise account and market selection, after-cost totals, empty and locked states, escaping, stale refresh failures and the actual Coinbase status-event connection. Syntax and whitespace checks passed. Browser rendering and iPhone layout have not been visually verified in this environment.
+
+The supplied partial report 17 reconciles across its nine completed market simulations: 20 selected test trades, 6 wins, 14 losses, $37.059234 in positive net outcomes and $52.319662 in negative net outcomes, for -$15.260428 total. These are separate historical accounts, not one portfolio, current website balances or real-money profits. No strategy, qualification, model or risk setting changed in this display update; no new market-performance claim is made.
+
 ## 15 September 2026: V11.4 loss and break-even study
 
 **209 Python tests passed in 35.972 seconds.** New coverage checks actual after-cost outcome bands, review priority without duplicated evidence, fee-covered break-even calculations, next-candle activation, stop-first ambiguity, adverse gaps, future-data isolation, incomplete post-exit windows, bounded case selection, exact checkpoint resumption and persisted paper/Coinbase reviews. Paper positions predating quote-path tracking retain unknown excursions. Independent practice continues after loss streaks while account simulations keep their existing pauses. No test submitted an exchange order.

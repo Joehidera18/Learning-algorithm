@@ -958,6 +958,7 @@ class ContinuousLearner:
                     "validated_profiles": stored_profiles, "active_profiles": active_profiles}
 
     def analytics(self):
+        from .finances import closed_trade_totals
         con = db_connect(self.db_path)
         rows = [dict(r) for r in con.execute(
             "SELECT * FROM paper_trades WHERE status='CLOSED' ORDER BY closed_at,id")]
@@ -982,7 +983,8 @@ class ContinuousLearner:
             curve.append({"ts": r["closed_at"], "balance": balance})
         for group in families.values():
             group["expectancy_r"] = group["sum_r"] / group["trades"]
-        return {"closed_trades": len(rows), "win_rate": wins / len(rows) * 100 if rows else None,
+        return {"trade_finances":closed_trade_totals(r["pnl"] for r in rows),
+                "closed_trades": len(rows), "win_rate": wins / len(rows) * 100 if rows else None,
                 "net_pnl": profit - loss, "profit_factor": profit / loss if loss else None,
                 "profit_factor_note": "No losing trades yet" if rows and not loss else None,
                 "expectancy_r": sum(r["result_r"] for r in rows) / len(rows) if rows else None,

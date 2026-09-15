@@ -4,6 +4,7 @@
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
   let practiceSelectionLoaded = false;
+  const financeData = {paper:null,coinbase:null,history:null};
   const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
   const escape = function (value) { return String(value == null ? "—" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
   const finite = function (v) { return typeof v === "number" && Number.isFinite(v); };
@@ -48,6 +49,67 @@
       }
     });
   }
+  function updateFinances(source, value, failed) {
+    if (failed) financeData[source] = {...(financeData[source] || {}),failed:true};
+    else financeData[source] = {value:value,at:Date.now(),failed:false};
+    renderFinances();
+  }
+  function renderFinances() {
+    const source=$("financeSource").value || "history", saved=financeData[source];
+    let totals=null, note="Loading saved trade results…";
+    $("financeMarketLabel").hidden=source!=="history";
+    $("financeTradesLabel").textContent=source==="history" ? "Selected test trades" : "Closed trades";
+    if (saved && saved.value) {
+      if (source==="history") {
+        const reports=saved.value.results || [], previous=$("financeMarket").value || "*";
+        const key=function (r) { return r.symbol+":"+(r.interval || ""); };
+        const options='<option value="*">All tested markets</option>'+reports.map(function (r) {
+          return '<option value="'+escape(key(r))+'">'+escape(r.symbol)+(r.interval ? ' · '+escape(r.interval) : '')+'</option>';
+        }).join("");
+        if ($("financeMarket").innerHTML!==options) $("financeMarket").innerHTML=options;
+        $("financeMarket").value=reports.some(function (r) {return key(r)===previous;}) ? previous : "*";
+        const selected=reports.filter(function (r) {return $("financeMarket").value==="*" || key(r)===$("financeMarket").value;});
+        const available=selected.filter(function (r) {return r.trade_finances && r.trade_finances.status==="available";});
+        if (available.length || !reports.length) {
+          totals={closed_trades:0,winning_trades:0,losing_trades:0,break_even_trades:0,money_won:0,money_lost:0,net_pnl:0,window_end_exits:0};
+          available.forEach(function (r) {Object.keys(totals).forEach(function (k) {totals[k]+=r.trade_finances[k] || 0;});});
+          totals.win_rate=totals.closed_trades ? 100*totals.winning_trades/totals.closed_trades : null;
+          note=reports.length ? "Selected final-test results after costs from "+available.length+" separate market simulation"+(available.length===1 ? "." : "s. These totals are not one combined portfolio.") : "Run historical practice to see selected test trades here.";
+          if (selected.length>available.length) note+=" Partial totals: "+(selected.length-available.length)+" market(s) have incomplete or unavailable trade records and are excluded.";
+          if (totals.window_end_exits) note+=" Includes "+totals.window_end_exits+" simulated exit(s) at the end of the test window.";
+          if (reports.length) note+=" Training examples and alternative test runs are excluded.";
+        } else note="Complete saved test trades are unavailable for this selection. Run historical practice again.";
+        if (saved.value.total_markets>reports.length) note+=" Saved reports: "+reports.length+" of "+saved.value.total_markets+" requested markets.";
+      } else if (source==="paper") {
+        totals=saved.value.trade_finances;
+        note="Paper money · All closed trades in this account's saved journal, after fees and modeled slippage. Open-position gains and losses are shown separately in Overview.";
+      } else {
+        totals=saved.value.trade_finances;
+        note=saved.value.mode==="locked" ? "The Coinbase journal is locked. Open the Coinbase tab for setup." :
+          "Real money · All confirmed, closed Coinbase bot trades after fees. Previews, unfilled orders and trades made outside this bot are excluded.";
+      }
+    }
+    if (totals && totals.status==="unavailable") {note=totals.message;totals=null;}
+    const count=function (v) {return finite(v) ? v.toLocaleString("en-US") : "—";};
+    $("financeTrades").textContent=count(totals && totals.closed_trades);
+    [["financeWon","money_won"],["financeLost","money_lost"],["financeNet","net_pnl"]].forEach(function (pair) {
+      let value=totals && totals[pair[1]];
+      if (pair[1]==="money_lost" && finite(value) && value>0) value=-value;
+      $(pair[0]).textContent=money(value);$(pair[0]).className=tone(value);
+    });
+    $("financeWins").textContent=count(totals && totals.winning_trades);
+    $("financeLosses").textContent=count(totals && totals.losing_trades);
+    $("financeBreakEven").textContent=count(totals && totals.break_even_trades);
+    $("financeRate").textContent=pct(totals && totals.win_rate);
+    $("financeNote").textContent=note;
+    $("financeUpdated").className="badge"+(saved && saved.failed ? " negative" : "");
+    $("financeUpdated").textContent=saved && saved.failed ? (saved.at ? "Update failed · showing totals from "+new Date(saved.at).toLocaleTimeString() : "Totals unavailable · retrying") :
+      saved && saved.at ? (totals ? "Updated " : "Unavailable · checked ")+new Date(saved.at).toLocaleTimeString() : "Loading totals…";
+  }
+  $("financeSource").value=["history","paper","coinbase"].includes(sessionStorage.getItem("cryptoFinanceSource")) ? sessionStorage.getItem("cryptoFinanceSource") : "history";
+  $("financeSource").addEventListener("change",function () {sessionStorage.setItem("cryptoFinanceSource",this.value);renderFinances();});
+  $("financeMarket").addEventListener("change",renderFinances);
+  window.addEventListener("coinbase-finances",function (event) {updateFinances("coinbase",event.detail.value,event.detail.failed);});
   function renderState(s) {
     state = s;
     const p = s.portfolio, r = s.runtime, day = s.risk_day || {};
@@ -96,6 +158,7 @@
     $("balanceChart").innerHTML = '<svg viewBox="0 0 620 205" role="img" aria-label="Realized paper balance after each closed trade"><line x1="55" y1="175" x2="590" y2="175" stroke="#263342"/><line x1="55" y1="20" x2="590" y2="20" stroke="#263342"/><text x="0" y="27">' + escape(money(top)) + '</text><text x="0" y="180">' + escape(money(bottom)) + '</text><polyline fill="none" stroke="#56d6bc" stroke-width="2.5" points="' + coords + '"/><text x="55" y="201">Start</text><text x="535" y="201">Latest</text></svg>';
   }
   function renderAnalytics(a) {
+    updateFinances("paper",a);
     $("tradeCount").textContent = a.closed_trades + " closed trades";
     $("winRate").textContent = pct(a.win_rate); $("profitFactor").textContent = num(a.profit_factor); $("profitFactor").title = a.profit_factor_note || "";
     $("expectancy").textContent = num(a.expectancy_r); $("drawdown").textContent = pct(a.max_closed_drawdown_pct);
@@ -302,6 +365,7 @@
   }
   function renderLearning(s) {
     learningState=s;
+    updateFinances("history",s);
     if (!practiceSelectionLoaded) {
       const saved=s.practice_symbols || s.default_practice_symbols;
       if (Array.isArray(saved) && saved.length) $("practiceSymbols").value=saved.map(function (symbol) { return symbol.replace(/-USD$/, ""); }).join(", ");
@@ -381,7 +445,14 @@
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
       },renderResearch,renderLearning];
       let firstError = null;
-      responses.forEach(function (response,i) { if (response.status === "fulfilled") renderers[i](response.value); else if (!firstError) firstError = response.reason; });
+      responses.forEach(function (response,i) {
+        if (response.status === "fulfilled") renderers[i](response.value);
+        else {
+          if (i===1) updateFinances("paper",null,true);
+          if (i===5) updateFinances("history",null,true);
+          if (!firstError) firstError=response.reason;
+        }
+      });
       if (firstError) throw firstError;
     } catch (e) { notice(e.message, true); } finally { busy = false; }
   }
