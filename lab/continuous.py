@@ -14,7 +14,8 @@ from pathlib import Path
 from .coinbase_feed import CoinbaseClient, CoinbaseTickerStream
 from .engine import build_feature_cache, evaluate_signal
 from .strategies import profit_candidates
-from .trade_quality import net_payoff, cooldown_minutes
+from .trade_quality import net_payoff, cooldown_minutes, signal_atr
+from .daily_context import daily_context
 from .paper_store import (init_continuous_db, db_connect, load_state, log_activity,
                          recent_trades, activity_rows, memory_leaderboard)
 
@@ -448,9 +449,17 @@ class ContinuousLearner:
             if cached and cached[0] == signature:
                 return cached[1]
             snapshot = list(rows)
+            # Existing hourly bootstrap covers >40 days. Complete 4-hour bars
+            # supply daily context even when the decision cache is shorter.
+            asof = rows[-1]["ts"]+INTERVAL_MS[iv] if rows else 0
+            daily_rows = [r for r in self.market.get(pid, {}).get("bars", {}).get("4h", [])
+                          if r["ts"]+INTERVAL_MS["4h"] <= asof]
         feature = None
         if len(snapshot) >= 241:
             feature = build_feature_cache(snapshot, iv)["features"][-1]
+            if feature:
+                contexts = daily_context(daily_rows, INTERVAL_MS["4h"])
+                feature["daily"] = contexts[-1] if contexts else {}
         with self.lock:
             self._feature_cache[(pid, iv)] = (signature, feature)
         return feature
@@ -665,7 +674,8 @@ class ContinuousLearner:
             direction = p["direction"]
             fee, slip = self.settings["fee_rate"], self.settings["slippage_rate"]
             entry = (tick["best_ask"] * (1 + slip) if direction == "LONG" else tick["best_bid"] * (1 - slip))
-            atr = max(float(f.get("_atr") or 0), market_price * .002)
+            atr = max(signal_atr(f, p), market_price * .002)
+            gap_atr = max(float(f.get("_atr") or 0), market_price * .002)
             stop_dist = max(atr * p.get("stop_atr", 1.4), market_price * .0015)
             stop = entry - stop_dist if direction == "LONG" else entry + stop_dist
             target = entry + stop_dist * p.get("rr2", 2) * (1 if direction == "LONG" else -1)
@@ -678,7 +688,7 @@ class ContinuousLearner:
                 if not retrace:
                     self.market[pid]["last_decision"] = "Waiting for the sequence retracement"
                     return None
-            if abs(market_price - f.get("_close", market_price)) > atr * p.get("max_gap_atr", .6):
+            if abs(market_price - f.get("_close", market_price)) > gap_atr * p.get("max_gap_atr", .6):
                 self.market[pid]["last_decision"] = "Entry spread and slippage exceed the gap limit"
                 return None
             stop_fill = stop * (1 - slip if direction == "LONG" else 1 + slip)
@@ -867,7 +877,8 @@ class ContinuousLearner:
             if score is None or params.get("direction") != "LONG":
                 raise ValueError(reason or "No eligible long signal")
             return {"product_id":pid,"interval":interval,"signal_ts":latest["ts"],
-                    "atr":f["_atr"],"close":f["_close"],"params":copy.deepcopy(params),
+                    "atr":signal_atr(f, params),"gap_atr":f["_atr"],
+                    "close":f["_close"],"params":copy.deepcopy(params),
                     "score":score,"learning":learning}
 
     def status(self):

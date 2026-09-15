@@ -3,6 +3,7 @@
   const $ = function (id) { return document.getElementById(id); };
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
+  let practiceSelectionLoaded = false;
   const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
   const escape = function (value) { return String(value == null ? "—" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
   const finite = function (v) { return typeof v === "number" && Number.isFinite(v); };
@@ -112,6 +113,13 @@
       trading_cost_too_high:"Trading costs too high",
       net_reward_too_small:"Reward after costs too small",
       entry_gap_too_large:"Entry price moved too far",
+      daily_history_not_ready:"Needs 21 complete, consecutive daily candles",
+      daily_downtrend:"Daily trend is falling",
+      no_daily_momentum:"Daily trend and weekly momentum do not agree",
+      no_prior_compression:"No preceding volatility contraction",
+      no_expansion_breakout:"No confirmed volatility breakout",
+      no_support_reclaim:"Support was not reclaimed",
+      no_rsi_recovery:"RSI has not recovered above 40",
       missing_market_candles:"Missing market candles",
       daily_loss_limit:"Daily loss halt",
       insufficient_learning_samples:"Too few completed training examples",
@@ -135,6 +143,14 @@
     const held=(r.holdout || {}).signal_funnel || {};
     const execution=rejectionSummary(held.rejections);
     const learned=rejectionSummary(held.learning_candidate_rejections);
+    const families=Object.create(null);
+    (diagnostics.candidates || []).forEach(function (candidate) {
+      const key=(candidate.params || {}).family || "unknown";
+      families[key]=(families[key] || 0)+(candidate.resolved_examples || 0);
+    });
+    const familyTable='<details><summary>Training examples by strategy</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Completed examples</th></tr></thead><tbody>'+Object.entries(families).map(function (entry) {
+      return '<tr><td>'+escape(family(entry[0]))+'</td><td>'+num(entry[1],0)+'</td></tr>';
+    }).join('')+'</tbody></table></div><p class="footnote">Training examples can overlap. More examples do not mean higher profit.</p></details>';
     return '<p class="footnote"><b>Training:</b> '+num(r.historical_examples,0)+
       ' completed examples from '+num(totals.qualified_setups,0)+' signal matches and '+
       num(totals.entries_opened,0)+' simulated entries across '+num(r.candidate_count,0)+
@@ -147,7 +163,7 @@
       (entryBlocks ? '<p class="footnote"><b>Training entry blocks after a signal matched:</b> '+entryBlocks+'</p>' : '')+
       (training ? '<p class="footnote"><b>Most common training blocks:</b> '+training+'</p>' : '')+
       (execution ? '<p class="footnote"><b>Final-test entry blocks:</b> '+execution+'</p>' : '')+
-      (learned ? '<p class="footnote"><b>Final-test candidate blocks:</b> '+learned+'</p>' : '');
+      (learned ? '<p class="footnote"><b>Final-test candidate blocks:</b> '+learned+'</p>' : '')+familyTable;
   }
   function renderLearningComparison(r) {
     const comparison=r.upgrade_comparison, coverage=r.data_selection, regimes=r.regime_examples;
@@ -167,6 +183,11 @@
       ' observed candles are used for warmup before entries can be considered.</p>';
     if (comparison) html+='<p class="footnote"><b>Change versus pooled learning:</b> '+money(comparison.net_pnl_difference)+
       ' in the final test; '+money(comparison.stress_net_pnl_difference)+' at higher costs. Negative means this upgrade did worse. This comparison does not choose the model.</p>';
+    if (r.strategy_expansion_comparison) {
+      const expansion=r.strategy_expansion_comparison;
+      html+='<p class="footnote"><b>Effect of adding the three new strategies:</b> '+money(expansion.net_pnl_difference)+
+        ' in the final test; '+money(expansion.stress_net_pnl_difference)+' at higher costs. Compared with the original 16 candidates using the same features, model seed and risk. Negative means the additions made this test worse. This comparison does not choose the model.</p>';
+    }
     if (r.benchmarks) html+='<p class="footnote">Same-period buy-and-hold net result on $500: '+money(r.benchmarks.buy_hold_net_pnl)+
       '. Holding cash: $0. Exposure differs from the trading policy.</p>';
     if (r.next_review_at) html+='<p class="footnote">Next scheduled historical review: '+escape(date(r.next_review_at))+'.</p>';
@@ -174,6 +195,12 @@
   }
   function renderLearning(s) {
     learningState=s;
+    if (!practiceSelectionLoaded) {
+      const saved=s.practice_symbols || s.default_practice_symbols;
+      if (Array.isArray(saved) && saved.length) $("practiceSymbols").value=saved.map(function (symbol) { return symbol.replace(/-USD$/, ""); }).join(", ");
+      practiceSelectionLoaded=true;
+    }
+    $("practiceSymbols").disabled=!!s.enabled || s.phase==="stopping";
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
       learning:"Learning",testing:"Testing",watching:"Watching & learning",waiting:"Waiting for evidence",
       error:"Needs attention",stopping:"Stopping",completed:"Practice complete"};
@@ -260,10 +287,16 @@
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
     await api("/api/learning/start",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
   });
+  $("practiceSymbols").addEventListener("input",function () { practiceSelectionLoaded=true; });
   bind("practiceBtn",async function () {
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
-    await api("/api/learning/practice",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
+    const symbols=Array.from(new Set($("practiceSymbols").value.toUpperCase().split(/[,\s]+/).filter(Boolean).map(function (symbol) {
+      return symbol.endsWith("-USD") ? symbol : symbol+"-USD";
+    })));
+    if (!symbols.length || symbols.length>20) throw new Error("Choose one to twenty coins for historical practice.");
+    if (symbols.some(function (symbol) { return !/^[A-Z0-9]{2,16}-USD$/.test(symbol); })) throw new Error("Enter Coinbase USD tickers such as HBAR, XRP, XLM.");
+    await api("/api/learning/practice",{fee_rate:Number(input.value)/100,symbols:symbols}); settingsLoaded=false; await refresh();
   });
   bind("stopBtn",async function () { await api("/api/continuous/stop",{}); await refresh(); });
   bind("pauseBtn",async function () { await api("/api/continuous/pause",{paused:!(state && state.settings.entries_paused)}); await refresh(); });

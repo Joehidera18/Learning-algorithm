@@ -13,12 +13,12 @@ from .strategies import profit_candidates, simple_signal
 from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
 
-POLICY_VERSION = "online-net-r-v3-historical-exploration"
+POLICY_VERSION = "online-net-r-v4-daily-context"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
 REGIME_SHRINKAGE = 50
-DIMENSIONS = 13
+DIMENSIONS = 16
 
 
 def bounded(value, lower=-1., upper=1.):
@@ -30,6 +30,7 @@ def bounded(value, lower=-1., upper=1.):
 
 def feature_vector(f):
     """Only entry-time features, normalized using fixed, predeclared scales."""
+    daily = f.get("daily", {})
     return [1., bounded((f.get("rsi", 50)-50)/50),
         bounded(f.get("volume_z", 0)/3), bounded((f.get("adx", 25)-25)/25),
         bounded((f.get("atr_pct", .01)-.01)/.02),
@@ -37,7 +38,10 @@ def feature_vector(f):
         bounded(f.get("obv_slope", 0)*10), bounded(f.get("signed_volume_pressure", 0)*3),
         bounded(f.get("range_position", .5)*2-1),
         float(f.get("regime")=="BULL"), float(f.get("regime")=="BEAR"),
-        bounded(f.get("range_expansion", 1)/3, 0, 1)]
+        bounded(f.get("range_expansion", 1)/3, 0, 1),
+        bounded(daily.get("momentum7", 0)/.2),
+        bounded(daily.get("ma_distance_atr", 0)/3),
+        bounded(daily.get("atr_pct", 0)/.1, 0, 1)]
 
 
 def action_key(p):
@@ -68,8 +72,10 @@ def update_model(model, vector, result_r):
 
 class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
-                 fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True):
+                 fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
+                 legacy_candidates_only=False):
         self.learn = learn
+        self.legacy_candidates_only = legacy_candidates_only
         self.fee_rate, self.slippage_rate = float(fee_rate), float(slippage_rate)
         if not (0 <= self.fee_rate <= .05 and 0 <= self.slippage_rate <= .05):
             raise ValueError("Invalid learning cost assumptions")
@@ -132,13 +138,15 @@ class AdaptivePolicy:
     def opportunities(self, f):
         vector = feature_vector(f)
         result = []
+        candidates = [p for p in self.candidates
+                      if not self.legacy_candidates_only or p.get("atr_timeframe") != "daily"]
         # Counts are per candidate, not independent candles or trade outcomes.
-        self.last_diagnostics = {"candidates_checked": len(self.candidates),
+        self.last_diagnostics = {"candidates_checked": len(candidates),
             "eligible_candidates": 0, "rejections": {}}
         def reject(reason):
             counts = self.last_diagnostics["rejections"]
             counts[reason] = counts.get(reason, 0) + 1
-        for p in self.candidates:
+        for p in candidates:
             score, reason = simple_signal(f, p)
             if score is None:
                 reject(reason or "no_setup")

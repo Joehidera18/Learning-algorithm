@@ -3,6 +3,17 @@
 import math
 
 
+def signal_atr(features, params):
+    """Stop-distance ATR. Entry-gap protection continues to use decision ATR."""
+    if params.get("atr_timeframe") == "daily":
+        daily = features.get("daily", {})
+        value = daily.get("atr", 0) if daily.get("ready") else 0
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("A complete daily ATR is required for this strategy")
+        return float(value)
+    return float(features.get("_atr", 0))
+
+
 def signal_cost_check(features, params, fee, slip):
     """Screen a candidate at the KNOWN signal close, never a future fill price.
 
@@ -10,7 +21,10 @@ def signal_cost_check(features, params, fee, slip):
     This only keeps a cost-infeasible favorite from hiding another candidate.
     """
     raw = float(features.get("_close", 0))
-    atr = float(features.get("_atr", 0))
+    try:
+        atr = signal_atr(features, params)
+    except (TypeError, ValueError):
+        return None, "invalid_entry_features"
     if not all(math.isfinite(x) for x in (raw, atr, fee, slip)) or raw <= 0 or atr < 0:
         return None, "invalid_entry_features"
     sign = 1 if params.get("direction", "LONG") == "LONG" else -1

@@ -1,5 +1,23 @@
 # V11 verification
 
+## 15 September 2026 research strategy additions
+
+**162 Python tests passed.** Eight new tests cover completed-day availability, non-repainting after future-price changes, full daily warmup after a missing candle, agreement between replay and the paper runner with a shorter decision cache, and exclusion of future higher-timeframe bars. They also cover each new rule, full fee deductions on flat prices, preserved entry-gap limits, bounded sizing and shared daily-ATR stop distances in simulation, paper trading and Coinbase order planning.
+
+The expanded-policy test verifies that a better original-strategy comparison cannot replace a losing expanded holdout or grant qualification. Existing checks for gap-censored outcomes, training-label timing, cache restart/version boundaries, loss limits and exchange failure handling still pass. The 22 candidate keys are distinct. No test placed an exchange order.
+
+Dashboard rendering checks using the actual JavaScript functions passed with the user's existing report, strategy-group counts, negative comparison values and escaped text. JavaScript syntax and diff checks passed. These checks do not establish Safari/mobile rendering or production deployment.
+
+No new market-performance backtest was completed in this environment. The attached report contains results rather than raw candles, and no return improvement is claimed. After deployment, rerun practice using saved/downloaded real Coinbase candles and verified fees. The engine, model and report version changes invalidate incompatible qualification/label caches while retaining market history and account data. Source review and exact hypotheses are in [STRATEGY_RESEARCH.md](STRATEGY_RESEARCH.md).
+
+## 15 September 2026 expanded practice selection
+
+**154 Python tests passed.** New checks cover the 13-market default list (10 additions to BTC/ETH/SOL), API normalization and duplicate removal, saved selections across service reconstruction, and continuation after a market-history failure. Invalid and over-limit lists are rejected before settings change. Historical practice accepts up to 20 markets and processes them sequentially.
+
+Node-based interaction checks verified the 13 defaults reach the practice API with unchanged fees, short/full tickers normalize, duplicate symbols collapse, blank/invalid/over-limit inputs do not submit, saved choices load, and subsequent status updates do not overwrite unsent edits. JavaScript syntax and diff checks passed. These checks use fixtures and a mocked document; they do not verify each market's current Coinbase history availability or mobile layout. Each actual download remains subject to the existing real-data validation and per-market errors.
+
+The supplied completed `learning-results 9.json` reports 9,571 BTC, 9,515 ETH and 10,270 SOL training examples (29,356 total); all three remain unqualified with zero final-test trades. Adding markets expands the research universe and does not establish profitable performance.
+
 ## 15 September 2026 exported-report training repair
 
 The supplied `learning-results 5.json` is an actual application export reporting Coinbase Exchange prices. In that older run, BTC had 3,436 signal matches and all 3,436 entry attempts failed the cost screen. ETH had 3,160 matches, 3,155 cost blocks, one net-reward block, and four completed examples. Only 12,461 candles per market were retained; 92,602 BTC and 92,600 ETH candles before the final gap were discarded. The export contains report aggregates and models, not the raw candles, so these observations do not independently verify the source prices.

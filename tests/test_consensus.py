@@ -77,7 +77,7 @@ class ConsensusTests(unittest.TestCase):
         self.assertLess(result["holdout"]["net_pnl"],0)
         self.assertTrue(all(p["family"]=="signal_consensus_simple" for start,end,p in calls if start>=4000))
         records = result["candidate_selection"]["candidates"]
-        self.assertEqual(len(records),16)
+        self.assertEqual(len(records),22)
         self.assertEqual(sum(r["selection_status"]=="selected" for r in records),1)
         self.assertTrue(all(r["training"]["net_pnl"]>0 for r in records))
 

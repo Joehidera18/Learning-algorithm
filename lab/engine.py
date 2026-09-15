@@ -12,7 +12,7 @@ from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
 
-ENGINE_VERSION="market-structure-v11.0"
+ENGINE_VERSION="market-structure-v11.1-swing-research"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={
@@ -136,6 +136,8 @@ def _rolling_extreme(vals,n,mode="max"):
     return out
 
 def build_feature_cache(rows,interval,simple_only=False):
+    from .daily_context import daily_context
+    daily = daily_context(rows, INTERVAL_MS.get(interval,900000))
     n=len(rows)
     c=[r["close"] for r in rows];o=[r["open"] for r in rows]
     h=[r["high"] for r in rows];l=[r["low"] for r in rows]
@@ -233,7 +235,8 @@ def build_feature_cache(rows,interval,simple_only=False):
     simple_keys=("rsi","volume_z","sweep_low","breakout","breakout55","regime",
         "lower_wick","adx","signed_volume_pressure","obv_slope","atr_regime",
         "range_expansion","atr_pct","momentum20","momentum50","range_position",
-        "_atr","_close","_ts","_trend_long","_pullback_long")
+        "_atr","_close","_ts","_trend_long","_pullback_long",
+        "daily","rsi_previous","prior_compression","support_reclaim")
     # Live inputs are completed candles; simulate() separately reserves its fill bar.
     for i in range(240,n):
         a=atr[i]
@@ -280,6 +283,9 @@ def build_feature_cache(rows,interval,simple_only=False):
         from datetime import datetime,timezone
         dt=datetime.fromtimestamp(rows[i]["ts"]/1000,timezone.utc)
         F[i]={
+          "daily":daily[i], "rsi_previous":rsi[i-1] if rsi[i-1] is not None else 50.,
+          "prior_compression":bool(ravg(i-32,i-8) and ravg(i-8,i)/ravg(i-32,i-8)<.72),
+          "support_reclaim":l[i]<=pl+.25*a and c[i]>pl and c[i]>o[i],
           "rsi":rsi[i] if rsi[i] is not None else 50.0,"volume_z":vz[i],
           "sweep_low":sweep_low,"sweep_high":sweep_high,
           "breakout":breakout,"breakdown":breakdown,"breakout55":breakout55,"breakdown55":breakdown55,

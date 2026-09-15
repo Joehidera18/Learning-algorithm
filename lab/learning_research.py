@@ -12,7 +12,7 @@ from .research import cost_signature, bootstrap_interval, daily_goal_report
 from .data import INTERVAL_MS
 from .learning_data import prepare_learning_history, FEATURE_WARMUP
 
-LEARNING_REPORT_VERSION = 5
+LEARNING_REPORT_VERSION = 6
 
 
 def build_learning_features(rows, interval, segments, cancelled=None):
@@ -90,10 +90,11 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             cursor += 1
         return seed.export()
 
-    def test(initial, start, end, stress=1, learn=True, baseline=False):
+    def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False):
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
-            regime_adaptation=not baseline, cost_filter=not baseline)
+            regime_adaptation=not baseline, cost_filter=not baseline,
+            legacy_candidates_only=legacy)
         metrics, trades = simulate(rows, features, start, end, 500,
             settings["risk_per_trade"], fee*stress, slip*stress,
             {"family":"adaptive_policy", "direction":"LONG"},
@@ -119,6 +120,9 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     frozen, _, _ = test(initial,holdout_start,len(rows),learn=False)
     baseline, _, _ = test(initial,holdout_start,len(rows),baseline=True)
     baseline_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,baseline=True)
+    # A diagnostic, never a second chance to choose a winning holdout policy.
+    legacy, _, _ = test(initial,holdout_start,len(rows),legacy=True)
+    legacy_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,legacy=True)
     first, last = rows[holdout_start+1]["open"], rows[-1]["close"]
     buy_hold = 500/(first*(1+slip)*(1+fee))*last*(1-slip)*(1-fee)-500
     regime_examples = {regime:sum(m.get("regimes", {}).get(regime, {}).get("samples",0)
@@ -161,6 +165,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "decision_interval":interval, "training_start_ts":rows[240]["ts"],
             "training_end_ts":rows[development-1]["ts"]+step,
             "test_start_ts":rows[holdout_start]["ts"], "test_end_ts":rows[-1]["ts"]+step,
+            "daily_context_rule":"Only complete UTC days; 21 consecutive days required after each gap.",
             "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
             "feedback_rule":"Learn a trade result only after its exit candle closes."},
         "data_quality":quality, "data_hours":len(rows)*step/3600000,
@@ -182,6 +187,12 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "stress_net_pnl_difference":pnl_difference(stressed, baseline_stressed),
             "selection_uses_comparison":False,
             "label":"Pooled learning without regime adaptation or signal-time cost screening; same seed, costs and daily halt."},
+        "strategy_expansion_comparison":{"baseline":legacy, "baseline_stressed":legacy_stressed,
+            "net_pnl_difference":pnl_difference(holdout, legacy),
+            "stress_net_pnl_difference":pnl_difference(stressed, legacy_stressed),
+            "selection_uses_comparison":False,
+            "label":"Original 16 candidates only, using the same entry features, model seed, costs and risk. "
+                    "Negative differences mean the added strategies made this test worse; this is not a replication of an older app version."},
         "benchmarks":{"cash_net_pnl":0., "buy_hold_net_pnl":buy_hold,
             "buy_hold_return_pct":buy_hold/5, "scope":"$500 buy and hold after costs over the same executable final-test period; different exposure from the trading policy."},
         "holdout_learning_updates":trained["observations"]-initial["observations"],

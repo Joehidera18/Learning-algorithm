@@ -323,7 +323,9 @@ def entry_plan(signal, product, quote, snapshot, capital, settings, client_id):
         raise BrokerError("Coinbase spread exceeds the configured limit")
     p = signal["params"]
     atr = max(positive(signal["atr"],"signal ATR"), positive(signal["close"])*Decimal(".002"))
-    if abs(ask-positive(signal["close"])) > atr*decimal(p.get("max_gap_atr",.5)):
+    gap_atr = max(positive(signal.get("gap_atr",signal["atr"]),"signal gap ATR"),
+                  positive(signal["close"])*Decimal(".002"))
+    if abs(ask-positive(signal["close"])) > gap_atr*decimal(p.get("max_gap_atr",.5)):
         raise BrokerError("The Coinbase quote has moved too far from the signal")
     # Limit the entry price; never replace a rejected protected order with a naked buy.
     limit = rounded(ask*(1+slip), product["price_increment"],up=True)
