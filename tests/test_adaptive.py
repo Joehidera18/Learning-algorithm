@@ -58,7 +58,7 @@ class OnlineModelTests(unittest.TestCase):
         detail=policy.last_diagnostics
         self.assertEqual(detail["candidates_checked"],
             detail["eligible_candidates"]+sum(detail["rejections"].values()))
-        model=policy.state["models"][action_key(params)]
+        model=policy.evidence(params,feature_vector(F,params,0,0))
         model["regimes"]["BULL"]["recent_r"]=-.1
         self.assertIsNone(policy.choose(F))
         self.assertEqual(policy.last_diagnostics["rejections"]["nonpositive_recent_return"],1)
@@ -189,7 +189,7 @@ class LearningProtocolTests(unittest.TestCase):
             if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation
                                  or kwargs["policy"].legacy_candidates_only):
                 payoff=2.  # Neither diagnostic can replace the updating policy.
-            trades=[{"features":F,"r_multiple":payoff,"pnl":payoff,"entry_ts":data[i]["ts"],
+            trades=[{"features":F,"training_vector":feature_vector(F),"r_multiple":payoff,"pnl":payoff,"entry_ts":data[i]["ts"],
                 "exit_ts":data[i]["ts"],"strategy_family":params["family"],"reason":"TARGET2"} for i in indices]
             return {"net_pnl":len(trades)*payoff,"return_pct":len(trades)*payoff/5,
                 "trades":len(trades),"max_drawdown_pct":8 if payoff<0 else 0,"expectancy_r":payoff},trades

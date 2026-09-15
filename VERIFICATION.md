@@ -1,5 +1,15 @@
 # V11 verification
 
+## 15 September 2026 cost-aware learning and reproducible exports
+
+**182 Python tests passed in 12.13 seconds** with production dependencies available. The new regressions cover signal-time cost inputs, separately learned cost groups, pre-update prediction-error penalties, and continued feedback when selected account trades are zero. Historical shadow outcomes agree with the shared execution engine; changing future prices cannot alter earlier labels. Missing-price outcomes and forced end-of-window closes are excluded, and account closures are not learned twice. No test placed an exchange order.
+
+Qualification checks reject profitable but previously reviewed history without new confirmation. They also reject positive shadow results when the selected-account-feedback control loses, including on the fresh price window. Export checks cover authentication, exact report dates and candle count, canonical SHA-256 matching, changed-price rejection, path traversal, and explicit handling of older reports without a digest.
+
+The actual dashboard JavaScript passed Node-based checks with the supplied `learning-results 12.json`, the new training/account counts, fee attribution, both confirmation results, escaped strings, and the attached download link with delayed object-URL cleanup. JavaScript syntax and diff checks passed. These checks use a mocked document and do not establish Safari download behavior, mobile rendering or the live Render deployment.
+
+The supplied report contains 130,625 development examples but only 32 selected final-test trades across 13 separate market simulations, with no qualified market. It contains no raw candles. A fresh Coinbase download timed out in this workspace, so this revision has **no measured profit improvement yet**. The new export makes the saved candles available for a reproducible subsequent review. Fees, strategy rules and account-risk settings were not fitted to the report. Models and labels must rebuild under engine V11.2, policy v5 and report 7; cached market history and account records are preserved. The exact changes, source evidence and limitations are in [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md).
+
 ## 15 September 2026 research strategy additions
 
 **162 Python tests passed.** Eight new tests cover completed-day availability, non-repainting after future-price changes, full daily warmup after a missing candle, agreement between replay and the paper runner with a shorter decision cache, and exclusion of future higher-timeframe bars. They also cover each new rule, full fee deductions on flat prices, preserved entry-gap limits, bounded sizing and shared daily-ATR stop distances in simulation, paper trading and Coinbase order planning.

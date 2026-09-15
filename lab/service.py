@@ -112,6 +112,11 @@ class Service:
             if path == "/api/learning/export" and method == "GET":
                 return 200, json.dumps(self.autolearn.export(),indent=2,allow_nan=False).encode(), {
                     "Content-Type":"application/json", "Content-Disposition":'attachment; filename="learning-results.json"'}
+            if path == "/api/learning/data" and method == "GET":
+                from .research_bundle import market_bundle
+                content, filename = market_bundle(self.autolearn,query.get("symbol"),query.get("interval"))
+                return 200,content,{"Content-Type":"application/zip",
+                    "Content-Disposition":f'attachment; filename="{filename}"'}
             if path == "/api/continuous/status" and method == "GET":
                 return 200, self.agent.status(), {}
             if path == "/api/continuous/settings":

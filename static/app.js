@@ -35,7 +35,8 @@
   }
   async function download(path, filename) {
     const blob = await api(path, undefined, true), url = URL.createObjectURL(blob), a = document.createElement("a");
-    a.href = url; a.download = filename; a.click(); setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
   }
   function bind(id, action) {
     $(id).addEventListener("click", async function () {
@@ -125,6 +126,7 @@
       insufficient_learning_samples:"Too few completed training examples",
       nonpositive_recent_return:"Recent learned returns are not positive",
       low_estimated_return:"Estimated return below the entry threshold",
+      prediction_error_too_large:"Prediction error leaves too little estimated return",
       no_positive_learned_setup:"No candidate passed the learning checks",
       no_current_learning_model:"No current qualifying model"
     };
@@ -193,6 +195,38 @@
     if (r.next_review_at) html+='<p class="footnote">Next scheduled historical review: '+escape(date(r.next_review_at))+'.</p>';
     return html;
   }
+  function renderCostLearning(r) {
+    let html="";
+    const feedback=r.holdout_shadow_feedback;
+    if (feedback) html+='<p class="footnote"><b>Continued historical practice:</b> '+num(feedback.resolved_examples,0)+
+      ' additional hypothetical outcomes learned during the later test, including opportunities the account skipped. '+
+      'Each outcome becomes available only after its exit candle closes. These are overlapping training examples, not account trades.</p>';
+    const attribution=r.performance_attribution;
+    if (attribution) html+='<details><summary>Which strategies earned or lost money?</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Account trades</th><th>Before fees</th><th>Fees</th><th>Net result</th></tr></thead><tbody>'+
+      Object.entries(attribution.by_family || {}).map(function (entry) {
+        const a=entry[1];
+        return '<tr><td>'+escape(family(entry[0]))+'</td><td>'+num(a.trades,0)+'</td><td>'+money(a.gross_pnl)+
+          '</td><td>'+money(a.fees_paid)+'</td><td class="'+tone(a.net_pnl)+'">'+money(a.net_pnl)+'</td></tr>';
+      }).join('')+'</tbody></table></div><p class="footnote">'+escape(attribution.scope)+'</p></details>';
+    const control=r.account_feedback_comparison;
+    if (control) html+='<p class="footnote"><b>Learning only from selected account trades:</b> '+money((control.baseline || {}).net_pnl)+
+      ' after costs; '+money((control.baseline_stressed || {}).net_pnl)+' at higher costs. '+
+      'This tests the feedback used between scheduled historical reviews. It must also be profitable before qualification.</p>';
+    const evaluation=r.evaluation;
+    if (evaluation && evaluation.reuses_reviewed_history) {
+      html+='<p class="callout"><b>Research on previously reviewed history.</b> A report ending '+escape(date(evaluation.reviewed_through_ts,true))+
+        ' informed this learner. An improved replay of that history does not count as independent confirmation.</p>';
+      const fresh=evaluation.confirmation;
+      if (fresh) html+='<p class="footnote"><b>Confirmation on later prices:</b> '+escape(date(fresh.start_ts,true))+
+        ' to '+escape(date(fresh.end_ts,true))+'. '+num(fresh.metrics.trades,0)+' selected trades; '+money(fresh.metrics.net_pnl)+
+        ' after costs, '+money(fresh.stressed.net_pnl)+' at higher costs. A small or incomplete test cannot qualify.</p>';
+      else html+='<p class="footnote">No later price window is available in this download yet. Historical practice is complete; new confirmation data is still needed.</p>';
+      if (fresh && fresh.account_feedback_control) html+='<p class="footnote"><b>Selected-trade feedback on later prices:</b> '+
+        money(fresh.account_feedback_control.metrics.net_pnl)+' after costs; '+money(fresh.account_feedback_control.stressed.net_pnl)+
+        ' at higher costs. Both must also pass.</p>';
+    }
+    return html;
+  }
   function renderLearning(s) {
     learningState=s;
     if (!practiceSelectionLoaded) {
@@ -207,6 +241,8 @@
     $("learningPhase").textContent=phases[s.phase] || s.phase;
     $("learningMessage").textContent=s.message;
     $("learningHours").textContent=Math.round(s.market_data_hours || 0).toLocaleString();
+    $("learningExamples").textContent=num(s.historical_examples || 0,0);
+    $("learningTestTrades").textContent=num((s.results || []).reduce(function (sum,r) { return sum+((r.holdout || {}).trades || 0); },0),0);
     $("learningTrades").textContent=String(s.forward_learning_trades || 0);
     $("learningMarkets").textContent=String((s.active_markets || []).length);
     $("startBtn").disabled=!!s.enabled || s.phase==="stopping";
@@ -221,10 +257,11 @@
       return '<div class="learning-result"><b>'+escape(r.symbol)+'</b><span class="badge '+(r.validated && !stale ? "positive" : "negative")+'">'+
         (stale ? "Updated learner · practice again" : (r.validated ? "Passed historical checks" : "Not qualified"))+'</span><p>'+
         (r.error ? escape(r.error) : incomplete ? 'Final test incomplete: missing candles interrupted an open position. A full-period result is unavailable.' :
-          'Final test: '+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
+          ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        renderLearningDiagnostics(r)+renderLearningComparison(r)+'</div>';
+        renderCostLearning(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
+        (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
     }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
   }
@@ -318,6 +355,13 @@
   bind("researchCancel",async function () { await api("/api/research/cancel",{}); notice("Cancellation requested."); });
   bind("researchExport",function () { return download("/api/research/export","research-results.json"); });
   bind("learningExport",function () { return download("/api/learning/export","learning-results.json"); });
+  $("learningResults").addEventListener("click",async function (event) {
+    const button=event.target.closest("[data-learning-data]"); if (!button) return;
+    const symbol=button.dataset.learningData, interval=button.dataset.interval;
+    button.disabled=true;
+    try { await download("/api/learning/data?symbol="+encodeURIComponent(symbol)+"&interval="+encodeURIComponent(interval),symbol+"_"+interval+"_learning-data.zip"); }
+    catch (e) { notice(e.message,true); } finally { button.disabled=false; }
+  });
   bind("tradeExport",function () { return download("/api/continuous/export","paper-trades.csv"); });
   bind("backupBtn",function () { return download("/api/continuous/backup","crypto-account-backup.sqlite3"); });
   bind("resetBtn",async function () {

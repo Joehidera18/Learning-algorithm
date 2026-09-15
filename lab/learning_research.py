@@ -4,15 +4,18 @@ import math
 import hashlib
 import json
 import time
+from bisect import bisect_left
 
-from .adaptive import AdaptivePolicy, POLICY_VERSION, feature_vector
+from .adaptive import AdaptivePolicy, POLICY_VERSION
 from .engine import ENGINE_VERSION, build_feature_cache
 from .execution import simulate
 from .research import cost_signature, bootstrap_interval, daily_goal_report
 from .data import INTERVAL_MS
 from .learning_data import prepare_learning_history, FEATURE_WARMUP
+from .shadow_learning import HistoricalFeedback
+from .evaluation import reviewed_boundary, attribution, dataset_digest
 
-LEARNING_REPORT_VERSION = 6
+LEARNING_REPORT_VERSION = 7
 
 
 def build_learning_features(rows, interval, segments, cancelled=None):
@@ -28,7 +31,8 @@ def build_learning_features(rows, interval, segments, cancelled=None):
     return features
 
 
-def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None):
+def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
+                  reviewed_through_ts=None):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -59,7 +63,9 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             metrics, trades = simulate(rows, features, 240, development, 500,
                 settings["risk_per_trade"], fee, slip, params,
                 cancelled=cancelled, training_examples=True, bar_interval_ms=step)
-            labels = [(trade["exit_ts"]+step, index, feature_vector(trade["features"]), trade["r_multiple"])
+            labels = [(trade["exit_ts"]+step, index,
+                       trade["training_vector"],
+                       trade["r_multiple"])
                       for trade in trades if trade["reason"] != "END"]
             saved = {"labels":labels, "diagnostics":{"params":dict(params),
                 "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})}}
@@ -90,16 +96,21 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             cursor += 1
         return seed.export()
 
-    def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False):
+    def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True):
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
             legacy_candidates_only=legacy)
+        feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
+                    if learn and shadow else None)
         metrics, trades = simulate(rows, features, start, end, 500,
             settings["risk_per_trade"], fee*stress, slip*stress,
             {"family":"adaptive_policy", "direction":"LONG"},
             policy=policy, cancelled=cancelled, daily_loss_limit=settings["daily_loss_limit"],
-            bar_interval_ms=step)
+            bar_interval_ms=step, feedback=feedback)
+        metrics["feedback"] = feedback.summary() if feedback else {
+            "mode":"selected_account_trades" if learn else "frozen",
+            "resolved_examples":policy.state["observations"]-initial["observations"]}
         return metrics, trades, policy.export()
 
     starts = [int(development*f) for f in (.45,.63,.81)]
@@ -114,7 +125,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "test_end_ts":rows[end-1]["ts"]+step, "metrics":metrics})
 
     initial = train_until(rows[development]["ts"])
-    progress(phase="testing", message=f"{symbol}: checking the final unseen period and higher costs")
+    progress(phase="testing", message=f"{symbol}: checking the later period and higher costs")
     holdout, trades, trained = test(initial,holdout_start,len(rows))
     stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5)
     frozen, _, _ = test(initial,holdout_start,len(rows),learn=False)
@@ -123,6 +134,31 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     # A diagnostic, never a second chance to choose a winning holdout policy.
     legacy, _, _ = test(initial,holdout_start,len(rows),legacy=True)
     legacy_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,legacy=True)
+    account_only, _, _ = test(initial,holdout_start,len(rows),shadow=False)
+    account_only_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,shadow=False)
+    # This release was designed after the supplied report was reviewed. Reusing
+    # its test window is useful research, but cannot provide fresh qualification.
+    boundary = reviewed_boundary(symbol, reviewed_through_ts)
+    fresh_start = max(holdout_start, bisect_left([r["ts"] for r in rows], boundary))
+    reused = rows[holdout_start]["ts"] < boundary
+    confirmation = None
+    if reused and fresh_start < len(rows)-1:
+        confirmation_seed = AdaptivePolicy(initial, settings["max_notional_fraction"],
+            fee_rate=fee, slippage_rate=slip)
+        prefix = HistoricalFeedback(rows, features, holdout_start, fresh_start,
+            settings, confirmation_seed, step, cancelled)
+        prefix.advance(rows[fresh_start]["ts"])
+        confirmation_initial = confirmation_seed.export()
+        progress(phase="testing", message=f"{symbol}: checking prices after the reviewed report")
+        fresh, fresh_trades, trained = test(confirmation_initial,fresh_start,len(rows))
+        fresh_stress, _, _ = test(confirmation_initial,fresh_start,len(rows),stress=1.5)
+        fresh_account, _, _ = test(confirmation_initial,fresh_start,len(rows),shadow=False)
+        fresh_account_stress, _, _ = test(confirmation_initial,fresh_start,len(rows),stress=1.5,shadow=False)
+        confirmation = {"start_ts":rows[fresh_start]["ts"], "end_ts":rows[-1]["ts"]+step,
+            "metrics":fresh, "stressed":fresh_stress,
+            "account_feedback_control":{"metrics":fresh_account, "stressed":fresh_account_stress},
+            "training_label_end_ts":confirmation_initial["last_label_ts"],
+            "expectancy_interval":bootstrap_interval([t["r_multiple"] for t in fresh_trades])}
     first, last = rows[holdout_start+1]["open"], rows[-1]["close"]
     buy_hold = 500/(first*(1+slip)*(1+fee))*last*(1-slip)*(1-fee)-500
     regime_examples = {regime:sum(m.get("regimes", {}).get(regime, {}).get("samples",0)
@@ -148,6 +184,24 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         reasons.append("The uncertainty in final trade results is too large to qualify.")
     if holdout.get("max_drawdown_pct") is not None and holdout["max_drawdown_pct"] > 15:
         reasons.append("The final test lost more than 15% from a prior equity peak.")
+    if (not account_only.get("complete", True) or not account_only_stressed.get("complete", True)
+            or account_only.get("net_pnl", 0) <= 0 or account_only_stressed.get("net_pnl", 0) <= 0):
+        reasons.append("Learning only from selected account trades did not stay profitable at ordinary and higher costs.")
+    if reused:
+        if confirmation is None:
+            reasons.append("This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation.")
+        else:
+            fresh, fresh_stress = confirmation["metrics"], confirmation["stressed"]
+            if (not fresh.get("complete", True) or not fresh_stress.get("complete", True)
+                    or fresh.get("net_pnl", 0) <= 0 or fresh_stress.get("net_pnl", 0) <= 0
+                    or fresh.get("trades", 0) < 30
+                    or (confirmation["expectancy_interval"]["lower_r"] or 0) <= 0
+                    or (fresh.get("max_drawdown_pct") or 0) > 15):
+                reasons.append("New prices after the reviewed report have not passed the trade-count, cost, uncertainty and drawdown checks.")
+            fresh_control = confirmation["account_feedback_control"]
+            if any(not m.get("complete", True) or m.get("net_pnl", 0) <= 0
+                   for m in fresh_control.values()):
+                reasons.append("On new prices, learning only from selected account trades did not stay profitable at ordinary and higher costs.")
     def pnl_difference(left, right):
         if left.get("net_pnl") is None or right.get("net_pnl") is None:
             return None
@@ -168,7 +222,11 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "daily_context_rule":"Only complete UTC days; 21 consecutive days required after each gap.",
             "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
             "feedback_rule":"Learn a trade result only after its exit candle closes."},
-        "data_quality":quality, "data_hours":len(rows)*step/3600000,
+        "evaluation":{"reviewed_through_ts":boundary, "reuses_reviewed_history":reused,
+            "basis":"reused_research" if reused else "chronological_test",
+            "confirmation":confirmation,
+            "note":"Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."},
+        "data_quality":quality, "data_sha256":dataset_digest(rows), "data_hours":len(rows)*step/3600000,
         "historical_examples":len(examples), "candidate_count":len(candidates),
         "regime_examples":regime_examples,
         "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
@@ -195,13 +253,22 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                     "Negative differences mean the added strategies made this test worse; this is not a replication of an older app version."},
         "benchmarks":{"cash_net_pnl":0., "buy_hold_net_pnl":buy_hold,
             "buy_hold_return_pct":buy_hold/5, "scope":"$500 buy and hold after costs over the same executable final-test period; different exposure from the trading policy."},
-        "holdout_learning_updates":trained["observations"]-initial["observations"],
+        "holdout_learning_updates":holdout.get("feedback", {}).get("resolved_examples", 0),
+        "holdout_shadow_feedback":holdout.get("feedback"),
+        "account_feedback_comparison":{"baseline":account_only, "baseline_stressed":account_only_stressed,
+            "net_pnl_difference":pnl_difference(holdout, account_only),
+            "stress_net_pnl_difference":pnl_difference(stressed, account_only_stressed),
+            "selection_uses_comparison":False,
+            "label":"The same cost-aware learner updated only by selected account trades. "
+                    "Continuous paper and Coinbase journals use selected-trade feedback between scheduled historical reviews. "
+                    "This control must also be profitable before qualification."},
+        "performance_attribution":attribution(trades),
         "holdout_expectancy_interval":uncertainty, "validated":not reasons,
         "rejection_reasons":reasons, "cost_signature":cost_signature(settings),
         "costs":{"fee_per_side":fee, "slippage_per_fill":settings["slippage_rate"],
                  "assumed_half_spread":.0005, "stress_multiplier":1.5},
         "daily_goal":daily,
         "model":trained,
-        "scope":"One-market $500 policy tests. Training examples overlap across variants and are not independent market hours or account profits. Forward updates learn only completed trades. Model estimates are not calibrated probabilities.",
+        "scope":"One-market $500 policy tests. Historical shadow feedback keeps studying unselected candidates; account profits count only selected trades. Training examples overlap and are not independent evidence. Forward journal updates learn only completed account trades between historical reviews. Model estimates are not calibrated probabilities.",
         "warning":"Repeated runs can reuse test periods. The frozen comparison cannot change qualification. Portfolio execution, latency, live fills, and future profit remain unvalidated.",
         "holdout_trades":[{k:t[k] for k in ("entry_ts","exit_ts","strategy_family","pnl","r_multiple","reason")} for t in trades]}

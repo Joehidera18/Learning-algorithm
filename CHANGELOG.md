@@ -1,3 +1,11 @@
+# Cost-aware learning — 15 September 2026 UTC
+
+- Use signal-time cost, net reward/risk and holding period in the 19-input learner. Separate low, moderate and high cost evidence and apply a pre-update prediction-error penalty.
+- Continue historical feedback from unselected candidates through the shared simulator, releasing only resolved outcomes and keeping account cash separate.
+- Add an account-only feedback control and require it to pass at both costs. Mark report-12 history as reviewed and require newer-price confirmation for revised models.
+- Show separate training/account counts and strategy fee attribution. Export a per-market candle/report ZIP with a checked dataset digest.
+- Preserve candidate definitions, fees, stops, account risk, journals, saved candles and separate Coinbase activation. Bump engine, policy and report versions to rebuild incompatible models.
+
 # Research strategy additions — 15 September 2026 UTC
 
 - Add six fixed candidates across daily trend/momentum, volatility expansion and support with RSI recovery, bringing the population to 22. Document primary research, exact adaptations and limits in STRATEGY_RESEARCH.md.

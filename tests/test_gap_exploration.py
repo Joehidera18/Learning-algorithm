@@ -148,7 +148,8 @@ class IncompleteQualificationTests(unittest.TestCase):
                 def fake_sim(data, fs, start, end, balance, risk, fee, slip, params, **kwargs):
                     training = kwargs.get("training_examples", False)
                     indices = [240+i*35 for i in range(100)] if training else [start+i for i in range(40)]
-                    trades = [{"features":F, "r_multiple":1., "pnl":1., "entry_ts":data[i]["ts"],
+                    from lab.adaptive import feature_vector
+                    trades = [{"features":F, "training_vector":feature_vector(F), "r_multiple":1., "pnl":1., "entry_ts":data[i]["ts"],
                         "exit_ts":data[i]["ts"], "strategy_family":params["family"],
                         "reason":"TARGET2"} for i in indices]
                     complete = training or (start >= 4000) != (blocked_period == "final")

@@ -13,12 +13,12 @@ from .strategies import profit_candidates, simple_signal
 from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
 
-POLICY_VERSION = "online-net-r-v4-daily-context"
+POLICY_VERSION = "online-net-r-v5-cost-context"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
 REGIME_SHRINKAGE = 50
-DIMENSIONS = 16
+DIMENSIONS = 19
 
 
 def bounded(value, lower=-1., upper=1.):
@@ -28,9 +28,17 @@ def bounded(value, lower=-1., upper=1.):
     return max(lower, min(upper, value))
 
 
-def feature_vector(f):
+def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
     """Only entry-time features, normalized using fixed, predeclared scales."""
     daily = f.get("daily", {})
+    quality = None
+    if params is not None:
+        quality, _ = signal_cost_check(f, params, fee_rate, slippage_rate)
+        if quality is None:
+            raise ValueError("Cannot learn from invalid entry economics")
+    economics = [bounded(quality["cost_r"]/2, 0, 1),
+                 bounded(quality["net_rr"]/3, -1, 1),
+                 bounded(params.get("time_stop_hours", 12)/168, 0, 1)] if quality else [0., 0., 0.]
     return [1., bounded((f.get("rsi", 50)-50)/50),
         bounded(f.get("volume_z", 0)/3), bounded((f.get("adx", 25)-25)/25),
         bounded((f.get("atr_pct", .01)-.01)/.02),
@@ -41,7 +49,7 @@ def feature_vector(f):
         bounded(f.get("range_expansion", 1)/3, 0, 1),
         bounded(daily.get("momentum7", 0)/.2),
         bounded(daily.get("ma_distance_atr", 0)/3),
-        bounded(daily.get("atr_pct", 0)/.1, 0, 1)]
+        bounded(daily.get("atr_pct", 0)/.1, 0, 1)] + economics
 
 
 def action_key(p):
@@ -53,7 +61,14 @@ def vector_regime(vector):
 
 
 def empty_model():
-    return {"weights":[0.]*DIMENSIONS, "samples":0, "wins":0, "sum_r":0., "recent_r":0.}
+    return {"weights":[0.]*DIMENSIONS, "samples":0, "wins":0, "sum_r":0.,
+            "recent_r":0., "squared_error":0.}
+
+
+def cost_context(vector):
+    """Fixed buckets; do not let expensive exploration swamp feasible setups."""
+    cost_r = vector[16]*2
+    return "low" if cost_r <= .25 else ("moderate" if cost_r <= .5 else "high")
 
 
 def update_model(model, vector, result_r):
@@ -61,6 +76,9 @@ def update_model(model, vector, result_r):
     target = bounded(result_r, -3, 3)
     rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
     error = bounded(target-predicted, -3, 3)
+    # Error measured BEFORE the outcome updates the weights. This is a ranking
+    # penalty, not a calibrated confidence interval for dependent market samples.
+    model["squared_error"] = model.get("squared_error", 0.) + error*error
     norm = 1 + sum(x*x for x in vector)
     model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
                         for w,x in zip(model["weights"],vector)]
@@ -89,20 +107,28 @@ class AdaptivePolicy:
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
         for model in self.state["models"].values():
-            regimes = model.get("regimes", {})
-            if not set(regimes).issubset({"BULL", "BEAR", "CHOP"}):
-                raise ValueError("Invalid learning regime")
-            for component in [model, *regimes.values()]:
+            costs = model.get("cost_contexts", {})
+            if not set(costs).issubset({"low", "moderate", "high"}):
+                raise ValueError("Invalid learning cost context")
+            components = []
+            for group in [model, *costs.values()]:
+                regimes = group.get("regimes", {})
+                if not set(regimes).issubset({"BULL", "BEAR", "CHOP"}):
+                    raise ValueError("Invalid learning regime")
+                components.extend([group, *regimes.values()])
+            for component in components:
                 if len(component["weights"]) != DIMENSIONS or component["samples"] < 0:
                     raise ValueError("Invalid learning model state")
-                for value in component["weights"] + [component["recent_r"], component["sum_r"]]:
+                if component.get("squared_error", 0) < 0:
+                    raise ValueError("Invalid learning error state")
+                for value in component["weights"] + [component["recent_r"], component["sum_r"], component.get("squared_error", 0)]:
                     bounded(value, -1e12, 1e12)
 
     def export(self):
         return copy.deepcopy(self.state)
 
     def predict(self, params, vector):
-        model = self.state["models"].get(action_key(params))
+        model = self.evidence(params, vector)
         if not model:
             return 0.
         pooled = sum(w*x for w,x in zip(model["weights"],vector))
@@ -113,6 +139,20 @@ class AdaptivePolicy:
             contextual = sum(w*x for w,x in zip(local["weights"],vector))
             pooled = (1-weight)*pooled+weight*contextual
         return bounded(pooled, -3, 3)
+
+    def evidence(self, params, vector):
+        model = self.state["models"].get(action_key(params))
+        if model and self.cost_filter:
+            context = model.get("cost_contexts", {}).get(cost_context(vector))
+            if context and context["samples"] >= MIN_SAMPLES:
+                return context
+        return model
+
+    def error_penalty(self, model):
+        n = model["samples"]
+        # Cap the effective sample count; overlapping history is not unlimited
+        # independent evidence. Fixed before the new replay is examined.
+        return math.sqrt(model.get("squared_error", 0)/max(1, n))/math.sqrt(max(1, min(n, 100)))
 
     def observe(self, params, vector, result_r, available_ts):
         if not self.learn:
@@ -131,12 +171,15 @@ class AdaptivePolicy:
         local = model.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
         update_model(model, vector, result_r)
         update_model(local, vector, result_r)
-        # Two estimates of ONE outcome: do not double-count evidence.
+        context = model.setdefault("cost_contexts", {}).setdefault(cost_context(vector), empty_model())
+        contextual_regime = context.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
+        update_model(context, vector, result_r)
+        update_model(contextual_regime, vector, result_r)
+        # Multiple estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1
         self.state["last_label_ts"] = int(available_ts)
 
     def opportunities(self, f):
-        vector = feature_vector(f)
         result = []
         candidates = [p for p in self.candidates
                       if not self.legacy_candidates_only or p.get("atr_timeframe") != "daily"]
@@ -156,7 +199,8 @@ class AdaptivePolicy:
                 if reason:
                     reject(reason)
                     continue
-            model = self.state["models"].get(action_key(p))
+            vector = feature_vector(f, p, self.fee_rate, self.slippage_rate)
+            model = self.evidence(p, vector)
             if not model or model["samples"] < MIN_SAMPLES:
                 reject("insufficient_learning_samples")
                 continue
@@ -169,13 +213,20 @@ class AdaptivePolicy:
             if estimate < MIN_ESTIMATED_R:
                 reject("low_estimated_return")
                 continue
+            penalty = self.error_penalty(model)
+            conservative = estimate-penalty
+            if conservative < MIN_ESTIMATED_R:
+                reject("prediction_error_too_large")
+                continue
             result.append({"params":p, "score":score, "raw_score":score,
-                "adjusted_score":estimate, "estimated_net_r":estimate,
+                "adjusted_score":conservative, "estimated_net_r":estimate,
+                "error_penalty_r":penalty, "conservative_net_r":conservative,
                 "learned":{"samples":model["samples"], "expectancy_r":estimate,
-                    "regime":vector_regime(vector), "regime_samples":local["samples"] if local else 0},
+                    "cost_context":cost_context(vector), "regime":vector_regime(vector),
+                    "regime_samples":local["samples"] if local else 0},
                 "learning":{"version":POLICY_VERSION, "vector":list(vector)}})
         self.last_diagnostics["eligible_candidates"] = len(result)
-        return sorted(result, key=lambda x:x["estimated_net_r"], reverse=True)
+        return sorted(result, key=lambda x:x["conservative_net_r"], reverse=True)
 
     def choose(self, f):
         choices = self.opportunities(f)

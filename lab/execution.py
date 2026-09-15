@@ -8,9 +8,26 @@ import statistics
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
 
 
-def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
+def simulate(*args, **kwargs):
+    """Drain the same candle-by-candle engine used by historical shadow learning."""
+    run = simulation_steps(*args, **kwargs)
+    while True:
+        try:
+            next(run)
+        except StopIteration as finished:
+            return finished.value
+
+
+def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
-             training_examples=False, daily_loss_limit=None, bar_interval_ms=None):
+             training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
+             feedback=None, on_resolved=None):
+    """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
+
+    A feedback clock can therefore advance independent simulations only through
+    candles that have closed at the account's decision time. It is never used by
+    the exchange runner and cannot submit orders.
+    """
     from .engine import evaluate_signal
     cash, position, next_entry_ts = float(balance), None, 0
     trades, curve = [], [cash]
@@ -63,7 +80,9 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
         next_entry_ts = candle["ts"] + bar_ms + cooldown_minutes([t["pnl"] for t in trades],p["decision_params"]) * 60000
-        if policy and reason != "END":
+        if on_resolved and reason != "END":
+            on_resolved(p, pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
+        if policy and feedback is None and reason != "END":
             policy.observe(p["decision_params"], p["learning"]["vector"],
                            pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
         if training_examples:
@@ -75,6 +94,9 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         if cancelled and i % 500 == 0 and cancelled():
             raise InterruptedError("Learning cancelled")
         signal, candle = rows[i], rows[i + 1]
+        yield candle["ts"]+bar_ms
+        if feedback is not None:
+            feedback.advance(signal["ts"]+bar_ms)
         if bar_interval_ms is not None and candle["ts"]-signal["ts"] != bar_ms:
             # At this point only the last observed bar is known. Do not invent a
             # pre-gap exit, a missing-bar fill, or a profitable path through it.
@@ -153,6 +175,10 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                         else:
                             entry_fee = entry * qty * fee_rate
                             cash -= entry_fee
+                            training_vector = None
+                            if training_examples:
+                                from .adaptive import feature_vector
+                                training_vector = feature_vector(f, trade_params, fee_rate, base_slip)
                             position = {"entry_ts": candle["ts"], "entry": entry, "signal_entry": signal["close"],
                                 "entry_gap_pct": (entry / signal["close"] - 1) * 100,
                                 "entry_slippage_pct": base_slip * 100, "direction": direction,
@@ -163,6 +189,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                                 "qty": qty, "qty_initial": qty, "risk_dollars": qty * unit_risk,
                                 "planned_cost_r": cost_r, "planned_net_rr":quality["net_rr"], "risk_multiplier": 1.0,
                                 "training_cost_override":cost_reason if training_examples else None,
+                                "training_vector":training_vector,
                                 "effective_risk_fraction": risk, "t1_hit": False,
                                 "realized_partial": -entry_fee, "gross_pnl": 0.0, "fees_paid": entry_fee,
                                 "slippage_notional": abs(entry - raw) * qty, "regime": f.get("regime"),
@@ -208,6 +235,9 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
             mark -= liquidation * position["qty"] * fee_rate
         curve.append(mark)
         check_daily_limit(mark)
+    if feedback is not None:
+        through = rows[end-1]["ts"]+bar_ms if complete else stopped_at
+        feedback.advance(through)
     if position and complete:
         close(rows[end - 1]["close"], rows[end - 1], "END")
         curve.append(cash)
@@ -235,6 +265,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         "max_drawdown_pct": dd * 100, "signal_funnel": funnel,
         "gross_pnl":sum(t["gross_pnl"] for t in trades),
         "fees_paid":sum(t["fees_paid"] for t in trades),
+        "slippage_notional":sum(t["slippage_notional"] for t in trades),
         "halted_utc_days":halted_days, "daily_loss_limit":daily_loss_limit,
         "family": params["family"], "direction": direction}
     if bar_interval_ms is not None:
