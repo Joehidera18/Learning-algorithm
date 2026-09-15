@@ -13,6 +13,7 @@ class HistoricalFeedback:
         self.policy, self.pending, self.runs = policy, [], []
         self.last_clock = -1
         self.count, self.by_family, self.gap_censored = 0, {}, 0
+        self.loss_pause_overrides = 0
         for index, params in enumerate(policy.candidates):
             if policy.legacy_candidates_only and params.get("atr_timeframe") == "daily":
                 continue
@@ -40,6 +41,7 @@ class HistoricalFeedback:
                 alive.append([clock, run])
             except StopIteration as finished:
                 self.gap_censored += finished.value[0]["signal_funnel"].get("gap_censored_examples", 0)
+                self.loss_pause_overrides += finished.value[0]["signal_funnel"].get("loss_pause_overrides", 0)
         self.runs = alive
         for available, index, vector, reward, outcome in sorted(self.pending, key=lambda x:(x[0], x[1])):
             if available > closed_ms:
@@ -56,7 +58,8 @@ class HistoricalFeedback:
         return {"mode":"historical_shadow", "resolved_examples":self.count,
                 "by_family":self.by_family, "last_clock_ms":self.last_clock,
                 "gap_censored_examples":self.gap_censored,
+                "loss_pause_overrides":self.loss_pause_overrides,
                 "account_feedback_also_applied":False,
                 "scope":"Independent, overlapping historical simulations with full costs. "
                         "Learn only after exit bars close, including setups the account skipped. "
-                        "These examples are not account trades or profits."}
+                        "Loss streaks do not pause this independent practice. These examples are not account trades or profits."}

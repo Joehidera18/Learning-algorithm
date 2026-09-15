@@ -83,20 +83,30 @@ class CoinbaseTrader:
                 previous = con.execute("SELECT status FROM coinbase_trades WHERE id=?",(trade["id"],)).fetchone()
                 if trade["status"]=="CLOSED" and (not previous or previous["status"]!="CLOSED"):
                     from .adaptive import record_outcome, write_in_transaction
+                    from .trade_review import close_review
+                    from .outcome_memory import trade_feedback
                     signal = trade.get("plan",{}).get("signal",{})
-                    if signal.get("learning"):
-                        try:
-                            risk = float(trade["plan"]["risk_usd"])
-                            if not math.isfinite(risk) or risk <= 0:
-                                raise ValueError("Invalid learning risk denominator")
+                    try:
+                        risk = float(trade["plan"]["risk_usd"])
+                        if not math.isfinite(risk) or risk <= 0:
+                            raise ValueError("Invalid learning risk denominator")
+                        reviewed = {"risk_dollars":risk, "pnl":float(trade["pnl"]),
+                            "entry_ts":int(trade["created_at"]*1000), "exit_ts":int(trade["closed_at"]*1000),
+                            "reason":str(trade.get("exit_reason","UNKNOWN")).upper()}
+                        if "fees_paid" in trade:
+                            reviewed.update(gross_pnl=float(trade["gross_pnl"]),fees_paid=float(trade["fees_paid"]))
+                            reviewed["review"] = close_review(reviewed)
+                            trade["trade_review"] = reviewed["review"]
+                        else:
+                            trade["trade_review"] = {"status":"unavailable","note":"Settled fee details are unavailable for this record."}
+                        if signal.get("learning"):
                             record_outcome(con,trade["product_id"],"coinbase",signal["params"],
                                 signal["learning"],float(trade["pnl"])/risk,int(trade["closed_at"]*1000),
-                                outcome=({"reason":trade.get("exit_reason","UNKNOWN"),
-                                    "gross_r":float(trade["gross_pnl"])/risk,
-                                    "fee_r":float(trade["fees_paid"])/risk} if "fees_paid" in trade else None))
-                        except (KeyError, TypeError, ValueError) as exc:
-                            write_in_transaction(con,"adaptive_error_coinbase_"+trade["product_id"],
-                                {"message":str(exc),"trade_id":trade["id"],"time":self.clock()})
+                                outcome=trade_feedback(reviewed))
+                    except (KeyError, TypeError, ValueError) as exc:
+                        trade.setdefault("trade_review",{"status":"unavailable","note":"A complete cost and risk record is required."})
+                        write_in_transaction(con,"adaptive_error_coinbase_"+trade.get("product_id","unknown"),
+                            {"message":str(exc),"trade_id":trade["id"],"time":self.clock()})
                 con.execute("""INSERT INTO coinbase_trades(id,signal_key,created_at,status,trade_json)
                     VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET
                     status=excluded.status,trade_json=excluded.trade_json""",

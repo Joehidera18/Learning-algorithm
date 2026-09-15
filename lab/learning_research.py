@@ -15,8 +15,9 @@ from .learning_data import prepare_learning_history, FEATURE_WARMUP
 from .shadow_learning import HistoricalFeedback
 from .evaluation import reviewed_boundary, attribution, dataset_digest
 from .outcome_memory import trade_feedback, summarize as summarize_outcomes
+from .trade_review import summarize_trades, merge_summaries, BREAK_EVEN_R, POST_EXIT_HOURS
 
-LEARNING_REPORT_VERSION = 8
+LEARNING_REPORT_VERSION = 9
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -56,10 +57,11 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"]).candidates
     examples = []
     training_candidates = []
+    training_reviews = []
     training_totals = {"candles_checked":0, "features_available":0,
         "qualified_setups":0, "entry_attempts":0, "entries_opened":0, "rejections":{},
         "entry_rejections":{}, "exploratory_entries":0, "training_cost_overrides":{},
-        "gap_censored_examples":0}
+        "gap_censored_examples":0, "loss_pause_overrides":0}
     # These independently funded hypothetical examples are training labels, not
     # a multi-strategy portfolio. The actual policy tests use one $500 account.
     for index, params in enumerate(candidates):
@@ -76,11 +78,13 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                        trade["r_multiple"], trade_feedback(trade))
                       for trade in trades if trade["reason"] != "END"]
             saved = {"labels":labels, "diagnostics":{"params":dict(params),
-                "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})}}
+                "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})},
+                "trade_reviews":summarize_trades(rows,trades,step,development)}
             if checkpoint:
                 checkpoint["save"](index, saved)
             del trades
         training_candidates.append(saved["diagnostics"])
+        training_reviews.append(saved.get("trade_reviews",{}))
         funnel = saved["diagnostics"]["signal_funnel"]
         examples.extend(saved["labels"])
         for key in training_totals:
@@ -252,6 +256,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
             "mode":"Independent historical exploration, including cost-rejected setups. "
                    "All fees and slippage are charged; unresolved trades spanning gaps are excluded from learning. "
+                   "Repeated losses do not pause independent label collection beyond routine entry spacing. "
                    "Policy tests and trading retain their cost and qualification checks.",
             "count_basis":"Candidate evaluations can overlap on the same candles. Counts are not independent opportunities or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
@@ -284,6 +289,13 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                     "This control must also be profitable before qualification."},
         "performance_attribution":attribution(trades),
         "failure_learning":summarize_outcomes(trained["models"]),
+        "trade_reviews":{"break_even_band_r":BREAK_EVEN_R, "post_exit_hours":list(POST_EXIT_HOURS),
+            "development":merge_summaries(training_reviews),
+            "selected":summarize_trades(rows,trades,step,len(rows),cases_per_group=8),
+            "scope":"Costs and observed trade paths describe outcomes, not proven causes. "
+                "Losses and near-break-even examples receive detailed review priority; actual net rewards are unchanged. "
+                "After-exit windows and the fixed break-even-stop counterfactual are report-only and never train entry decisions. "
+                "Detailed cases are sampled; counts cover all reviewed completed trades."},
         "outcome_memory_comparison":{"baseline":no_memory, "baseline_stressed":no_memory_stressed,
             "net_pnl_difference":pnl_difference(holdout, no_memory),
             "stress_net_pnl_difference":pnl_difference(stressed, no_memory_stressed),

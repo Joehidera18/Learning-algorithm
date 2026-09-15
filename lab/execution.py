@@ -6,6 +6,7 @@ When intrabar order is unknown, assume the stop was reached first.
 import math
 import statistics
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
+from .trade_review import close_review
 
 
 def simulate(*args, **kwargs):
@@ -40,7 +41,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
     if training_examples and policy is not None:
         raise ValueError("Independent training examples cannot be used for a policy account test")
     if training_examples:
-        funnel.update(exploratory_entries=0, training_cost_overrides={}, gap_censored_examples=0)
+        funnel.update(exploratory_entries=0, training_cost_overrides={}, gap_censored_examples=0,
+                      loss_pause_overrides=0)
     if bar_interval_ms is not None and bar_interval_ms <= 0:
         raise ValueError("Candle interval must be positive")
     bar_ms = bar_interval_ms or (rows[1]["ts"]-rows[0]["ts"] if len(rows)>1 else 0)
@@ -77,9 +79,20 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         p["slippage_notional"] += abs(raw - exit_price) * p["qty"]
         p.update(exit_ts=candle["ts"], exit=exit_price, pnl=pnl, reason=reason,
                  outcome="WIN" if pnl > 0 else "LOSS", balance_after=cash)
+        p["review"] = close_review(p)
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
-        next_entry_ts = candle["ts"] + bar_ms + cooldown_minutes([t["pnl"] for t in trades],p["decision_params"]) * 60000
+        # Only the most recent threshold trades can affect this rule. Scanning
+        # the entire history after every loss makes long training streaks quadratic.
+        streak_window = max(1, int(p["decision_params"].get("loss_streak_limit",0)))
+        delay = cooldown_minutes([t["pnl"] for t in trades[-streak_window:]],p["decision_params"])
+        if training_examples:
+            # Independent label collection continues after losses. Routine spacing
+            # remains; account loss-streak pauses still apply outside this branch.
+            base_delay = p["decision_params"].get("cooldown_minutes",15)
+            funnel["loss_pause_overrides"] += int(delay > base_delay and reason != "END")
+            delay = base_delay
+        next_entry_ts = candle["ts"] + bar_ms + delay*60000
         if on_resolved and reason != "END":
             on_resolved(p, pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
         if policy and feedback is None and reason != "END":
@@ -182,6 +195,7 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 from .adaptive import feature_vector
                                 training_vector = feature_vector(f, trade_params, fee_rate, base_slip)
                             position = {"entry_ts": candle["ts"], "entry": entry, "signal_entry": signal["close"],
+                                "signal_ts":signal["ts"], "fee_rate":fee_rate, "slippage_rate":base_slip,
                                 "entry_gap_pct": (entry / signal["close"] - 1) * 100,
                                 "entry_slippage_pct": base_slip * 100, "direction": direction,
                                 "strategy_family": trade_params["family"], "entry_mode": mode,
@@ -197,7 +211,7 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "slippage_notional": abs(entry - raw) * qty, "regime": f.get("regime"),
                                 "features": {k: v for k, v in f.items() if not k.startswith("_")},
                                 "edge_probability": detail.get("probability"), "score": score,
-                                "mfe_price": entry, "mae_price": entry}
+                                "mfe_price": raw, "mae_price": raw}
                             funnel["entries_opened"] += 1
                             if training_examples and cost_reason:
                                 funnel["exploratory_entries"] += 1

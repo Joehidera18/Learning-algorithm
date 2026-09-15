@@ -174,17 +174,18 @@ class Service:
                 data = json.dumps(self.research.status(), indent=2, allow_nan=False).encode()
                 return 200, data, {"Content-Type": "application/json", "Content-Disposition": 'attachment; filename="research-results.json"'}
             if path == "/api/continuous/export" and method == "GET":
-                from .paper_store import db_connect
+                from .paper_store import db_connect, review_from_decision
                 con = db_connect(self.db_path)
                 records = [dict(r) for r in con.execute("""SELECT id,opened_at,closed_at,product_id,family,direction,
-                    entry,exit,qty,risk_usd,status,pnl,result_r,balance_after,exit_reason FROM paper_trades ORDER BY id""")]
+                    entry,exit,qty,risk_usd,status,pnl,result_r,balance_after,exit_reason,decision_json FROM paper_trades ORDER BY id""")]
                 con.close()
                 fields = ["id", "opened_at", "closed_at", "product_id", "family", "direction", "entry", "exit", "qty",
-                          "risk_usd", "status", "pnl", "result_r", "balance_after", "exit_reason"]
+                          "risk_usd", "status", "pnl", "result_r", "balance_after", "exit_reason", "trade_review_json"]
                 output = io.StringIO(newline="")
                 writer = csv.DictWriter(output, fieldnames=fields)
                 writer.writeheader()
                 for record in records:
+                    record["trade_review_json"] = json.dumps(review_from_decision(record.pop("decision_json")),allow_nan=False)
                     for k, value in record.items():
                         if isinstance(value, str) and value.startswith(("=", "+", "-", "@")):
                             record[k] = "'" + value

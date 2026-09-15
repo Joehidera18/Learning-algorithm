@@ -1,3 +1,12 @@
+# Loss and near-break-even study — 15 September 2026 UTC
+
+- Continue independent training at normal entry spacing after losses, without account loss-streak pauses. Preserve full costs, risk sizes, signals, missing-data rules and actual account controls.
+- Define near break-even as within 0.10 net R and prioritize detailed review of these outcomes and losses. Preserve their true rewards and count each observed outcome once.
+- Record net price excursions, giveback, fee drag and entry context. Add period-bounded 1h/4h/24h after-exit observations and one fixed, next-candle break-even-stop experiment. These hindsight diagnostics never enter entry decisions or substitute rewards.
+- Save available close-time reviews in paper and settled Coinbase journals; retain historical development summaries through checkpoints and include reviews in dashboard/export output.
+- Record report 17 as reviewed history, add exact AVAX reproduction, and avoid repeatedly scanning an entire loss history or rebuilding the same candidate-key set.
+- Versions: engine `market-structure-v11.4-trade-review`, policy `online-net-r-v7-trade-review`, report 9. Existing models require fresh practice and qualification.
+
 # Outcome memory and candle context — 15 September 2026 UTC
 
 - Learn recency-weighted net outcomes by strategy, cost burden, intraday regime and completed daily trend. Keep gross returns and fees reconciled; distinguish fee-erased gains, stops and time-exit losses. Share attribution across replay and separate paper/Coinbase journals.

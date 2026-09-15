@@ -15,7 +15,7 @@ from .trade_quality import signal_cost_check
 from .outcome_memory import (setup_context, empty_memory, update_memory, validate_detail,
     validate_memory, estimate as context_estimate, SHRINKAGE)
 
-POLICY_VERSION = "online-net-r-v6-outcome-memory"
+POLICY_VERSION = "online-net-r-v7-trade-review"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -107,6 +107,7 @@ class AdaptivePolicy:
         self.state = copy.deepcopy(state) if state else {
             "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0}
         allowed = {action_key(p) for p in self.candidates}
+        self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
         for model in self.state["models"].values():
@@ -187,7 +188,7 @@ class AdaptivePolicy:
         if available_ts < self.state["last_label_ts"]:
             raise ValueError("Outcomes must be learned in the order they become available")
         key = action_key(params)
-        if key not in {action_key(p) for p in self.candidates}:
+        if key not in self._allowed_actions:
             raise ValueError("Unknown learning candidate")
         detail = outcome if outcome is not None else {}
         detail = validate_detail(result_r, detail)
