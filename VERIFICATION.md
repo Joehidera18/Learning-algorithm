@@ -1,5 +1,13 @@
 # V11 verification
 
+## 15 September 2026 follow-up
+
+**117 automated offline Python tests passed**, including seven new tests for learning diagnostics, changed-market reviews, versioned caches, and bounded retry scheduling. JavaScript syntax and diff whitespace checks passed. Diagnostics cover both valid signals blocked by costs and candidates blocked by insufficient or weak learning evidence; checks also verify that reporting does not update model weights or invent trades.
+
+A public Coinbase candle request timed out in this environment. Real historical performance, the deployed Render service, and real Coinbase execution were not verified by this follow-up.
+
+## Original V11 verification
+
 Verified during the 9 September 2026 UTC upgrade.
 
 **110 automated offline tests passed** using Python 3.12. The final suite completed in under two seconds. JavaScript syntax validation, Python compilation, and the Mac/Linux launcher's shell syntax check also passed.

@@ -11,6 +11,8 @@ from .execution import simulate
 from .research import validate_rows, cost_signature, bootstrap_interval, daily_goal_report
 from .data import INTERVAL_MS
 
+LEARNING_REPORT_VERSION = 2
+
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None):
     progress = progress or (lambda **kwargs:None)
@@ -25,15 +27,28 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None):
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"]).candidates
     examples = []
+    training_candidates = []
+    training_totals = {"candles_checked":0, "features_available":0,
+        "qualified_setups":0, "entry_attempts":0, "entries_opened":0, "rejections":{}}
     # These independently funded hypothetical examples are training labels, not
     # a multi-strategy portfolio. The actual policy tests use one $500 account.
     for index, params in enumerate(candidates):
         if cancelled():
             raise InterruptedError("Learning cancelled")
         progress(phase="learning", message=f"{symbol}: studying setup {index+1}/{len(candidates)}")
-        _, trades = simulate(rows, features, 240, development, 500,
+        metrics, trades = simulate(rows, features, 240, development, 500,
             settings["risk_per_trade"], fee, slip, params,
             cancelled=cancelled, training_examples=True)
+        funnel = metrics.get("signal_funnel", {})
+        labels = sum(trade["reason"] != "END" for trade in trades)
+        training_candidates.append({"params":dict(params), "resolved_examples":labels,
+            "signal_funnel":funnel})
+        for key in training_totals:
+            if key != "rejections":
+                training_totals[key] += funnel.get(key, 0)
+        for reason, count in funnel.get("rejections", {}).items():
+            counts = training_totals["rejections"]
+            counts[reason] = counts.get(reason, 0) + count
         for trade in trades:
             if trade["reason"] != "END":
                 examples.append((trade["exit_ts"]+step, index,
@@ -80,6 +95,8 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None):
     positive = sum(f["metrics"]["net_pnl"]>0 for f in folds)
     uncertainty = bootstrap_interval([t["r_multiple"] for t in trades])
     reasons = []
+    if not examples:
+        reasons.append("No completed training examples survived the signal and execution checks; see training diagnostics.")
     if positive < 2:
         reasons.append("Fewer than two later test periods made money after costs.")
     if len(trades) < 30:
@@ -91,9 +108,12 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None):
     if holdout["max_drawdown_pct"] > 15:
         reasons.append("The final test lost more than 15% from a prior equity peak.")
     return {"engine_version":ENGINE_VERSION, "policy_version":POLICY_VERSION,
+        "learning_report_version":LEARNING_REPORT_VERSION,
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_quality":quality, "data_hours":len(rows)*step/3600000,
         "historical_examples":len(examples), "candidate_count":len(candidates),
+        "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
+            "count_basis":"Candidate evaluations can overlap on the same candles. Counts are not independent opportunities or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
         "pre_holdout_model_sha256":hashlib.sha256(json.dumps(initial,sort_keys=True).encode()).hexdigest(),
         "holdout_start_ts":rows[holdout_start]["ts"],

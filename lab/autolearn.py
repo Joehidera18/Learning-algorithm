@@ -10,9 +10,9 @@ import json
 import threading
 import time
 
-from .adaptive import approved_profile, profile_key, write_in_transaction
+from .adaptive import POLICY_VERSION, approved_profile, profile_key, write_in_transaction
 from .engine import ENGINE_VERSION
-from .learning_research import learn_history
+from .learning_research import LEARNING_REPORT_VERSION, learn_history
 from .paper_store import db_connect, load_state, save_state
 from .research import ResearchManager, cost_signature
 
@@ -85,6 +85,7 @@ class AutoLearner:
 
     def _fingerprint(self, rows, symbol, settings):
         digest = hashlib.sha256(json.dumps({"symbol":symbol,"engine":ENGINE_VERSION,
+            "policy":POLICY_VERSION, "report_version":LEARNING_REPORT_VERSION,
             "costs":cost_signature(settings)}, sort_keys=True).encode())
         for row in rows:
             digest.update(json.dumps(row,sort_keys=True,separators=(",",":")).encode())
@@ -136,8 +137,19 @@ class AutoLearner:
             self._update(results=results, completed_markets=len(results), total_markets=len(symbols))
         errors = any(r.get("error") for r in results)
         self._update(results=results, tested_costs=cost_signature(settings),
-            tested_engine=ENGINE_VERSION, next_review_at=time.time()+(3600 if errors else REVIEW_SECONDS))
+            tested_engine=ENGINE_VERSION, tested_policy=POLICY_VERSION,
+            tested_report_version=LEARNING_REPORT_VERSION, tested_symbols=list(symbols),
+            next_review_at=time.time()+(3600 if errors else REVIEW_SECONDS))
         return results
+
+    def _needs_review(self, symbols, settings):
+        with self.lock:
+            return (self.state.get("tested_costs") != cost_signature(settings) or
+                self.state.get("tested_engine") != ENGINE_VERSION or
+                self.state.get("tested_policy") != POLICY_VERSION or
+                self.state.get("tested_report_version") != LEARNING_REPORT_VERSION or
+                set(self.state.get("tested_symbols", [])) != set(symbols) or
+                time.time() >= self.state.get("next_review_at", 0))
 
     def _run(self):
         try:
@@ -154,14 +166,11 @@ class AutoLearner:
                 settings = dict(self.agent.settings)
                 if not settings.get("learning_enabled"):
                     break
-                needs_review = (self.state.get("tested_costs") != cost_signature(settings) or
-                    self.state.get("tested_engine") != ENGINE_VERSION or
-                    time.time() >= self.state.get("next_review_at",0))
-                if needs_review:
-                    # The existing scanner ranks active USD markets by current volume.
-                    symbols = list(self.agent.product_ids)[:TRAINING_MARKETS]
-                    if not symbols:
-                        raise RuntimeError("No Coinbase USD markets are available")
+                # A restart can select different markets before the 28-day review.
+                symbols = list(self.agent.product_ids)[:TRAINING_MARKETS]
+                if not symbols:
+                    raise RuntimeError("No Coinbase USD markets are available")
+                if self._needs_review(symbols, settings):
                     self.study(symbols, settings)
                 active = self.status()["active_markets"]
                 self._update(phase="watching" if active else "waiting",

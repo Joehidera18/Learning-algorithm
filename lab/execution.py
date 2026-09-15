@@ -19,6 +19,9 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
     end = min(int(end), len(rows))
     funnel = {"candles_checked": 0, "features_available": 0, "qualified_setups": 0,
               "entry_attempts": 0, "entries_opened": 0, "rejections": {}}
+    learning_rejections = {}
+    if policy:
+        funnel["learning_candidate_rejections"] = learning_rejections
 
     def reject(reason):
         funnel["rejections"][reason] = funnel["rejections"].get(reason, 0) + 1
@@ -60,6 +63,9 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         if not held_at_open and f and cash > 1 and candle["ts"] >= next_entry_ts:
             detail = edge_model.predict_detail({**f, "direction_num": sign}) if edge_model else {}
             choice = policy.choose(f) if policy else None
+            if policy:
+                for reason, count in getattr(policy, "last_diagnostics", {}).get("rejections", {}).items():
+                    learning_rejections[reason] = learning_rejections.get(reason, 0) + count
             trade_params = choice["params"] if choice else params
             if policy:
                 score, reason = (choice["score"], None) if choice else (None, "no_positive_learned_setup")

@@ -98,20 +98,33 @@ class AdaptivePolicy:
     def opportunities(self, f):
         vector = feature_vector(f)
         result = []
+        # Counts are per candidate, not independent candles or trade outcomes.
+        self.last_diagnostics = {"candidates_checked": len(self.candidates),
+            "eligible_candidates": 0, "rejections": {}}
+        def reject(reason):
+            counts = self.last_diagnostics["rejections"]
+            counts[reason] = counts.get(reason, 0) + 1
         for p in self.candidates:
-            score, _ = simple_signal(f, p)
+            score, reason = simple_signal(f, p)
             if score is None:
+                reject(reason or "no_setup")
                 continue
             model = self.state["models"].get(action_key(p))
-            if not model or model["samples"] < MIN_SAMPLES or model["recent_r"] <= 0:
+            if not model or model["samples"] < MIN_SAMPLES:
+                reject("insufficient_learning_samples")
+                continue
+            if model["recent_r"] <= 0:
+                reject("nonpositive_recent_return")
                 continue
             estimate = self.predict(p, vector)
             if estimate < MIN_ESTIMATED_R:
+                reject("low_estimated_return")
                 continue
             result.append({"params":p, "score":score, "raw_score":score,
                 "adjusted_score":estimate, "estimated_net_r":estimate,
                 "learned":{"samples":model["samples"], "expectancy_r":estimate},
                 "learning":{"version":POLICY_VERSION, "vector":list(vector)}})
+        self.last_diagnostics["eligible_candidates"] = len(result)
         return sorted(result, key=lambda x:x["estimated_net_r"], reverse=True)
 
     def choose(self, f):

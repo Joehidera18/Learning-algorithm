@@ -1,3 +1,12 @@
+# Learning diagnostics and automatic reviews — 15 September 2026 UTC
+
+- Review newly selected training markets on resume instead of waiting for the previous universe's 28-day schedule. Reordering the same markets does not trigger another study; failed downloads retain the one-hour retry delay.
+- Include policy and report versions in cached learning results and review scheduling so updated learners cannot silently reuse an incompatible report.
+- Preserve per-variant training signal matches, simulated entries, completed examples, and rejection counts in learning reports. Surface common blocks in the dashboard and distinguish insufficient samples, nonpositive recent returns, and low estimated returns during replay and paper monitoring.
+- Count candidate evaluations separately from account trades; overlapping variants do not become independent evidence. Entry rules, qualification thresholds, and real-order activation are unchanged.
+- The first resumed study after this update regenerates reports using cached candles where available. Installing a new result follows the existing model-replacement behavior; prior trade journals remain saved.
+- Added seven offline regression tests. All 117 Python tests pass. A public Coinbase candle request timed out in this environment; no real-market performance claim or hosted deployment was verified.
+
 # V11 automatic learning — 9 September 2026 UTC
 
 - Replace the main manual research flow with one Start learning & paper trading control.
