@@ -1,0 +1,1866 @@
+{
+  "method": "One fixed revision, unchanged candles, fees and account risk. Report 17 was already reviewed. No parameter search.",
+  "source_bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+  "source_report_sha256": "8256ee19af5b43a5e92a5cfda68fe6d43cb5c72e5282a7fd071f8c0fa3ba0baf",
+  "source_code_sha256": "33203246baf39a5cb6c1c30c6a2c6f8f6a7a396b0f74512aa11e5a99a390019f",
+  "runtime_seconds": 33.72,
+  "previous": {
+    "engine_version": "market-structure-v11.3-outcome-memory",
+    "policy_version": "online-net-r-v6-outcome-memory",
+    "learning_report_version": 8,
+    "historical_examples": 10279,
+    "candidate_count": 22,
+    "profitable_folds": 2,
+    "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+    "daily_data": {
+      "source": "independent_daily_candles",
+      "rows": 1125,
+      "data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "start_ts": 1692230400000,
+      "end_ts": 1789344000000,
+      "holdout_ready_candles": 19079,
+      "holdout_candles": 21009
+    },
+    "holdout": {
+      "ending_balance": 494.3896939384424,
+      "return_pct": -1.1220612123115203,
+      "trades": 3,
+      "net_pnl": -5.610306061557594,
+      "win_rate": 33.33333333333333,
+      "profit_factor": 0.2519707458472496,
+      "expectancy_r": -0.4986835748095136,
+      "max_drawdown_pct": 1.7035860956619113,
+      "signal_funnel": {
+        "candles_checked": 20993,
+        "features_available": 19073,
+        "qualified_setups": 3,
+        "entry_attempts": 3,
+        "entries_opened": 3,
+        "rejections": {
+          "no_positive_learned_setup": 18304,
+          "missing_market_candles": 15
+        },
+        "entry_rejections": {},
+        "learning_candidate_rejections": {
+          "no_bullish_pullback": 67564,
+          "no_channel_breakout": 70880,
+          "trading_cost_too_high": 5830,
+          "no_consensus_breakout": 69564,
+          "daily_downtrend": 52812,
+          "no_range_reclaim": 12412,
+          "not_a_range": 59860,
+          "extreme_volatility": 4026,
+          "insufficient_consensus_confirmation": 342,
+          "weak_consensus_volume_or_overextended": 1736,
+          "weak_breakout_volume_or_overextended": 846,
+          "weak_pullback_confirmation": 912,
+          "weak_volume": 39450,
+          "no_momentum_entry": 2914,
+          "no_expansion_breakout": 626,
+          "no_support_reclaim": 5312,
+          "no_prior_compression": 4832,
+          "recent_context_losses": 118,
+          "no_rsi_recovery": 152,
+          "low_estimated_return": 16,
+          "nonpositive_recent_return": 108,
+          "no_daily_momentum": 2398,
+          "prediction_error_too_large": 11,
+          "net_reward_too_small": 17,
+          "overextended": 12
+        }
+      },
+      "gross_pnl": -4.222624641676475,
+      "fees_paid": 1.3876814198811318,
+      "slippage_notional": 0.34691647926210406,
+      "halted_utc_days": 0,
+      "daily_loss_limit": 0.03,
+      "family": "adaptive_policy",
+      "direction": "LONG",
+      "complete": true,
+      "stopped_at_ts": null,
+      "feedback": {
+        "mode": "historical_shadow",
+        "resolved_examples": 2056,
+        "by_family": {
+          "range_reclaim_simple": {
+            "examples": 184,
+            "sum_net_r": -137.15934148121752
+          },
+          "trend_pullback_simple": {
+            "examples": 802,
+            "sum_net_r": -486.0202314583034
+          },
+          "signal_consensus_simple": {
+            "examples": 534,
+            "sum_net_r": -349.2349820658844
+          },
+          "breakout_volume_simple": {
+            "examples": 464,
+            "sum_net_r": -313.0803094909399
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 32,
+            "sum_net_r": -15.064825328610373
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 27,
+            "sum_net_r": -8.104627147980057
+          },
+          "volatility_expansion_simple": {
+            "examples": 13,
+            "sum_net_r": -0.8924789104262527
+          }
+        },
+        "last_clock_ms": 1789461900000,
+        "gap_censored_examples": 2,
+        "account_feedback_also_applied": false,
+        "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+      }
+    },
+    "holdout_stressed": {
+      "ending_balance": 494.01074683798095,
+      "return_pct": -1.1978506324038074,
+      "trades": 3,
+      "net_pnl": -5.989253162019054,
+      "win_rate": 33.33333333333333,
+      "profit_factor": 0.20083268866085469,
+      "expectancy_r": -0.5328787659041158,
+      "max_drawdown_pct": 1.690461226351712,
+      "signal_funnel": {
+        "candles_checked": 20993,
+        "features_available": 19073,
+        "qualified_setups": 3,
+        "entry_attempts": 3,
+        "entries_opened": 3,
+        "rejections": {
+          "no_positive_learned_setup": 18304,
+          "missing_market_candles": 15
+        },
+        "entry_rejections": {},
+        "learning_candidate_rejections": {
+          "no_bullish_pullback": 67564,
+          "no_channel_breakout": 70880,
+          "trading_cost_too_high": 5884,
+          "no_consensus_breakout": 69564,
+          "daily_downtrend": 52812,
+          "no_range_reclaim": 12412,
+          "not_a_range": 59860,
+          "extreme_volatility": 4026,
+          "insufficient_consensus_confirmation": 342,
+          "weak_consensus_volume_or_overextended": 1736,
+          "weak_breakout_volume_or_overextended": 846,
+          "weak_pullback_confirmation": 912,
+          "weak_volume": 39450,
+          "no_momentum_entry": 2914,
+          "no_expansion_breakout": 626,
+          "no_support_reclaim": 5312,
+          "no_prior_compression": 4832,
+          "nonpositive_recent_return": 153,
+          "no_rsi_recovery": 152,
+          "no_daily_momentum": 2398,
+          "recent_context_losses": 13,
+          "prediction_error_too_large": 8,
+          "low_estimated_return": 19,
+          "overextended": 12,
+          "net_reward_too_small": 23
+        }
+      },
+      "gross_pnl": -4.042667913729074,
+      "fees_paid": 1.9465852482899573,
+      "slippage_notional": 0.4866383110058812,
+      "halted_utc_days": 0,
+      "daily_loss_limit": 0.03,
+      "family": "adaptive_policy",
+      "direction": "LONG",
+      "complete": true,
+      "stopped_at_ts": null,
+      "feedback": {
+        "mode": "historical_shadow",
+        "resolved_examples": 1984,
+        "by_family": {
+          "range_reclaim_simple": {
+            "examples": 183,
+            "sum_net_r": -152.27006754390285
+          },
+          "signal_consensus_simple": {
+            "examples": 510,
+            "sum_net_r": -378.47077694225715
+          },
+          "trend_pullback_simple": {
+            "examples": 773,
+            "sum_net_r": -543.101332557329
+          },
+          "breakout_volume_simple": {
+            "examples": 445,
+            "sum_net_r": -336.78251178432254
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 33,
+            "sum_net_r": -17.489031701724997
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 27,
+            "sum_net_r": -9.676547776874154
+          },
+          "volatility_expansion_simple": {
+            "examples": 13,
+            "sum_net_r": -1.8868642594451455
+          }
+        },
+        "last_clock_ms": 1789461900000,
+        "gap_censored_examples": 2,
+        "account_feedback_also_applied": false,
+        "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+      }
+    },
+    "holdout_trades": [
+      {
+        "entry_ts": 1772232300000,
+        "exit_ts": 1772491500000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": 1.889809783392972,
+        "r_multiple": 0.5039492755714592,
+        "reason": "TIME"
+      },
+      {
+        "entry_ts": 1772790300000,
+        "exit_ts": 1773007200000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": -3.7641735733754476,
+        "r_multiple": -1.0,
+        "reason": "STOP"
+      },
+      {
+        "entry_ts": 1773673200000,
+        "exit_ts": 1773843300000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": -3.7359422715751314,
+        "r_multiple": -1.0,
+        "reason": "STOP"
+      }
+    ],
+    "account_feedback_comparison": {
+      "baseline": {
+        "ending_balance": 490.89526756639674,
+        "return_pct": -1.8209464867206537,
+        "trades": 5,
+        "net_pnl": -9.10473243360326,
+        "win_rate": 20.0,
+        "profit_factor": 0.17188617280231572,
+        "expectancy_r": -0.48798733776476144,
+        "max_drawdown_pct": 2.596896955448141,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 5,
+          "entry_attempts": 5,
+          "entries_opened": 5,
+          "rejections": {
+            "no_positive_learned_setup": 17534,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 64640,
+            "no_channel_breakout": 67928,
+            "trading_cost_too_high": 5758,
+            "no_consensus_breakout": 66664,
+            "daily_downtrend": 49350,
+            "no_range_reclaim": 12136,
+            "not_a_range": 57140,
+            "extreme_volatility": 3608,
+            "insufficient_consensus_confirmation": 320,
+            "weak_consensus_volume_or_overextended": 1672,
+            "weak_breakout_volume_or_overextended": 818,
+            "weak_pullback_confirmation": 888,
+            "weak_volume": 38676,
+            "no_momentum_entry": 2898,
+            "no_expansion_breakout": 606,
+            "no_support_reclaim": 5226,
+            "no_prior_compression": 4766,
+            "recent_context_losses": 105,
+            "no_rsi_recovery": 152,
+            "low_estimated_return": 20,
+            "nonpositive_recent_return": 109,
+            "no_daily_momentum": 2328,
+            "prediction_error_too_large": 15,
+            "net_reward_too_small": 16,
+            "overextended": 12
+          }
+        },
+        "gross_pnl": -6.4542474035510065,
+        "fees_paid": 2.650485030052265,
+        "slippage_notional": 0.6626154658811065,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "selected_account_trades",
+          "resolved_examples": 5
+        }
+      },
+      "baseline_stressed": {
+        "ending_balance": 494.46155039243627,
+        "return_pct": -1.1076899215127445,
+        "trades": 4,
+        "net_pnl": -5.538449607563734,
+        "win_rate": 25.0,
+        "profit_factor": 0.21368642242970345,
+        "expectancy_r": -0.3698006306230014,
+        "max_drawdown_pct": 1.6876267686542796,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 4,
+          "entry_attempts": 4,
+          "entries_opened": 4,
+          "rejections": {
+            "no_positive_learned_setup": 17820,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 65820,
+            "no_channel_breakout": 69012,
+            "trading_cost_too_high": 5730,
+            "no_consensus_breakout": 67772,
+            "daily_downtrend": 51894,
+            "no_range_reclaim": 12296,
+            "not_a_range": 58080,
+            "extreme_volatility": 3828,
+            "insufficient_consensus_confirmation": 328,
+            "weak_consensus_volume_or_overextended": 1670,
+            "weak_breakout_volume_or_overextended": 824,
+            "weak_pullback_confirmation": 884,
+            "weak_volume": 37926,
+            "no_momentum_entry": 2868,
+            "no_expansion_breakout": 600,
+            "no_support_reclaim": 5176,
+            "no_prior_compression": 4730,
+            "nonpositive_recent_return": 142,
+            "no_rsi_recovery": 152,
+            "no_daily_momentum": 2328,
+            "recent_context_losses": 13,
+            "prediction_error_too_large": 13,
+            "net_reward_too_small": 24,
+            "overextended": 10,
+            "low_estimated_return": 2
+          }
+        },
+        "gross_pnl": -2.8069997643063185,
+        "fees_paid": 2.731449843257413,
+        "slippage_notional": 0.682857681494677,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "selected_account_trades",
+          "resolved_examples": 4
+        }
+      },
+      "net_pnl_difference": 3.494426372045666,
+      "stress_net_pnl_difference": -0.4508035544553195,
+      "selection_uses_comparison": false,
+      "label": "The same cost-aware learner updated only by selected account trades. Continuous paper and Coinbase journals use selected-trade feedback between scheduled historical reviews. This control must also be profitable before qualification."
+    },
+    "outcome_memory_comparison": {
+      "baseline": {
+        "ending_balance": 494.3896939384424,
+        "return_pct": -1.1220612123115203,
+        "trades": 3,
+        "net_pnl": -5.610306061557594,
+        "win_rate": 33.33333333333333,
+        "profit_factor": 0.2519707458472496,
+        "expectancy_r": -0.4986835748095136,
+        "max_drawdown_pct": 1.7035860956619113,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 3,
+          "entry_attempts": 3,
+          "entries_opened": 3,
+          "rejections": {
+            "no_positive_learned_setup": 18304,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 67564,
+            "no_channel_breakout": 70880,
+            "trading_cost_too_high": 5830,
+            "no_consensus_breakout": 69564,
+            "daily_downtrend": 52812,
+            "no_range_reclaim": 12412,
+            "not_a_range": 59860,
+            "extreme_volatility": 4026,
+            "insufficient_consensus_confirmation": 342,
+            "weak_consensus_volume_or_overextended": 1736,
+            "weak_breakout_volume_or_overextended": 846,
+            "weak_pullback_confirmation": 912,
+            "weak_volume": 39450,
+            "no_momentum_entry": 2914,
+            "no_expansion_breakout": 626,
+            "no_support_reclaim": 5312,
+            "no_prior_compression": 4832,
+            "nonpositive_recent_return": 226,
+            "no_rsi_recovery": 152,
+            "low_estimated_return": 16,
+            "no_daily_momentum": 2398,
+            "prediction_error_too_large": 11,
+            "net_reward_too_small": 17,
+            "overextended": 12
+          }
+        },
+        "gross_pnl": -4.222624641676475,
+        "fees_paid": 1.3876814198811318,
+        "slippage_notional": 0.34691647926210406,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "historical_shadow",
+          "resolved_examples": 2056,
+          "by_family": {
+            "range_reclaim_simple": {
+              "examples": 184,
+              "sum_net_r": -137.15934148121752
+            },
+            "trend_pullback_simple": {
+              "examples": 802,
+              "sum_net_r": -486.0202314583034
+            },
+            "signal_consensus_simple": {
+              "examples": 534,
+              "sum_net_r": -349.2349820658844
+            },
+            "breakout_volume_simple": {
+              "examples": 464,
+              "sum_net_r": -313.0803094909399
+            },
+            "daily_trend_momentum_simple": {
+              "examples": 32,
+              "sum_net_r": -15.064825328610373
+            },
+            "support_rsi_reclaim_simple": {
+              "examples": 27,
+              "sum_net_r": -8.104627147980057
+            },
+            "volatility_expansion_simple": {
+              "examples": 13,
+              "sum_net_r": -0.8924789104262527
+            }
+          },
+          "last_clock_ms": 1789461900000,
+          "gap_censored_examples": 2,
+          "account_feedback_also_applied": false,
+          "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+        }
+      },
+      "baseline_stressed": {
+        "ending_balance": 494.01074683798095,
+        "return_pct": -1.1978506324038074,
+        "trades": 3,
+        "net_pnl": -5.989253162019054,
+        "win_rate": 33.33333333333333,
+        "profit_factor": 0.20083268866085469,
+        "expectancy_r": -0.5328787659041158,
+        "max_drawdown_pct": 1.690461226351712,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 3,
+          "entry_attempts": 3,
+          "entries_opened": 3,
+          "rejections": {
+            "no_positive_learned_setup": 18304,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 67564,
+            "no_channel_breakout": 70880,
+            "trading_cost_too_high": 5884,
+            "no_consensus_breakout": 69564,
+            "daily_downtrend": 52812,
+            "no_range_reclaim": 12412,
+            "not_a_range": 59860,
+            "extreme_volatility": 4026,
+            "insufficient_consensus_confirmation": 342,
+            "weak_consensus_volume_or_overextended": 1736,
+            "weak_breakout_volume_or_overextended": 846,
+            "weak_pullback_confirmation": 912,
+            "weak_volume": 39450,
+            "no_momentum_entry": 2914,
+            "no_expansion_breakout": 626,
+            "no_support_reclaim": 5312,
+            "no_prior_compression": 4832,
+            "nonpositive_recent_return": 166,
+            "no_rsi_recovery": 152,
+            "no_daily_momentum": 2398,
+            "prediction_error_too_large": 8,
+            "low_estimated_return": 19,
+            "overextended": 12,
+            "net_reward_too_small": 23
+          }
+        },
+        "gross_pnl": -4.042667913729074,
+        "fees_paid": 1.9465852482899573,
+        "slippage_notional": 0.4866383110058812,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "historical_shadow",
+          "resolved_examples": 1984,
+          "by_family": {
+            "range_reclaim_simple": {
+              "examples": 183,
+              "sum_net_r": -152.27006754390285
+            },
+            "signal_consensus_simple": {
+              "examples": 510,
+              "sum_net_r": -378.47077694225715
+            },
+            "trend_pullback_simple": {
+              "examples": 773,
+              "sum_net_r": -543.101332557329
+            },
+            "breakout_volume_simple": {
+              "examples": 445,
+              "sum_net_r": -336.78251178432254
+            },
+            "daily_trend_momentum_simple": {
+              "examples": 33,
+              "sum_net_r": -17.489031701724997
+            },
+            "support_rsi_reclaim_simple": {
+              "examples": 27,
+              "sum_net_r": -9.676547776874154
+            },
+            "volatility_expansion_simple": {
+              "examples": 13,
+              "sum_net_r": -1.8868642594451455
+            }
+          },
+          "last_clock_ms": 1789461900000,
+          "gap_censored_examples": 2,
+          "account_feedback_also_applied": false,
+          "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+        }
+      },
+      "net_pnl_difference": 0.0,
+      "stress_net_pnl_difference": 0.0,
+      "selection_uses_comparison": false,
+      "label": "Same version, data, candidates, seed and costs with the new outcome-memory selection adjustment disabled."
+    },
+    "failure_learning": {
+      "by_family": {
+        "trend_pullback_simple": {
+          "examples": 4360,
+          "sum_net_r": -2093.3767694973667,
+          "sum_gross_r": -288.3802847414963,
+          "sum_fee_r": 1804.99648475587,
+          "cost_observations": 4360,
+          "causes": {
+            "stopped_out": 2902,
+            "fee_erased_gain": 145,
+            "net_profit": 1213,
+            "stalled_trade": 100
+          },
+          "learned_contexts": 16
+        },
+        "range_reclaim_simple": {
+          "examples": 1116,
+          "sum_net_r": -632.3602063335998,
+          "sum_gross_r": -152.5263136280289,
+          "sum_fee_r": 479.83389270557075,
+          "cost_observations": 1116,
+          "causes": {
+            "stopped_out": 807,
+            "net_profit": 261,
+            "fee_erased_gain": 30,
+            "stalled_trade": 18
+          },
+          "learned_contexts": 12
+        },
+        "breakout_volume_simple": {
+          "examples": 2859,
+          "sum_net_r": -1499.814740656263,
+          "sum_gross_r": -316.7344753028938,
+          "sum_fee_r": 1183.0802653533692,
+          "cost_observations": 2859,
+          "causes": {
+            "stopped_out": 1985,
+            "fee_erased_gain": 90,
+            "net_profit": 718,
+            "stalled_trade": 66
+          },
+          "learned_contexts": 27
+        },
+        "signal_consensus_simple": {
+          "examples": 3530,
+          "sum_net_r": -1677.013370557144,
+          "sum_gross_r": -190.1373134695878,
+          "sum_fee_r": 1486.8760570875556,
+          "cost_observations": 3530,
+          "causes": {
+            "stopped_out": 2353,
+            "fee_erased_gain": 118,
+            "net_profit": 979,
+            "stalled_trade": 80
+          },
+          "learned_contexts": 27
+        },
+        "support_rsi_reclaim_simple": {
+          "examples": 144,
+          "sum_net_r": -3.7294236443464053,
+          "sum_gross_r": 14.59170780414485,
+          "sum_fee_r": 18.321131448491258,
+          "cost_observations": 144,
+          "causes": {
+            "stopped_out": 64,
+            "net_profit": 58,
+            "fee_erased_gain": 5,
+            "stalled_trade": 17
+          },
+          "learned_contexts": 1
+        },
+        "daily_trend_momentum_simple": {
+          "examples": 215,
+          "sum_net_r": -31.153207565125804,
+          "sum_gross_r": -2.6240616815998843,
+          "sum_fee_r": 28.52914588352592,
+          "cost_observations": 215,
+          "causes": {
+            "stopped_out": 135,
+            "net_profit": 63,
+            "stalled_trade": 14,
+            "fee_erased_gain": 3
+          },
+          "learned_contexts": 3
+        },
+        "volatility_expansion_simple": {
+          "examples": 111,
+          "sum_net_r": -12.1325269539265,
+          "sum_gross_r": 1.3860222805131177,
+          "sum_fee_r": 13.51854923443962,
+          "cost_observations": 111,
+          "causes": {
+            "stopped_out": 49,
+            "net_profit": 44,
+            "stalled_trade": 15,
+            "fee_erased_gain": 3
+          },
+          "learned_contexts": 0
+        }
+      },
+      "half_life_observations": 50,
+      "context_rule": "Strategy, cost burden, intraday regime and completed daily trend.",
+      "scope": "Completed candidate examples, including overlapping simulations; not account profits. Recent net outcomes affect selection. Exit causes describe outcomes, not proven causal explanations. Gross returns include slippage. Cost sums cover cost_observations only."
+    },
+    "evaluation": {
+      "reviewed_through_ts": 1789454700000,
+      "reuses_reviewed_history": true,
+      "basis": "reused_research",
+      "confirmation": {
+        "start_ts": 1789454700000,
+        "end_ts": 1789461900000,
+        "metrics": {
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "signal_funnel": {
+            "candles_checked": 7,
+            "features_available": 7,
+            "qualified_setups": 0,
+            "entry_attempts": 0,
+            "entries_opened": 0,
+            "rejections": {
+              "no_positive_learned_setup": 7
+            },
+            "entry_rejections": {},
+            "learning_candidate_rejections": {
+              "no_bullish_pullback": 28,
+              "no_channel_breakout": 28,
+              "not_a_range": 28,
+              "no_consensus_breakout": 28,
+              "weak_volume": 42
+            }
+          },
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "halted_utc_days": 0,
+          "daily_loss_limit": 0.03,
+          "family": "adaptive_policy",
+          "direction": "LONG",
+          "complete": true,
+          "stopped_at_ts": null,
+          "feedback": {
+            "mode": "historical_shadow",
+            "resolved_examples": 0,
+            "by_family": {},
+            "last_clock_ms": 1789461900000,
+            "gap_censored_examples": 0,
+            "account_feedback_also_applied": false,
+            "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+          }
+        },
+        "stressed": {
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "signal_funnel": {
+            "candles_checked": 7,
+            "features_available": 7,
+            "qualified_setups": 0,
+            "entry_attempts": 0,
+            "entries_opened": 0,
+            "rejections": {
+              "no_positive_learned_setup": 7
+            },
+            "entry_rejections": {},
+            "learning_candidate_rejections": {
+              "no_bullish_pullback": 28,
+              "no_channel_breakout": 28,
+              "not_a_range": 28,
+              "no_consensus_breakout": 28,
+              "weak_volume": 42
+            }
+          },
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "halted_utc_days": 0,
+          "daily_loss_limit": 0.03,
+          "family": "adaptive_policy",
+          "direction": "LONG",
+          "complete": true,
+          "stopped_at_ts": null,
+          "feedback": {
+            "mode": "historical_shadow",
+            "resolved_examples": 0,
+            "by_family": {},
+            "last_clock_ms": 1789461900000,
+            "gap_censored_examples": 0,
+            "account_feedback_also_applied": false,
+            "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. These examples are not account trades or profits."
+          }
+        },
+        "account_feedback_control": {
+          "metrics": {
+            "ending_balance": 500.0,
+            "return_pct": 0.0,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "signal_funnel": {
+              "candles_checked": 7,
+              "features_available": 7,
+              "qualified_setups": 0,
+              "entry_attempts": 0,
+              "entries_opened": 0,
+              "rejections": {
+                "no_positive_learned_setup": 7
+              },
+              "entry_rejections": {},
+              "learning_candidate_rejections": {
+                "no_bullish_pullback": 28,
+                "no_channel_breakout": 28,
+                "not_a_range": 28,
+                "no_consensus_breakout": 28,
+                "weak_volume": 42
+              }
+            },
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "slippage_notional": 0,
+            "halted_utc_days": 0,
+            "daily_loss_limit": 0.03,
+            "family": "adaptive_policy",
+            "direction": "LONG",
+            "complete": true,
+            "stopped_at_ts": null,
+            "feedback": {
+              "mode": "selected_account_trades",
+              "resolved_examples": 0
+            }
+          },
+          "stressed": {
+            "ending_balance": 500.0,
+            "return_pct": 0.0,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "signal_funnel": {
+              "candles_checked": 7,
+              "features_available": 7,
+              "qualified_setups": 0,
+              "entry_attempts": 0,
+              "entries_opened": 0,
+              "rejections": {
+                "no_positive_learned_setup": 7
+              },
+              "entry_rejections": {},
+              "learning_candidate_rejections": {
+                "no_bullish_pullback": 28,
+                "no_channel_breakout": 28,
+                "not_a_range": 28,
+                "no_consensus_breakout": 28,
+                "weak_volume": 42
+              }
+            },
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "slippage_notional": 0,
+            "halted_utc_days": 0,
+            "daily_loss_limit": 0.03,
+            "family": "adaptive_policy",
+            "direction": "LONG",
+            "complete": true,
+            "stopped_at_ts": null,
+            "feedback": {
+              "mode": "selected_account_trades",
+              "resolved_examples": 0
+            }
+          }
+        },
+        "training_label_end_ts": 1789450200000,
+        "expectancy_interval": {
+          "lower_r": null,
+          "upper_r": null,
+          "samples": 0
+        }
+      },
+      "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+    },
+    "validated": false,
+    "rejection_reasons": [
+      "Fewer than 30 trades in the final test period.",
+      "The final test did not stay profitable at both ordinary and higher costs.",
+      "The uncertainty in final trade results is too large to qualify.",
+      "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+      "New prices after the reviewed report have not passed the trade-count, cost, uncertainty and drawdown checks.",
+      "On new prices, learning only from selected account trades did not stay profitable at ordinary and higher costs."
+    ]
+  },
+  "revised": {
+    "engine_version": "market-structure-v11.4-trade-review",
+    "policy_version": "online-net-r-v7-trade-review",
+    "learning_report_version": 9,
+    "historical_examples": 11270,
+    "candidate_count": 22,
+    "profitable_folds": 2,
+    "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+    "daily_data": {
+      "source": "independent_daily_candles",
+      "rows": 1125,
+      "data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "start_ts": 1692230400000,
+      "end_ts": 1789344000000,
+      "holdout_ready_candles": 19079,
+      "holdout_candles": 21009
+    },
+    "holdout": {
+      "ending_balance": 494.3896939384424,
+      "return_pct": -1.1220612123115203,
+      "trades": 3,
+      "net_pnl": -5.610306061557594,
+      "win_rate": 33.33333333333333,
+      "profit_factor": 0.2519707458472496,
+      "expectancy_r": -0.4986835748095136,
+      "max_drawdown_pct": 1.7035860956619113,
+      "signal_funnel": {
+        "candles_checked": 20993,
+        "features_available": 19073,
+        "qualified_setups": 3,
+        "entry_attempts": 3,
+        "entries_opened": 3,
+        "rejections": {
+          "no_positive_learned_setup": 18304,
+          "missing_market_candles": 15
+        },
+        "entry_rejections": {},
+        "learning_candidate_rejections": {
+          "no_bullish_pullback": 67564,
+          "no_channel_breakout": 70880,
+          "trading_cost_too_high": 5830,
+          "no_consensus_breakout": 69564,
+          "daily_downtrend": 52812,
+          "no_range_reclaim": 12412,
+          "not_a_range": 59860,
+          "extreme_volatility": 4026,
+          "insufficient_consensus_confirmation": 342,
+          "weak_consensus_volume_or_overextended": 1736,
+          "weak_breakout_volume_or_overextended": 846,
+          "weak_pullback_confirmation": 912,
+          "weak_volume": 39450,
+          "no_momentum_entry": 2914,
+          "no_expansion_breakout": 626,
+          "no_support_reclaim": 5312,
+          "no_prior_compression": 4832,
+          "recent_context_losses": 120,
+          "no_rsi_recovery": 152,
+          "prediction_error_too_large": 10,
+          "nonpositive_recent_return": 108,
+          "no_daily_momentum": 2398,
+          "net_reward_too_small": 17,
+          "low_estimated_return": 16,
+          "overextended": 12
+        }
+      },
+      "gross_pnl": -4.222624641676475,
+      "fees_paid": 1.3876814198811318,
+      "slippage_notional": 0.34691647926210406,
+      "halted_utc_days": 0,
+      "daily_loss_limit": 0.03,
+      "family": "adaptive_policy",
+      "direction": "LONG",
+      "complete": true,
+      "stopped_at_ts": null,
+      "feedback": {
+        "mode": "historical_shadow",
+        "resolved_examples": 2280,
+        "by_family": {
+          "range_reclaim_simple": {
+            "examples": 187,
+            "sum_net_r": -136.96572715062328
+          },
+          "trend_pullback_simple": {
+            "examples": 943,
+            "sum_net_r": -572.7075238755048
+          },
+          "signal_consensus_simple": {
+            "examples": 572,
+            "sum_net_r": -382.579356814449
+          },
+          "breakout_volume_simple": {
+            "examples": 505,
+            "sum_net_r": -347.5384985809166
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 33,
+            "sum_net_r": -16.064825328610375
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 27,
+            "sum_net_r": -8.104627147980057
+          },
+          "volatility_expansion_simple": {
+            "examples": 13,
+            "sum_net_r": -0.8924789104262527
+          }
+        },
+        "last_clock_ms": 1789461900000,
+        "gap_censored_examples": 2,
+        "loss_pause_overrides": 1129,
+        "account_feedback_also_applied": false,
+        "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. Loss streaks do not pause this independent practice. These examples are not account trades or profits."
+      }
+    },
+    "holdout_stressed": {
+      "ending_balance": 494.01074683798095,
+      "return_pct": -1.1978506324038074,
+      "trades": 3,
+      "net_pnl": -5.989253162019054,
+      "win_rate": 33.33333333333333,
+      "profit_factor": 0.20083268866085469,
+      "expectancy_r": -0.5328787659041158,
+      "max_drawdown_pct": 1.690461226351712,
+      "signal_funnel": {
+        "candles_checked": 20993,
+        "features_available": 19073,
+        "qualified_setups": 3,
+        "entry_attempts": 3,
+        "entries_opened": 3,
+        "rejections": {
+          "no_positive_learned_setup": 18304,
+          "missing_market_candles": 15
+        },
+        "entry_rejections": {},
+        "learning_candidate_rejections": {
+          "no_bullish_pullback": 67564,
+          "no_channel_breakout": 70880,
+          "trading_cost_too_high": 5884,
+          "no_consensus_breakout": 69564,
+          "daily_downtrend": 52812,
+          "no_range_reclaim": 12412,
+          "not_a_range": 59860,
+          "extreme_volatility": 4026,
+          "insufficient_consensus_confirmation": 342,
+          "weak_consensus_volume_or_overextended": 1736,
+          "weak_breakout_volume_or_overextended": 846,
+          "weak_pullback_confirmation": 912,
+          "weak_volume": 39450,
+          "no_momentum_entry": 2914,
+          "no_expansion_breakout": 626,
+          "no_support_reclaim": 5312,
+          "no_prior_compression": 4832,
+          "nonpositive_recent_return": 153,
+          "no_rsi_recovery": 152,
+          "prediction_error_too_large": 8,
+          "no_daily_momentum": 2398,
+          "recent_context_losses": 13,
+          "low_estimated_return": 20,
+          "overextended": 12,
+          "net_reward_too_small": 23
+        }
+      },
+      "gross_pnl": -4.042667913729074,
+      "fees_paid": 1.9465852482899573,
+      "slippage_notional": 0.4866383110058812,
+      "halted_utc_days": 0,
+      "daily_loss_limit": 0.03,
+      "family": "adaptive_policy",
+      "direction": "LONG",
+      "complete": true,
+      "stopped_at_ts": null,
+      "feedback": {
+        "mode": "historical_shadow",
+        "resolved_examples": 2324,
+        "by_family": {
+          "range_reclaim_simple": {
+            "examples": 189,
+            "sum_net_r": -158.27006754390283
+          },
+          "signal_consensus_simple": {
+            "examples": 576,
+            "sum_net_r": -436.5644112924024
+          },
+          "trend_pullback_simple": {
+            "examples": 977,
+            "sum_net_r": -692.0810066663508
+          },
+          "breakout_volume_simple": {
+            "examples": 509,
+            "sum_net_r": -387.98044818975103
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 33,
+            "sum_net_r": -17.489031701724997
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 27,
+            "sum_net_r": -9.676547776874154
+          },
+          "volatility_expansion_simple": {
+            "examples": 13,
+            "sum_net_r": -1.8868642594451455
+          }
+        },
+        "last_clock_ms": 1789461900000,
+        "gap_censored_examples": 2,
+        "loss_pause_overrides": 1521,
+        "account_feedback_also_applied": false,
+        "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. Loss streaks do not pause this independent practice. These examples are not account trades or profits."
+      }
+    },
+    "holdout_trades": [
+      {
+        "entry_ts": 1772232300000,
+        "exit_ts": 1772491500000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": 1.889809783392972,
+        "r_multiple": 0.5039492755714592,
+        "reason": "TIME"
+      },
+      {
+        "entry_ts": 1772790300000,
+        "exit_ts": 1773007200000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": -3.7641735733754476,
+        "r_multiple": -1.0,
+        "reason": "STOP"
+      },
+      {
+        "entry_ts": 1773673200000,
+        "exit_ts": 1773843300000,
+        "strategy_family": "support_rsi_reclaim_simple",
+        "pnl": -3.7359422715751314,
+        "r_multiple": -1.0,
+        "reason": "STOP"
+      }
+    ],
+    "account_feedback_comparison": {
+      "baseline": {
+        "ending_balance": 493.491062542143,
+        "return_pct": -1.3017874915713934,
+        "trades": 4,
+        "net_pnl": -6.508937457856973,
+        "win_rate": 25.0,
+        "profit_factor": 0.22501091283129454,
+        "expectancy_r": -0.43460128205069776,
+        "max_drawdown_pct": 2.0526209234742177,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 4,
+          "entry_attempts": 4,
+          "entries_opened": 4,
+          "rejections": {
+            "no_positive_learned_setup": 17919,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 66096,
+            "no_channel_breakout": 69396,
+            "trading_cost_too_high": 5800,
+            "no_consensus_breakout": 68104,
+            "daily_downtrend": 51414,
+            "no_range_reclaim": 12332,
+            "not_a_range": 58432,
+            "extreme_volatility": 3872,
+            "insufficient_consensus_confirmation": 334,
+            "weak_consensus_volume_or_overextended": 1702,
+            "weak_breakout_volume_or_overextended": 828,
+            "weak_pullback_confirmation": 892,
+            "weak_volume": 38796,
+            "no_momentum_entry": 2914,
+            "no_expansion_breakout": 614,
+            "no_support_reclaim": 5242,
+            "no_prior_compression": 4774,
+            "recent_context_losses": 119,
+            "no_rsi_recovery": 152,
+            "prediction_error_too_large": 18,
+            "nonpositive_recent_return": 109,
+            "no_daily_momentum": 2328,
+            "net_reward_too_small": 16,
+            "low_estimated_return": 6,
+            "overextended": 12
+          }
+        },
+        "gross_pnl": -4.574584679728722,
+        "fees_paid": 1.9343527781282743,
+        "slippage_notional": 0.48358410353147635,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "selected_account_trades",
+          "resolved_examples": 4
+        }
+      },
+      "baseline_stressed": {
+        "ending_balance": 494.46155039243627,
+        "return_pct": -1.1076899215127445,
+        "trades": 4,
+        "net_pnl": -5.538449607563734,
+        "win_rate": 25.0,
+        "profit_factor": 0.21368642242970345,
+        "expectancy_r": -0.3698006306230014,
+        "max_drawdown_pct": 1.6876267686542796,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 4,
+          "entry_attempts": 4,
+          "entries_opened": 4,
+          "rejections": {
+            "no_positive_learned_setup": 17820,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 65820,
+            "no_channel_breakout": 69012,
+            "trading_cost_too_high": 5730,
+            "no_consensus_breakout": 67772,
+            "daily_downtrend": 51894,
+            "no_range_reclaim": 12296,
+            "not_a_range": 58080,
+            "extreme_volatility": 3828,
+            "insufficient_consensus_confirmation": 328,
+            "weak_consensus_volume_or_overextended": 1670,
+            "weak_breakout_volume_or_overextended": 824,
+            "weak_pullback_confirmation": 884,
+            "weak_volume": 37926,
+            "no_momentum_entry": 2868,
+            "no_expansion_breakout": 600,
+            "no_support_reclaim": 5176,
+            "no_prior_compression": 4730,
+            "nonpositive_recent_return": 142,
+            "no_rsi_recovery": 152,
+            "prediction_error_too_large": 14,
+            "no_daily_momentum": 2328,
+            "recent_context_losses": 13,
+            "net_reward_too_small": 24,
+            "low_estimated_return": 3,
+            "overextended": 10
+          }
+        },
+        "gross_pnl": -2.8069997643063185,
+        "fees_paid": 2.731449843257413,
+        "slippage_notional": 0.682857681494677,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "selected_account_trades",
+          "resolved_examples": 4
+        }
+      },
+      "net_pnl_difference": 0.898631396299379,
+      "stress_net_pnl_difference": -0.4508035544553195,
+      "selection_uses_comparison": false,
+      "label": "The same cost-aware learner updated only by selected account trades. Continuous paper and Coinbase journals use selected-trade feedback between scheduled historical reviews. This control must also be profitable before qualification."
+    },
+    "outcome_memory_comparison": {
+      "baseline": {
+        "ending_balance": 494.3896939384424,
+        "return_pct": -1.1220612123115203,
+        "trades": 3,
+        "net_pnl": -5.610306061557594,
+        "win_rate": 33.33333333333333,
+        "profit_factor": 0.2519707458472496,
+        "expectancy_r": -0.4986835748095136,
+        "max_drawdown_pct": 1.7035860956619113,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 3,
+          "entry_attempts": 3,
+          "entries_opened": 3,
+          "rejections": {
+            "no_positive_learned_setup": 18304,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 67564,
+            "no_channel_breakout": 70880,
+            "trading_cost_too_high": 5830,
+            "no_consensus_breakout": 69564,
+            "daily_downtrend": 52812,
+            "no_range_reclaim": 12412,
+            "not_a_range": 59860,
+            "extreme_volatility": 4026,
+            "insufficient_consensus_confirmation": 342,
+            "weak_consensus_volume_or_overextended": 1736,
+            "weak_breakout_volume_or_overextended": 846,
+            "weak_pullback_confirmation": 912,
+            "weak_volume": 39450,
+            "no_momentum_entry": 2914,
+            "no_expansion_breakout": 626,
+            "no_support_reclaim": 5312,
+            "no_prior_compression": 4832,
+            "nonpositive_recent_return": 228,
+            "no_rsi_recovery": 152,
+            "prediction_error_too_large": 10,
+            "no_daily_momentum": 2398,
+            "net_reward_too_small": 17,
+            "low_estimated_return": 16,
+            "overextended": 12
+          }
+        },
+        "gross_pnl": -4.222624641676475,
+        "fees_paid": 1.3876814198811318,
+        "slippage_notional": 0.34691647926210406,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "historical_shadow",
+          "resolved_examples": 2280,
+          "by_family": {
+            "range_reclaim_simple": {
+              "examples": 187,
+              "sum_net_r": -136.96572715062328
+            },
+            "trend_pullback_simple": {
+              "examples": 943,
+              "sum_net_r": -572.7075238755048
+            },
+            "signal_consensus_simple": {
+              "examples": 572,
+              "sum_net_r": -382.579356814449
+            },
+            "breakout_volume_simple": {
+              "examples": 505,
+              "sum_net_r": -347.5384985809166
+            },
+            "daily_trend_momentum_simple": {
+              "examples": 33,
+              "sum_net_r": -16.064825328610375
+            },
+            "support_rsi_reclaim_simple": {
+              "examples": 27,
+              "sum_net_r": -8.104627147980057
+            },
+            "volatility_expansion_simple": {
+              "examples": 13,
+              "sum_net_r": -0.8924789104262527
+            }
+          },
+          "last_clock_ms": 1789461900000,
+          "gap_censored_examples": 2,
+          "loss_pause_overrides": 1129,
+          "account_feedback_also_applied": false,
+          "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. Loss streaks do not pause this independent practice. These examples are not account trades or profits."
+        }
+      },
+      "baseline_stressed": {
+        "ending_balance": 494.01074683798095,
+        "return_pct": -1.1978506324038074,
+        "trades": 3,
+        "net_pnl": -5.989253162019054,
+        "win_rate": 33.33333333333333,
+        "profit_factor": 0.20083268866085469,
+        "expectancy_r": -0.5328787659041158,
+        "max_drawdown_pct": 1.690461226351712,
+        "signal_funnel": {
+          "candles_checked": 20993,
+          "features_available": 19073,
+          "qualified_setups": 3,
+          "entry_attempts": 3,
+          "entries_opened": 3,
+          "rejections": {
+            "no_positive_learned_setup": 18304,
+            "missing_market_candles": 15
+          },
+          "entry_rejections": {},
+          "learning_candidate_rejections": {
+            "no_bullish_pullback": 67564,
+            "no_channel_breakout": 70880,
+            "trading_cost_too_high": 5884,
+            "no_consensus_breakout": 69564,
+            "daily_downtrend": 52812,
+            "no_range_reclaim": 12412,
+            "not_a_range": 59860,
+            "extreme_volatility": 4026,
+            "insufficient_consensus_confirmation": 342,
+            "weak_consensus_volume_or_overextended": 1736,
+            "weak_breakout_volume_or_overextended": 846,
+            "weak_pullback_confirmation": 912,
+            "weak_volume": 39450,
+            "no_momentum_entry": 2914,
+            "no_expansion_breakout": 626,
+            "no_support_reclaim": 5312,
+            "no_prior_compression": 4832,
+            "nonpositive_recent_return": 166,
+            "no_rsi_recovery": 152,
+            "prediction_error_too_large": 8,
+            "no_daily_momentum": 2398,
+            "low_estimated_return": 20,
+            "overextended": 12,
+            "net_reward_too_small": 23
+          }
+        },
+        "gross_pnl": -4.042667913729074,
+        "fees_paid": 1.9465852482899573,
+        "slippage_notional": 0.4866383110058812,
+        "halted_utc_days": 0,
+        "daily_loss_limit": 0.03,
+        "family": "adaptive_policy",
+        "direction": "LONG",
+        "complete": true,
+        "stopped_at_ts": null,
+        "feedback": {
+          "mode": "historical_shadow",
+          "resolved_examples": 2324,
+          "by_family": {
+            "range_reclaim_simple": {
+              "examples": 189,
+              "sum_net_r": -158.27006754390283
+            },
+            "signal_consensus_simple": {
+              "examples": 576,
+              "sum_net_r": -436.5644112924024
+            },
+            "trend_pullback_simple": {
+              "examples": 977,
+              "sum_net_r": -692.0810066663508
+            },
+            "breakout_volume_simple": {
+              "examples": 509,
+              "sum_net_r": -387.98044818975103
+            },
+            "daily_trend_momentum_simple": {
+              "examples": 33,
+              "sum_net_r": -17.489031701724997
+            },
+            "support_rsi_reclaim_simple": {
+              "examples": 27,
+              "sum_net_r": -9.676547776874154
+            },
+            "volatility_expansion_simple": {
+              "examples": 13,
+              "sum_net_r": -1.8868642594451455
+            }
+          },
+          "last_clock_ms": 1789461900000,
+          "gap_censored_examples": 2,
+          "loss_pause_overrides": 1521,
+          "account_feedback_also_applied": false,
+          "scope": "Independent, overlapping historical simulations with full costs. Learn only after exit bars close, including setups the account skipped. Loss streaks do not pause this independent practice. These examples are not account trades or profits."
+        }
+      },
+      "net_pnl_difference": 0.0,
+      "stress_net_pnl_difference": 0.0,
+      "selection_uses_comparison": false,
+      "label": "Same version, data, candidates, seed and costs with the new outcome-memory selection adjustment disabled."
+    },
+    "failure_learning": {
+      "by_family": {
+        "trend_pullback_simple": {
+          "examples": 4979,
+          "sum_net_r": -2444.846823149833,
+          "sum_gross_r": -363.9384736111086,
+          "sum_fee_r": 2080.908349538724,
+          "cost_observations": 4979,
+          "causes": {
+            "stopped_out": 3331,
+            "fee_erased_gain": 116,
+            "net_profit": 1290,
+            "near_break_even": 114,
+            "stalled_trade": 128
+          },
+          "learned_contexts": 16,
+          "review_samples": 4979,
+          "review_findings": {
+            "high_fee_burden": 4692,
+            "little_follow_through": 2854,
+            "against_daily_trend": 1484,
+            "fees_erased_gain": 170,
+            "entry_bar_stop": 230,
+            "profitable_exit": 1290,
+            "time_exit": 473,
+            "gave_back_gains": 261,
+            "loss_exceeded_plan": 26
+          }
+        },
+        "range_reclaim_simple": {
+          "examples": 1176,
+          "sum_net_r": -669.2131086932952,
+          "sum_gross_r": -163.78203130876653,
+          "sum_fee_r": 505.4310773845285,
+          "cost_observations": 1176,
+          "causes": {
+            "stopped_out": 852,
+            "net_profit": 263,
+            "near_break_even": 21,
+            "fee_erased_gain": 22,
+            "stalled_trade": 18
+          },
+          "learned_contexts": 12,
+          "review_samples": 1176,
+          "review_findings": {
+            "high_fee_burden": 1119,
+            "little_follow_through": 735,
+            "against_daily_trend": 297,
+            "profitable_exit": 263,
+            "entry_bar_stop": 81,
+            "time_exit": 93,
+            "gave_back_gains": 60,
+            "fees_erased_gain": 31,
+            "loss_exceeded_plan": 2
+          }
+        },
+        "breakout_volume_simple": {
+          "examples": 3117,
+          "sum_net_r": -1664.4917013424413,
+          "sum_gross_r": -373.1197792554409,
+          "sum_fee_r": 1291.3719220870003,
+          "cost_observations": 3117,
+          "causes": {
+            "stopped_out": 2179,
+            "near_break_even": 68,
+            "net_profit": 722,
+            "fee_erased_gain": 80,
+            "stalled_trade": 68
+          },
+          "learned_contexts": 27,
+          "review_samples": 3117,
+          "review_findings": {
+            "high_fee_burden": 2953,
+            "little_follow_through": 1825,
+            "against_daily_trend": 1212,
+            "fees_erased_gain": 103,
+            "profitable_exit": 722,
+            "entry_bar_stop": 216,
+            "gave_back_gains": 206,
+            "time_exit": 257,
+            "loss_exceeded_plan": 27
+          }
+        },
+        "signal_consensus_simple": {
+          "examples": 3792,
+          "sum_net_r": -1824.0448214315597,
+          "sum_gross_r": -226.5410586400442,
+          "sum_fee_r": 1597.5037627915144,
+          "cost_observations": 3792,
+          "causes": {
+            "stopped_out": 2538,
+            "fee_erased_gain": 84,
+            "near_break_even": 92,
+            "net_profit": 995,
+            "stalled_trade": 83
+          },
+          "learned_contexts": 27,
+          "review_samples": 3792,
+          "review_findings": {
+            "high_fee_burden": 3608,
+            "little_follow_through": 2135,
+            "against_daily_trend": 1402,
+            "fees_erased_gain": 128,
+            "profitable_exit": 995,
+            "time_exit": 298,
+            "entry_bar_stop": 215,
+            "gave_back_gains": 240,
+            "loss_exceeded_plan": 20
+          }
+        },
+        "support_rsi_reclaim_simple": {
+          "examples": 145,
+          "sum_net_r": -7.160262292489821,
+          "sum_gross_r": 11.316380533908186,
+          "sum_fee_r": 18.476642826398006,
+          "cost_observations": 145,
+          "causes": {
+            "stopped_out": 65,
+            "net_profit": 54,
+            "near_break_even": 6,
+            "stalled_trade": 18,
+            "fee_erased_gain": 2
+          },
+          "learned_contexts": 1,
+          "review_samples": 145,
+          "review_findings": {
+            "time_exit": 61,
+            "profitable_exit": 54,
+            "little_follow_through": 36,
+            "gave_back_gains": 25,
+            "fees_erased_gain": 5
+          }
+        },
+        "daily_trend_momentum_simple": {
+          "examples": 230,
+          "sum_net_r": -36.810793180170506,
+          "sum_gross_r": -6.264395654114077,
+          "sum_fee_r": 30.546397526056428,
+          "cost_observations": 230,
+          "causes": {
+            "stopped_out": 147,
+            "net_profit": 65,
+            "stalled_trade": 14,
+            "near_break_even": 4
+          },
+          "learned_contexts": 3,
+          "review_samples": 230,
+          "review_findings": {
+            "little_follow_through": 56,
+            "profitable_exit": 65,
+            "gave_back_gains": 56,
+            "time_exit": 34,
+            "fees_erased_gain": 3
+          }
+        },
+        "volatility_expansion_simple": {
+          "examples": 111,
+          "sum_net_r": -12.1325269539265,
+          "sum_gross_r": 1.3860222805131177,
+          "sum_fee_r": 13.51854923443962,
+          "cost_observations": 111,
+          "causes": {
+            "stopped_out": 49,
+            "net_profit": 42,
+            "stalled_trade": 14,
+            "near_break_even": 6
+          },
+          "learned_contexts": 0,
+          "review_samples": 111,
+          "review_findings": {
+            "time_exit": 53,
+            "profitable_exit": 42,
+            "gave_back_gains": 9,
+            "little_follow_through": 31,
+            "fees_erased_gain": 3
+          }
+        }
+      },
+      "half_life_observations": 50,
+      "break_even_band_r": 0.1,
+      "context_rule": "Strategy, cost burden, intraday regime and completed daily trend.",
+      "scope": "Completed candidate examples, including overlapping simulations; not account profits. Recent net outcomes affect selection. Exit causes describe outcomes, not proven causal explanations. Gross returns include slippage. Cost sums cover cost_observations only. Near-break-even outcomes retain their actual net reward. Reviewing an outcome does not count it again."
+    },
+    "evaluation": {
+      "reviewed_through_ts": 1789461900000,
+      "reuses_reviewed_history": true,
+      "basis": "reused_research",
+      "confirmation": null,
+      "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+    },
+    "validated": false,
+    "rejection_reasons": [
+      "Fewer than 30 trades in the final test period.",
+      "The final test did not stay profitable at both ordinary and higher costs.",
+      "The uncertainty in final trade results is too large to qualify.",
+      "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+      "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+    ],
+    "training_diagnostics": {
+      "candles_checked": 1841114,
+      "features_available": 1801580,
+      "qualified_setups": 11325,
+      "entry_attempts": 11325,
+      "entries_opened": 11295,
+      "rejections": {
+        "no_bullish_pullback": 254683,
+        "extreme_volatility": 9808,
+        "entry_gap_too_large": 30,
+        "weak_pullback_confirmation": 966,
+        "missing_market_candles": 220,
+        "no_channel_breakout": 283852,
+        "weak_breakout_volume_or_overextended": 3519,
+        "not_a_range": 266801,
+        "no_range_reclaim": 42962,
+        "no_consensus_breakout": 267534,
+        "weak_consensus_volume_or_overextended": 8019,
+        "insufficient_consensus_confirmation": 1443,
+        "daily_downtrend": 203211,
+        "weak_volume": 127237,
+        "no_daily_momentum": 11553,
+        "no_momentum_entry": 2653,
+        "no_prior_compression": 22502,
+        "no_expansion_breakout": 2250,
+        "overextended": 22,
+        "no_support_reclaim": 22404,
+        "no_rsi_recovery": 780
+      },
+      "entry_rejections": {
+        "entry_gap_too_large": 30
+      },
+      "exploratory_entries": 10142,
+      "training_cost_overrides": {
+        "trading_cost_too_high": 9740,
+        "net_reward_too_small": 402
+      },
+      "gap_censored_examples": 21,
+      "loss_pause_overrides": 4195
+    },
+    "trade_review_counts": {
+      "development": {
+        "examples": 11270,
+        "unavailable_reviews": 0,
+        "outcomes": {
+          "full_risk_loss": 7505,
+          "loss": 520,
+          "profit": 3016,
+          "near_break_even": 229
+        },
+        "findings": {
+          "high_fee_burden": 10169,
+          "little_follow_through": 6133,
+          "against_daily_trend": 3527,
+          "fees_erased_gain": 354,
+          "entry_bar_stop": 611,
+          "profitable_exit": 3016,
+          "time_exit": 1087,
+          "gave_back_gains": 783,
+          "loss_exceeded_plan": 23
+        },
+        "by_family": {
+          "trend_pullback_simple": {
+            "examples": 4036,
+            "outcomes": {
+              "full_risk_loss": 2669,
+              "loss": 182,
+              "profit": 1102,
+              "near_break_even": 83
+            },
+            "findings": {
+              "high_fee_burden": 3753,
+              "little_follow_through": 2229,
+              "against_daily_trend": 1140,
+              "fees_erased_gain": 129,
+              "entry_bar_stop": 181,
+              "profitable_exit": 1102,
+              "time_exit": 383,
+              "gave_back_gains": 236,
+              "loss_exceeded_plan": 11
+            }
+          },
+          "breakout_volume_simple": {
+            "examples": 2612,
+            "outcomes": {
+              "full_risk_loss": 1795,
+              "near_break_even": 45,
+              "profit": 640,
+              "loss": 132
+            },
+            "findings": {
+              "high_fee_burden": 2448,
+              "little_follow_through": 1468,
+              "against_daily_trend": 977,
+              "fees_erased_gain": 88,
+              "profitable_exit": 640,
+              "entry_bar_stop": 183,
+              "gave_back_gains": 194,
+              "time_exit": 227,
+              "loss_exceeded_plan": 6
+            }
+          },
+          "range_reclaim_simple": {
+            "examples": 989,
+            "outcomes": {
+              "full_risk_loss": 703,
+              "profit": 238,
+              "near_break_even": 18,
+              "loss": 30
+            },
+            "findings": {
+              "high_fee_burden": 932,
+              "little_follow_through": 587,
+              "against_daily_trend": 251,
+              "profitable_exit": 238,
+              "entry_bar_stop": 67,
+              "time_exit": 86,
+              "gave_back_gains": 55,
+              "fees_erased_gain": 21,
+              "loss_exceeded_plan": 2
+            }
+          },
+          "signal_consensus_simple": {
+            "examples": 3220,
+            "outcomes": {
+              "full_risk_loss": 2110,
+              "loss": 146,
+              "near_break_even": 70,
+              "profit": 894
+            },
+            "findings": {
+              "high_fee_burden": 3036,
+              "little_follow_through": 1746,
+              "against_daily_trend": 1159,
+              "fees_erased_gain": 107,
+              "profitable_exit": 894,
+              "time_exit": 280,
+              "entry_bar_stop": 180,
+              "gave_back_gains": 228,
+              "loss_exceeded_plan": 4
+            }
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 197,
+            "outcomes": {
+              "full_risk_loss": 129,
+              "profit": 61,
+              "loss": 6,
+              "near_break_even": 1
+            },
+            "findings": {
+              "little_follow_through": 43,
+              "profitable_exit": 61,
+              "gave_back_gains": 44,
+              "time_exit": 21,
+              "fees_erased_gain": 1
+            }
+          },
+          "volatility_expansion_simple": {
+            "examples": 98,
+            "outcomes": {
+              "full_risk_loss": 46,
+              "profit": 36,
+              "loss": 10,
+              "near_break_even": 6
+            },
+            "findings": {
+              "time_exit": 43,
+              "profitable_exit": 36,
+              "gave_back_gains": 8,
+              "little_follow_through": 28,
+              "fees_erased_gain": 3
+            }
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 118,
+            "outcomes": {
+              "full_risk_loss": 53,
+              "profit": 45,
+              "near_break_even": 6,
+              "loss": 14
+            },
+            "findings": {
+              "time_exit": 47,
+              "profitable_exit": 45,
+              "little_follow_through": 32,
+              "gave_back_gains": 18,
+              "fees_erased_gain": 5
+            }
+          }
+        },
+        "cases_per_family_outcome": 3,
+        "case_selection": "Higher diagnostic priority, then more recent, per family and outcome. Counts include every reviewed example; cases are a bounded sample."
+      },
+      "selected": {
+        "examples": 3,
+        "unavailable_reviews": 0,
+        "outcomes": {
+          "profit": 1,
+          "full_risk_loss": 2
+        },
+        "findings": {
+          "time_exit": 1,
+          "profitable_exit": 1,
+          "little_follow_through": 1,
+          "gave_back_gains": 1
+        },
+        "by_family": {
+          "support_rsi_reclaim_simple": {
+            "examples": 3,
+            "outcomes": {
+              "profit": 1,
+              "full_risk_loss": 2
+            },
+            "findings": {
+              "time_exit": 1,
+              "profitable_exit": 1,
+              "little_follow_through": 1,
+              "gave_back_gains": 1
+            }
+          }
+        },
+        "cases_per_family_outcome": 8,
+        "case_selection": "Higher diagnostic priority, then more recent, within each strategy family and outcome. Counts cover all reviewed examples; detailed cases are a bounded sample."
+      }
+    },
+    "model_sha256": "546604aa830fbc0087b4b01d84f6bd89e2f438a80c16cb6f71f2e83f63bddcb5"
+  }
+}

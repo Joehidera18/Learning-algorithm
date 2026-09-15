@@ -106,7 +106,11 @@
   }
   function renderJournal(rows) {
     $("journalTable").innerHTML = rows.length ? rows.map(function (t) {
-      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) + "</td></tr>";
+      const review=t.trade_review;
+      const detail=review && review.outcome ? '<details><summary>At-close review</summary><p>'+escape(review.outcome.replace(/_/g," "))+
+        '; fees '+num(review.fee_r,3)+'R; best observed net mark '+num(review.best_net_r,3)+'R; giveback '+num(review.giveback_r,3)+
+        'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p><p class="footnote">Observed quotes may not capture every price between updates.</p></details>' : '';
+      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+ "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
   function rejectionSummary(counts) {
@@ -163,6 +167,8 @@
         'These examples do not approve a strategy for trading.'+(explored ? ' '+explored+'.' : '')+'</p>' : '')+
       (totals.gap_censored_examples ? '<p class="footnote"><b>Unknown outcomes:</b> '+num(totals.gap_censored_examples,0)+
         ' training entries crossed missing prices and were excluded from learning. No exit was invented.</p>' : '')+
+      (typeof totals.loss_pause_overrides === "number" ? '<p class="footnote"><b>Practice continued after losses:</b> '+
+        num(totals.loss_pause_overrides,0)+' longer loss-streak pauses skipped by independent training simulations. Routine entry spacing and full costs still apply.</p>' : '')+
       (entryBlocks ? '<p class="footnote"><b>Training entry blocks after a signal matched:</b> '+entryBlocks+'</p>' : '')+
       (training ? '<p class="footnote"><b>Most common training blocks:</b> '+training+'</p>' : '')+
       (execution ? '<p class="footnote"><b>Final-test entry blocks:</b> '+execution+'</p>' : '')+
@@ -208,11 +214,11 @@
   }
   function renderCostLearning(r) {
     let html="";
-    if (r.failure_learning) html+='<details><summary>What happened in the failed trade examples?</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Stopped out</th><th>Fees erased a gain</th><th>Time exit loss</th><th>Other losses</th></tr></thead><tbody>'+
+    if (r.failure_learning) html+='<details><summary>What happened in the failed trade examples?</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Stopped out</th><th>Near break-even</th><th>Fees erased a gain</th><th>Time exit loss</th><th>Other losses</th></tr></thead><tbody>'+
       Object.entries(r.failure_learning.by_family || {}).map(function (entry) {
         const a=entry[1].causes || {};
         return '<tr><td>'+escape(family(entry[0]))+'</td><td>'+num(a.stopped_out || 0,0)+
-          '</td><td>'+num(a.fee_erased_gain || 0,0)+'</td><td>'+num(a.stalled_trade || 0,0)+
+          '</td><td>'+num(a.near_break_even || 0,0)+'</td><td>'+num(a.fee_erased_gain || 0,0)+'</td><td>'+num(a.stalled_trade || 0,0)+
           '</td><td>'+num(a.other_loss || 0,0)+'</td></tr>';
       }).join('')+'</tbody></table></div><p class="footnote">The learner uses recent net outcomes from similar market conditions to adjust entries. These are overlapping historical examples. Exit labels describe what happened; they do not prove why a trade failed.</p></details>';
     if (r.outcome_memory_comparison) html+='<p class="footnote"><b>Effect of the new outcome memory:</b> '+
@@ -249,6 +255,51 @@
     }
     return html;
   }
+  function renderTradeReviews(r) {
+    const study=r.trade_reviews;
+    if (!study) return "";
+    const development=study.development || {}, selected=study.selected || {};
+    const labels={near_break_even:"Near break-even",full_risk_loss:"Loss of at least 1R",loss:"Smaller loss",profit:"Profit"};
+    const findings={fees_erased_gain:"Fees erased a gross gain",gave_back_gains:"An observed gain was given back",
+      little_follow_through:"Little favorable movement before exit",loss_exceeded_plan:"Loss exceeded the planned stop risk",
+      entry_bar_stop:"Stopped during the entry candle",time_exit:"Reached the holding-time limit",
+      high_fee_burden:"Fees used at least 0.25R",against_daily_trend:"Entry opposed the completed daily trend",
+      profitable_exit:"Finished positive after costs"};
+    function cases(items,title) {
+      items=items || [];
+      if (!items.length) return "";
+      return '<details><summary>'+escape(title)+' ('+num(items.length,0)+')</summary>'+
+        (items.length>12 ? '<p class="footnote">Showing the first 12 priority cases. The download contains the full recorded sample.</p>' : '')+
+        items.slice(0,12).map(function (c) {
+          const review=c.review || {}, context=c.entry_context || {}, daily=context.daily || {};
+          const after=((c.post_exit || {}).observations || []).map(function (o) {
+            return num(o.hours,0)+'h: '+(o.status==="complete" ? num(o.end_move_pct,2)+'% ending move; '+
+              num(o.favorable_move_pct,2)+'% favorable / '+num(o.adverse_move_pct,2)+'% adverse extreme' :
+              escape(o.status==="pending" ? "awaiting enough later candles" : o.status==="missing_candles" ? "missing candles" : o.status));
+          }).join(' · ');
+          const alternative=c.break_even_stop || {};
+          return '<details><summary>'+escape(family(c.strategy_family))+' · '+escape(labels[review.outcome] || review.outcome || "Trade")+
+            ' · '+escape(date(c.entry_ts,true))+' · '+money(c.pnl)+'</summary>'+
+            '<p>Net '+num(review.net_r,3)+'R; fees '+num(review.fee_r,3)+'R. Best observed net mark '+num(review.best_net_r,3)+
+            'R; giveback '+num(review.giveback_r,3)+'R. Held '+num(review.holding_hours,2)+' hours.</p>'+
+            '<p><b>What happened:</b> '+(review.findings || []).map(function (key) {return escape(findings[key] || key);}).join(' · ')+
+            '</p><p><b>At entry:</b> '+escape(context.regime || "unknown")+'; RSI '+num(context.rsi,1)+'; volume z '+num(context.volume_z,2)+
+            '; daily trend '+escape(!daily.ready ? "unavailable" : daily.trend_up ? "up" : daily.trend_down ? "down" : "mixed")+'.</p>'+
+            '<p><b>After exit:</b> '+after+'. These observed moves are relative to the exit price, in the trade direction; they are not account profits.</p>'+
+            (alternative.status==="complete" ? '<p><b>Fixed exit experiment:</b> '+num(alternative.net_r,3)+'R ('+
+              num(alternative.difference_r,3)+'R difference) using a fee-covered break-even stop only after a previous candle closed at +1 net R. '+
+              'This is a hypothetical result; it does not change the learned reward or select a trading rule.</p>' : '')+'</details>';
+        }).join('')+'</details>';
+    }
+    return '<details><summary>Loss and break-even study</summary><p>Near break-even means within '+num(study.break_even_band_r,2)+
+      'R of zero after costs. These outcomes receive extra review attention and keep their actual net return.</p>'+
+      '<div class="table-wrap"><table><thead><tr><th>Outcome</th><th>Development examples</th><th>Selected test trades</th></tr></thead><tbody>'+
+      Object.entries(labels).map(function (entry) {return '<tr><td>'+escape(entry[1])+'</td><td>'+num((development.outcomes || {})[entry[0]] || 0,0)+
+        '</td><td>'+num((selected.outcomes || {})[entry[0]] || 0,0)+'</td></tr>';}).join('')+'</tbody></table></div>'+
+      '<p class="footnote">Development examples overlap. Detailed cases are a priority sample; the counts above cover all reviewed outcomes. '+
+      'Observations suggest questions to test and do not prove why a trade lost. Later candles never enter its original decision.</p>'+
+      cases(selected.cases,"Selected account trade reviews")+cases(development.cases,"Priority practice reviews")+'</details>';
+  }
   function renderLearning(s) {
     learningState=s;
     if (!practiceSelectionLoaded) {
@@ -282,7 +333,7 @@
           ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        renderCostLearning(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
+        renderCostLearning(r)+renderTradeReviews(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
         (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
     }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';

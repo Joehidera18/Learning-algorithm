@@ -26,6 +26,7 @@
 <div class="small-metrics learning-metrics"><div>Market-data hours studied<strong id="learningHours">0</strong></div><div>Historical training examples<strong id="learningExamples">0</strong></div><div>Final-test account trades<strong id="learningTestTrades">0</strong></div><div>Forward paper trades learned from<strong id="learningTrades">0</strong></div><div>Markets ready to trade<strong id="learningMarkets">0</strong></div></div>
 <div class="learning-settings"><label>Coinbase fee per side (%) <input id="autoFee" type="number" min="0" max="2" step="0.001" value="0.4"></label><p class="footnote">Use your actual fee. The initial 0.4% is an assumption. Hours are summed across coins. Real orders stay off until you separately configure and enable Coinbase.</p></div>
 <p class="muted">The learner compares outcomes at similar trading costs and keeps practicing skipped opportunities as historical candles close. Account results count only selected trades. Reused research and confirmation on later prices are shown separately.</p>
+<p class="muted">Practice keeps studying after losses. Losses and near-break-even outcomes receive detailed reviews of costs, entry conditions, lost gains and later price movement. A fixed exit experiment asks whether a fee-covered break-even stop would have changed the result.</p>
 <p class="muted">Practice includes daily trend/momentum, volatility expansion, and support with RSI recovery alongside the original strategies. The new setups use completed daily candles, allow trades to last several days, and must pass the same tests after costs. They require 21 consecutive complete days of history after a gap.</p>
 <details><summary>What has it learned?</summary><div id="learningResults"><p class="empty">Learning results will appear here. A rejected strategy will not be forced to trade.</p></div><button id="learningExport" class="small">Download learning report</button></details>
 </section>
@@ -100,7 +101,7 @@
 <article class="panel"><h2>Account history</h2><p class="muted">Download a database backup to preserve settings, trades, research, and learned observations.</p><button id="backupBtn">Download database backup</button><hr><h3>Reset the paper account</h3><p class="muted">Close all paper positions before resetting. Reset returns the account to $500 and clears its journal; a database backup is created first.</p><label class="check"><input id="keepMemory" type="checkbox" checked> Keep learned observations and research</label><button id="resetBtn" class="danger">Reset paper account</button></article>
 </section>
 </main>
-<footer>CryptO Research Lab V8 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
+<footer>CryptO Research Lab V11.4 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
 </div>
 </body>
 </html>

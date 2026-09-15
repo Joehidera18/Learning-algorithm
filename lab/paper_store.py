@@ -61,8 +61,25 @@ def memory_leaderboard(path,limit=20):
     con=db_connect(path);rows=con.execute('''SELECT scope,symbol,context_key,family,direction,samples,wins,sum_r,
       CASE WHEN samples>0 THEN sum_r/samples ELSE 0 END expectancy_r FROM continuous_memory WHERE samples>=5 ORDER BY expectancy_r DESC LIMIT ?''',(limit,)).fetchall();con.close();return [dict(r) for r in rows]
 
+def review_from_decision(raw):
+    try:
+        review=json.loads(raw or '{}').get('trade_review')
+        return review if isinstance(review,dict) else None
+    except (ValueError,TypeError,AttributeError):
+        return None
+
 def recent_trades(path,limit=100):
-    con=db_connect(path);rows=con.execute('''SELECT id,opened_at,closed_at,product_id,family,direction,entry,exit,stop,target,qty,risk_usd,status,pnl,result_r,balance_after,mfe_r,mae_r,exit_reason FROM paper_trades ORDER BY id DESC LIMIT ?''',(limit,)).fetchall();con.close();return [dict(r) for r in rows]
+    con=db_connect(path)
+    try:
+        rows=con.execute('''SELECT id,opened_at,closed_at,product_id,family,direction,entry,exit,stop,target,qty,risk_usd,status,pnl,result_r,balance_after,mfe_r,mae_r,exit_reason,decision_json FROM paper_trades ORDER BY id DESC LIMIT ?''',(limit,)).fetchall()
+    finally:
+        con.close()
+    result=[]
+    for row in rows:
+        item=dict(row)
+        item['trade_review']=review_from_decision(item.pop('decision_json'))
+        result.append(item)
+    return result
 
 def activity_rows(path,limit=100):
     con=db_connect(path);rows=con.execute('SELECT id,ts,level,message,details_json FROM continuous_activity ORDER BY id DESC LIMIT ?',(limit,)).fetchall();con.close();out=[]

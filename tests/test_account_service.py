@@ -263,6 +263,7 @@ class ServiceTests(unittest.TestCase):
         con.close()
         export = self.request("/api/continuous/export")
         self.assertIn(b"risk_usd,status,pnl,result_r",export["body"])
+        self.assertIn(b"trade_review_json",export["body"])
         self.assertIn("attachment",export["headers"]["Content-Disposition"])
         research = self.request("/api/research/export")
         self.assertEqual(research["body"]["status"],"idle")

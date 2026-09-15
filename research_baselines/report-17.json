@@ -1,0 +1,196 @@
+{
+  "source_filename": "learning-results 17.json",
+  "source_sha256": "8256ee19af5b43a5e92a5cfda68fe6d43cb5c72e5282a7fd071f8c0fa3ba0baf",
+  "scope": "Partial report 17 reviewed before V11.4 design: 9 of 13 markets. Known test windows cannot count as fresh confirmation. Each result is a separate $500 simulation.",
+  "markets": [
+    {
+      "symbol": "BTC-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "ae1a16cc98a0e5baa6441a615eef2ff57aa4705d4fae32afbcc7b39265d05f3e",
+      "daily_data_sha256": "d279677eaa19805ec9a260d8fc5392e750b9f830f3236577c7b15a15f385556e",
+      "historical_examples": 10138,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789460100000
+    },
+    {
+      "symbol": "ETH-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "ee4561e91411adc4190e61e78725b51ccbe7fad1718831912c60bcd33aecde6a",
+      "daily_data_sha256": "9779441953ac3ef259f0f7d8e134b296f01e5d531f7a209655a0356d0df4365f",
+      "historical_examples": 9975,
+      "holdout": {
+        "trades": 2,
+        "net_pnl": -7.471875000000011,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789460100000
+    },
+    {
+      "symbol": "SOL-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "5a4f20c0d04bdc9beb75bdf215ce22f8806c29add773368725edccc9ef237fae",
+      "daily_data_sha256": "ee43cd8dabb27294f59124f87736d52ac43a4d4002c7637bb52f07f79f1a4884",
+      "historical_examples": 10705,
+      "holdout": {
+        "trades": 1,
+        "net_pnl": 7.685265692736664,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 2,
+        "net_pnl": -7.471875000000011,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "HBAR-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "7c815f9c2616246e476888ec2cf052e35dc2084bbc8eef7b30536836477a69e1",
+      "daily_data_sha256": "bf0c304a184fbcaa72e08036cbca1c45248aa82ae2c7784cc21ad8a4594225a2",
+      "historical_examples": 10008,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "XRP-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "3d273aeb590830c7723d161a4d332819335c903d2123be52e3d96d234c73fac0",
+      "daily_data_sha256": "600abcb1036f20ca2287ed8b2908caf6e7ee18dad7869c80d0a709534f048256",
+      "historical_examples": 9887,
+      "holdout": {
+        "trades": 5,
+        "net_pnl": -8.640413296405427,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "XLM-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "8776f6cbb31a6a21bec182f5998be42d899f4e17e5374c9eb0e4cd0982648562",
+      "daily_data_sha256": "dfb02f2925362bb229952bb96318dfb3ba2669ace66869dafda47adc94957880",
+      "historical_examples": 9781,
+      "holdout": {
+        "trades": 4,
+        "net_pnl": -2.7370479368593124,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 2,
+        "net_pnl": 3.8098422603787867,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "ADA-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "ca8f840de203a501ab054b6460b8af0e8ba24d89bd3b7bb213738717f7d0ddb9",
+      "daily_data_sha256": "fa3819dac992882bf57188bd7ef4f48ca98708792d4a1367c15d01cc2d9914c8",
+      "historical_examples": 9766,
+      "holdout": {
+        "trades": 4,
+        "net_pnl": 5.263948299781191,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "DOGE-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "5b0eb6932e7261c7d4a81b793d845ab572ebbd9859dfdbade0fe17cafdd89f24",
+      "daily_data_sha256": "659d55bd1a97a1f32c10b1495b4fa833ce3f8944bd9232d4b9b735195d872c2f",
+      "historical_examples": 10043,
+      "holdout": {
+        "trades": 1,
+        "net_pnl": -3.75,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 1,
+        "net_pnl": -3.75,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461000000
+    },
+    {
+      "symbol": "AVAX-USD",
+      "engine_version": "market-structure-v11.3-outcome-memory",
+      "policy_version": "online-net-r-v6-outcome-memory",
+      "interval": "15m",
+      "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "historical_examples": 10279,
+      "holdout": {
+        "trades": 3,
+        "net_pnl": -5.610306061557594,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 3,
+        "net_pnl": -5.989253162019054,
+        "complete": true
+      },
+      "validated": false,
+      "reviewed_through_ts": 1789461900000
+    }
+  ]
+}

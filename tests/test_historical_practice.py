@@ -75,7 +75,9 @@ class HistoricalPracticeTests(unittest.TestCase):
         with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
                 "lab.learning_research.build_feature_cache", side_effect=fixture_features):
             s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
-            s.autolearn.worker.join(timeout=5)
+            # Independent practice now continues after repeated losses and stores
+            # detailed reviews; this is a completion gate, not a speed benchmark.
+            s.autolearn.worker.join(timeout=15)
         self.assertFalse(s.autolearn.worker.is_alive())
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
@@ -92,6 +94,8 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertIn("attachment", headers["Content-Disposition"])
         exported = json.loads(content)["results"][0]
         self.assertEqual(exported["training_diagnostics"], report["training_diagnostics"])
+        self.assertEqual(exported["trade_reviews"],report["trade_reviews"])
+        self.assertEqual(report["trade_reviews"]["development"]["examples"],report["historical_examples"])
         self.assertGreater(exported["model"]["observations"], 0)
         self.assertEqual(exported["costs"]["fee_per_side"], .004)
         restarted = Service(BASE, s.db_path, self.root/"data")

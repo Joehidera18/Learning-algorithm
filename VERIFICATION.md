@@ -1,5 +1,15 @@
 # V11 verification
 
+## 15 September 2026: V11.4 loss and break-even study
+
+**209 Python tests passed in 35.972 seconds.** New coverage checks actual after-cost outcome bands, review priority without duplicated evidence, fee-covered break-even calculations, next-candle activation, stop-first ambiguity, adverse gaps, future-data isolation, incomplete post-exit windows, bounded case selection, exact checkpoint resumption and persisted paper/Coinbase reviews. Paper positions predating quote-path tracking retain unknown excursions. Independent practice continues after loss streaks while account simulations keep their existing pauses. No test submitted an exchange order.
+
+The actual dashboard JavaScript passed Node-based checks against report 17 and new review fixtures, including outcome counts, after-exit availability, the fixed exit experiment, paper journal details, escaping and download handoff. These mocked-document checks do not establish hosted operation or mobile layout.
+
+The final source replay used the supplied AVAX 15m and separate daily candles with matching canonical hashes. Development examples increased from **10,279 to 11,270**, including **229 near-break-even outcomes**. All completed development outcomes were counted; detailed reports retained 82 priority cases. The selected account still made the same three trades and lost **$5.610306** at ordinary costs and **$5.989253** at stressed costs. The fixed +1 net R break-even-stop experiment never activated on those trades. Qualification remains rejected and no account-profit improvement is measured.
+
+Report 17's nine completed market windows are now registered as reviewed history. The AVAX replay has no fresh confirmation window. Costs, strategy candidates, account risk and qualification gates were not fitted to this report. [The research note](TRADE_REVIEW_RESEARCH.md) documents the fixed rules, concrete loss patterns, reproduction command and limitations; [the comparison](research_baselines/avax-v11.4-comparison.json) records input/source hashes and results. This revision has not been deployed or validated against real fills.
+
 ## 15 September 2026: V11.3 outcome memory and data recovery
 
 **195 Python tests passed in 14.35 seconds.** New checks exercise comparable-context losses, fee-erased gains, recovery after later successes, finite/consistent outcome state, direct and complete smaller-bar recovery, cancellation/request bounds, persistent recovery provenance, daily joins without future information, intraday gap warmup in replay and monitoring, daily input cache identity, explicit rechecks and exact daily exports. Existing execution, qualification and separate account-journal tests continue to pass.

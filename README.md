@@ -1,8 +1,8 @@
-# CryptO V11.3 — automatic learning and Coinbase
+# CryptO V11.4 — learning from losses and near-break-even trades
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.3 adds outcome memory, targeted candle recovery and independent daily context. Replays of the supplied DOT candles at 15 minutes and 1 hour did not qualify a profitable model; both stayed in cash. See [the measured results and exact changes](OUTCOME_MEMORY_RESEARCH.md).
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.4 keeps independent practice running after repeated losses and adds detailed reviews of near-break-even outcomes, costs, lost gains and later price movement. Its fixed AVAX replay studies more examples but still loses money in the selected account. See [the research rules and measured results](TRADE_REVIEW_RESEARCH.md).
 
 ## Start here
 
@@ -32,6 +32,10 @@ This is a small online machine-learning model. It learns entry preferences and s
 The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first five in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
 
 ## Learning from failed trades and fuller candle context
+
+V11.4 gives losses and near-break-even outcomes extra review attention. Under each market's learning results, open **Loss and break-even study** for outcome counts and priority examples. Near break-even is within 0.10R of zero after costs; these outcomes retain their actual positive or negative reward. Reviews show entry conditions, fee drag, net favorable/adverse marks and giveback. Fixed 1-, 4- and 24-hour after-exit windows remain pending or unknown when sufficient candles are unavailable. A report-only exit experiment tests a fee-covered break-even stop after a prior candle closes at +1 net R. It does not automatically change exits or relabel results.
+
+Independent simulated training no longer takes the longer pause after a losing streak. It keeps routine entry spacing, recorded prices and full modeled costs. Actual account pauses and risk limits remain in effect. All reviewed outcomes count once; displayed deep-review examples are a bounded sample. Paper and settled Coinbase journals retain the available close-time review, with unknown price paths left explicit. Model and report versions changed: run **Practice on historical data** again after deploying. Reviewed reports 16 and 17 cannot supply fresh confirmation for this revision.
 
 V11.3 learns recent net outcomes in comparable cost, intraday and daily-trend conditions. Its diagnostics distinguish stop losses, time-exit losses and gross gains erased by fees. A context with enough recent losing evidence blocks entries; later completed successes can restore it. The report compares the memory adjustment with the same learner without that adjustment. See [OUTCOME_MEMORY_RESEARCH.md](OUTCOME_MEMORY_RESEARCH.md) for the declared rules, research sources and measured limits. The earlier cost-model work is documented in [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md).
 

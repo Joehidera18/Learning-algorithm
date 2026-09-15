@@ -248,6 +248,16 @@ class LearningPersistenceTests(unittest.TestCase):
         self.agent._close_position("BTC-USD",99.,int(time.time()*1000),"MANUAL")
         saved=load_state(self.db,"adaptive_paper_BTC-USD")
         self.assertEqual(saved["forward_trades"],1)
+        con=db_connect(self.db)
+        try:
+            decision=json.loads(con.execute("SELECT decision_json FROM paper_trades WHERE id=?",(position["trade_id"],)).fetchone()[0])
+        finally:con.close()
+        self.assertAlmostEqual(decision["trade_review"]["net_r"],saved["forward_net_r"])
+        self.assertEqual(decision["trade_review"]["path_basis"],"observed_paper_quotes_not_a_complete_tick_history")
+        self.assertEqual(recent_trades(self.db)[0]["trade_review"],decision["trade_review"])
+        fill=99.99*(1-position["slippage_rate"])
+        best=((fill-position["entry"])-(fill+position["entry"])*position["fee_rate"])*position["qty"]/position["risk_usd"]
+        self.assertAlmostEqual(decision["trade_review"]["best_net_r"],best)
         restarted=ContinuousLearner(self.db,self.agent.data_dir)
         self.assertEqual(current_policy(self.db,"BTC-USD",restarted.settings).export(),saved["model"])
         self.assertEqual(current_policy(self.db,"BTC-USD",self.agent.settings,"coinbase").export(),initial_coinbase)
@@ -262,6 +272,15 @@ class LearningPersistenceTests(unittest.TestCase):
         self.assertEqual(recent_trades(self.db)[0]["status"],"OPEN")
         self.agent._close_position("BTC-USD",99.,int(time.time()*1000),"MANUAL")
         self.assertEqual(load_state(self.db,"adaptive_paper_BTC-USD")["forward_trades"],1)
+
+    def test_legacy_open_position_closes_with_unknown_review_path(self):
+        position=self.open()
+        del position["review_mfe_price"],position["review_mae_price"]
+        self.agent._close_position("BTC-USD",99.,int(time.time()*1000),"MANUAL")
+        trade=recent_trades(self.db)[0]
+        self.assertEqual(trade["status"],"CLOSED")
+        self.assertIsNone(trade["trade_review"]["best_net_r"])
+        self.assertEqual(trade["trade_review"]["path_basis"],"unavailable")
 
     def test_stale_and_cost_mismatched_models_cannot_trade_even_in_experiment_mode(self):
         self.assertIsNotNone(approved_profile(self.db,"BTC-USD",self.agent.settings))
@@ -304,6 +323,18 @@ class LearningPersistenceTests(unittest.TestCase):
         with self.assertRaises(sqlite3.IntegrityError): trader._trade_save(self.live_trade())
         self.assertIsNone(load_state(self.db,"adaptive_coinbase_BTC-USD"))
         self.assertFalse(trader.trades())
+
+    def test_settled_live_review_persists_without_inventing_a_price_path(self):
+        trader=CoinbaseTrader(self.db,self.agent)
+        trade=dict(self.live_trade(),gross_pnl="-1.5",fees_paid="0.5")
+        trader._trade_save(trade);trader._trade_save(trade)
+        review=trader.trades()[0]["trade_review"]
+        self.assertEqual(review["net_r"],-.5)
+        self.assertEqual(review["fee_r"],.125)
+        self.assertIsNone(review["best_net_r"])
+        saved=load_state(self.db,"adaptive_coinbase_BTC-USD")
+        self.assertEqual(saved["forward_trades"],1)
+        self.assertEqual(saved["model"]["models"][action_key(self.params)]["outcomes"]["review_samples"],1)
 
 
 class AutomaticWorkflowTests(unittest.TestCase):

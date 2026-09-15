@@ -185,7 +185,7 @@ class HistoricalCoverageTests(unittest.TestCase):
             fresh = learn_history(rows, "BTC-USD", DEFAULTS)
         self.assertGreater(resumed["historical_examples"], 100)
         self.assertGreater(resumed["model"]["observations"], 0)
-        for key in ("model", "pre_holdout_model_sha256", "training_diagnostics", "holdout", "upgrade_comparison"):
+        for key in ("model", "pre_holdout_model_sha256", "training_diagnostics", "holdout", "upgrade_comparison", "trade_reviews"):
             self.assertEqual(resumed[key], fresh[key], key)
         self.assertFalse(resumed["upgrade_comparison"]["selection_uses_comparison"])
 

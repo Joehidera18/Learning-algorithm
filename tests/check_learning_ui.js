@@ -17,7 +17,7 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,download};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
 const original=process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2],"utf8")) :
   {results:[],historical_examples:0,phase:"completed",message:"Fixture"};
@@ -34,6 +34,14 @@ const current={...original,current_policy_version:"fixture",current_report_versi
     daily_data:{source:"complete_intraday_aggregation",holdout_ready_candles:500,holdout_candles:1000},
     failure_learning:{by_family:{trend_pullback_simple:{causes:{stopped_out:7,fee_erased_gain:8,stalled_trade:9,other_loss:10}}}},
     outcome_memory_comparison:{net_pnl_difference:0,stress_net_pnl_difference:-1.23},
+    trade_reviews:{break_even_band_r:.1,development:{examples:50,outcomes:{near_break_even:7},cases:[]},
+      selected:{outcomes:{near_break_even:1},cases:[{strategy_family:"support_rsi_reclaim_simple",entry_ts:1789000000000,pnl:-.05,
+        review:{outcome:"near_break_even",net_r:-.05,fee_r:.2,best_net_r:.6,giveback_r:.65,holding_hours:2,
+          findings:["fees_erased_gain","gave_back_gains",'<img src=x onerror="bad()">']},entry_context:{regime:"CHOP",rsi:50,daily:{ready:true,trend_up:true}},
+        post_exit:{observations:[{hours:1,status:"complete",end_move_pct:1,favorable_move_pct:2,adverse_move_pct:-1},
+          {hours:4,status:"pending"},{hours:24,status:"missing_candles"}]},
+        break_even_stop:{status:"complete",net_r:0,difference_r:.05}}]}},
+    training_diagnostics:{totals:{loss_pause_overrides:12},candidates:[]},
     holdout_shadow_feedback:{resolved_examples:120},performance_attribution:{scope:"Modeled costs",
       by_family:{daily_trend_momentum_simple:{trades:16,gross_pnl:9.01,fees_paid:9.63,net_pnl:-.62}}},
     evaluation:{reuses_reviewed_history:true,reviewed_through_ts:1789448400000,confirmation:{start_ts:1789448400000,
@@ -44,10 +52,16 @@ const html=element("learningResults").innerHTML;
 for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confirmation on later prices",
   "Missing candle recovery","50.0%","Separate daily history could not be downloaded",
   "What happened in the failed trade examples?","Effect of the new outcome memory","-$1.23",
+  "Loss and break-even study","Near break-even","Practice continued after losses","After exit:",
+  "Fixed exit experiment","awaiting enough later candles","missing candles","Fees erased a gross gain",
   "Selected-trade feedback on later prices","-$2.00","-$3.00","Download candles &amp; report"])
   assert.ok(html.includes(text),text);
 assert.ok(!html.includes("<img"));assert.ok(html.includes("&lt;img"));
 assert.equal(element("learningExamples").textContent,"130625");
+context.testUI.renderJournal([{product_id:"BTC-USD",family:"fixture",status:"CLOSED",pnl:-.05,result_r:-.05,
+  exit_reason:"TIME",trade_review:current.results[0].trade_reviews.selected.cases[0].review}]);
+assert.ok(element("journalTable").innerHTML.includes("At-close review"));
+assert.ok(!element("journalTable").innerHTML.includes("<img"));
 context.testUI.download("/api/learning/data?symbol=BTC-USD&interval=15m","test.zip").then(()=>{
   assert.equal(element("download-anchor").clicked,true);
   assert.equal(element("download-anchor").attached,false);

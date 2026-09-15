@@ -729,6 +729,9 @@ class ContinuousLearner:
                 "opened_at": now_ms(), "entry": entry, "stop": stop, "target": target, "qty": qty,
                 "risk_usd": qty * unit_risk, "planned_net_rr":quality["net_rr"], "stop_dist": stop_dist, "mode": mode, "context_key": ctx["key"],
                 "context": ctx, "decision": {**choice, "params": p}, "mfe_r": 0.0, "mae_r": 0.0,
+                "review_features":{k:f.get(k) for k in ("regime","rsi","volume_z","adx","daily")},
+                "review_mfe_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
+                "review_mae_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
                 "last_price": market_price, "last_quote_ts": tick["ts"], "fee_rate": fee, "slippage_rate": slip}
             con = db_connect(self.db_path)
             try:
@@ -760,6 +763,9 @@ class ContinuousLearner:
         mark = quote["best_bid"] if p["direction"] == "LONG" else quote["best_ask"]
         excursion = (mark - p["entry"]) / p["stop_dist"] * (1 if p["direction"] == "LONG" else -1)
         p.update(last_price=mark, last_quote_ts=ts, mfe_r=max(p["mfe_r"], excursion), mae_r=min(p["mae_r"], excursion))
+        if "review_mfe_price" in p and "review_mae_price" in p:
+            best, worst = (max,min) if p["direction"] == "LONG" else (min,max)
+            p.update(review_mfe_price=best(p["review_mfe_price"],mark),review_mae_price=worst(p["review_mae_price"],mark))
         if (mark <= p["stop"] if p["direction"] == "LONG" else mark >= p["stop"]):
             self._close_position(pid, mark, ts, "STOP")
         elif (mark >= p["target"] if p["direction"] == "LONG" else mark <= p["target"]):
@@ -796,6 +802,20 @@ class ContinuousLearner:
             fees = (pos["entry"] + exit_price) * pos["qty"] * pos["fee_rate"]
             pnl = gross - fees
             result = pnl / max(pos["risk_usd"], 1e-12)
+            from .trade_review import close_review
+            from .outcome_memory import trade_feedback
+            reviewed = {"entry":pos["entry"], "entry_ts":pos["opened_at"], "exit_ts":ts,
+                "risk_dollars":pos["risk_usd"], "pnl":pnl, "gross_pnl":gross, "fees_paid":fees,
+                "reason":reason, "direction":d, "fee_rate":pos["fee_rate"],
+                "slippage_rate":pos["slippage_rate"], "qty_initial":pos["qty"],
+                "features":pos.get("review_features",{}),
+                "path_basis":"observed_paper_quotes_not_a_complete_tick_history"}
+            # New positions track actual liquidation-side quotes. Older positions
+            # lack that path; an initial filled-entry price is not an observed quote.
+            if "review_mfe_price" in pos and "review_mae_price" in pos:
+                reviewed.update(mfe_price=pos["review_mfe_price"],mae_price=pos["review_mae_price"])
+            reviewed["review"] = close_review(reviewed)
+            decision = {**pos["decision"], "trade_review":reviewed["review"]}
             portfolio = dict(self.portfolio)
             # Keep real arithmetic: do not silently clamp losses out of the ledger.
             portfolio["balance"] += pnl
@@ -811,9 +831,9 @@ class ContinuousLearner:
             try:
                 with con:
                     cur = con.execute("""UPDATE paper_trades SET closed_at=?,status='CLOSED',exit=?,pnl=?,
-                        result_r=?,balance_after=?,mfe_r=?,mae_r=?,exit_reason=? WHERE id=? AND status='OPEN'""",
+                        result_r=?,balance_after=?,mfe_r=?,mae_r=?,exit_reason=?,decision_json=? WHERE id=? AND status='OPEN'""",
                         (ts // 1000, exit_price, pnl, result, portfolio["balance"], pos["mfe_r"],
-                         pos["mae_r"], reason, pos["trade_id"]))
+                         pos["mae_r"], reason, json.dumps(decision,allow_nan=False), pos["trade_id"]))
                     if cur.rowcount != 1:
                         raise RuntimeError("Trade state changed; restart before continuing")
                     for scope, symbol in (("global", "*"), ("coin", pid)):
@@ -822,8 +842,7 @@ class ContinuousLearner:
                     try:
                         record_outcome(con,pid,"paper",pos["decision"]["params"],
                             pos["decision"].get("learning"),result,ts,
-                            outcome={"reason":reason,"gross_r":gross/max(pos["risk_usd"],1e-12),
-                                     "fee_r":fees/max(pos["risk_usd"],1e-12)})
+                            outcome=trade_feedback(reviewed))
                     except (KeyError, TypeError, ValueError) as exc:
                         # A bad model must not prevent the closed trade being recorded.
                         write_in_transaction(con,"adaptive_error_paper_"+pid,
