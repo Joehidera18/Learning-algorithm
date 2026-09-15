@@ -1,3 +1,11 @@
+# Direct practice on real history — 15 September 2026 UTC
+
+- Add **Practice on real market history** to run accelerated learning on recorded Coinbase BTC, ETH and SOL candles without starting a live ticker, scanner or trading runner. Existing runners are not restarted or stopped by this action.
+- Add a direct `--coinbase --learning` command, an exclusive historical `--end` date, 30–1095 download days and a reusable candle cache. Separate symbols and 5m/15m/1h intervals can be studied with separate runs.
+- Show the price-data source and actual training/final-test dates in reports. Failed downloads return errors without creating replacement prices or training a new model; supplied CSV sources remain labeled unverified.
+- Advance report version to 4. Keep the same causal simulator, qualified-model installation checks and separation of historical practice from current-market account trades.
+- Add eight focused workflow and command tests; all 138 offline tests pass. The actual Coinbase download command was attempted here but the request timed out. No real-market training result is claimed.
+
 # Regime learning and resumable training — 15 September 2026 UTC
 
 - Learn separate entry-condition estimates for rising, falling and sideways markets, blended with pooled evidence after a minimum sample count. Count each resolved outcome once. Keep the existing long-only strategy templates and historical qualification thresholds.

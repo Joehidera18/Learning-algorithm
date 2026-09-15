@@ -1,32 +1,84 @@
-"""Run chronological validation on your existing OHLCV CSV without a server."""
+"""Replay real Coinbase history or a supplied OHLCV CSV without a live feed."""
 import argparse
 import json
+import tempfile
+import time
+from datetime import date, datetime, timezone
 from pathlib import Path
 from lab.continuous import DEFAULTS
+from lab.coinbase_feed import REST
 from lab.data import load_history
-from lab.research import research
+from lab.paper_store import init_continuous_db
+from lab.research import ResearchManager, research
 from lab.learning_research import learn_history
 
-if __name__ == "__main__":
+
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--csv", required=True, type=Path)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--csv", type=Path, help="Existing historical candles; source is supplied by you")
+    source.add_argument("--coinbase", action="store_true", help="Download recorded prices from Coinbase's public API")
     parser.add_argument("--symbol", default="BTC-USD")
     parser.add_argument("--interval", choices=["5m", "15m", "1h"], default="15m")
     parser.add_argument("--fee", type=float, default=.004, help="Fee fraction per side; .004 means 0.4%%")
     parser.add_argument("--slippage", type=float, default=.0005)
     parser.add_argument("--learning", action="store_true", help="Train and evaluate the adaptive policy used by automatic learning")
+    parser.add_argument("--days", type=int, default=1095, help="History to download, up to 1095 days")
+    parser.add_argument("--end", help="Optional exclusive historical end date, YYYY-MM-DD in UTC; requires --coinbase")
+    parser.add_argument("--cache-dir", type=Path, default=Path("data/automatic"), help="Saved Coinbase download directory")
     parser.add_argument("--out", type=Path, default=Path("research-result.json"))
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    import re
+    if args.coinbase and not re.fullmatch(r"[A-Z0-9]{2,16}-USD", args.symbol):
+        parser.error("Use a Coinbase USD market such as BTC-USD")
+    if not 30 <= args.days <= 1095:
+        parser.error("Download history must be 30–1095 days")
+    end_ms = None
+    if args.end:
+        if not args.coinbase:
+            parser.error("--end requires --coinbase; CSV dates are taken from the file")
+        try:
+            end_ms = int(datetime.combine(date.fromisoformat(args.end), datetime.min.time(), timezone.utc).timestamp()*1000)
+        except ValueError:
+            parser.error("Use YYYY-MM-DD for --end")
+        if end_ms > time.time()*1000:
+            parser.error("The historical end date cannot be in the future")
     settings = {**DEFAULTS, "decision_interval": args.interval, "fee_rate": args.fee, "slippage_rate": args.slippage}
     if not 0 <= args.fee <= .02 or not 0 <= args.slippage <= .01:
         parser.error("Fee or slippage is outside the supported range")
-    rows = load_history(args.csv)
+    if args.coinbase:
+        # The temporary research controller does not create a trading account or
+        # connect a ticker. Download chunks persist in the explicit cache folder.
+        with tempfile.TemporaryDirectory() as directory:
+            db = Path(directory)/"download.sqlite3"
+            init_continuous_db(db)
+            downloader = ResearchManager(db, args.cache_dir)
+            downloader._update = lambda **status: print(status.get("message", ""), flush=True)
+            try:
+                rows = downloader._history(args.symbol, args.interval, args.days, end_ms=end_ms)
+            except Exception as exc:
+                print(f"Real Coinbase history could not be downloaded: {exc}. No substitute prices were generated.")
+                return 1
+        provenance = {"provider":"Coinbase Exchange", "kind":"recorded_market_candles",
+            "endpoint":REST+f"/products/{args.symbol}/candles", "synthetic_fallback":False,
+            "retrieval":"Public candle API with saved local download chunks"}
+    else:
+        rows = load_history(args.csv)
+        provenance = {"provider":"User-supplied CSV (source not independently verified)",
+            "kind":"provided_ohlcv", "filename":args.csv.name, "synthetic_fallback":False}
     if args.learning:
         result = learn_history(rows, args.symbol, settings,
             progress=lambda **status: print(status.get("message", ""), flush=True))
     else:
         result = research(rows, args.symbol, settings,
             progress=lambda stage, done, total, message: print(f"{done}/{total} {message}", flush=True))
+    result["market_data"] = provenance
+    args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, allow_nan=False))
     print("Historical gate:", "PASSED for further paper testing" if result["validated"] else "NOT PASSED")
     print(args.out.resolve())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

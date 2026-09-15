@@ -41,7 +41,7 @@
       const button = $(id); button.disabled = true;
       try { await action(); } catch (e) { notice(e.message, true); }
       finally {
-        button.disabled = id==="startBtn" && learningState ?
+        button.disabled = (id==="startBtn" || id==="practiceBtn") && learningState ?
           !!learningState.enabled || learningState.phase==="stopping" : false;
       }
     });
@@ -143,6 +143,11 @@
   function renderLearningComparison(r) {
     const comparison=r.upgrade_comparison, coverage=r.data_selection, regimes=r.regime_examples;
     let html="";
+    if (r.market_data) html+='<p class="footnote"><b>Price data:</b> '+escape(r.market_data.provider)+
+      ' recorded market candles. Trades are simulated.</p>';
+    if (r.replay) html+='<p class="footnote"><b>Past-market practice:</b> '+escape(date(r.replay.training_start_ts,true))+
+      ' to '+escape(date(r.replay.training_end_ts,true))+'. Final later test: '+escape(date(r.replay.test_start_ts,true))+
+      ' to '+escape(date(r.replay.test_end_ts,true))+'. Decisions cannot see later prices.</p>';
     if (regimes) html+='<p class="footnote"><b>Completed examples by market condition:</b> Rising '+
       num(regimes.BULL,0)+' · Falling '+num(regimes.BEAR,0)+' · Sideways '+num(regimes.CHOP,0)+'. Includes overlapping variants.</p>';
     if (coverage && coverage.excluded_candles) html+='<p class="footnote">Used '+num(coverage.used_hours,0)+
@@ -158,13 +163,14 @@
     learningState=s;
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
       learning:"Learning",testing:"Testing",watching:"Watching & learning",waiting:"Waiting for evidence",
-      error:"Needs attention",stopping:"Stopping"};
+      error:"Needs attention",stopping:"Stopping",completed:"Practice complete"};
     $("learningPhase").textContent=phases[s.phase] || s.phase;
     $("learningMessage").textContent=s.message;
     $("learningHours").textContent=Math.round(s.market_data_hours || 0).toLocaleString();
     $("learningTrades").textContent=String(s.forward_learning_trades || 0);
     $("learningMarkets").textContent=String((s.active_markets || []).length);
     $("startBtn").disabled=!!s.enabled || s.phase==="stopping";
+    $("practiceBtn").disabled=!!s.enabled || s.phase==="stopping";
     $("startBtn").textContent=(s.results || []).length ? "Resume learning & paper trading" : "Start learning & paper trading";
     $("stopBtn").disabled=!s.enabled && !s.paper_running && s.phase!=="stopping";
     $("learningResults").innerHTML=(s.results || []).length ? s.results.map(function (r) {
@@ -236,6 +242,11 @@
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
     await api("/api/learning/start",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
+  });
+  bind("practiceBtn",async function () {
+    const input=$("autoFee");
+    if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
+    await api("/api/learning/practice",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
   });
   bind("stopBtn",async function () { await api("/api/continuous/stop",{}); await refresh(); });
   bind("pauseBtn",async function () { await api("/api/continuous/pause",{paused:!(state && state.settings.entries_paused)}); await refresh(); });

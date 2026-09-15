@@ -1,5 +1,11 @@
 # V11 verification
 
+## 15 September 2026 direct historical practice
+
+**138 offline Python tests passed**, including eight new checks of the historical-practice control and Coinbase download command. They verify that historical practice does not start the live scanner, paper runner or Coinbase runner; a failed download never invokes learning or creates a substitute report; invalid requests do not mutate fee settings; the existing app token is required; and command-line intervals/end dates and source labels reach the report correctly. JavaScript syntax and diff whitespace checks passed.
+
+The real command `python run_research.py --coinbase --learning --symbol BTC-USD --interval 1h --days 365 --end 2025-01-01` was attempted with a separate empty cache. Coinbase's public request timed out; the command exited with status 1 and did not produce a training report. Tests use fixtures to exercise software behavior, and are not substitutes for the requested real historical run. That run still needs access to Coinbase from the machine hosting the app.
+
 ## 15 September 2026 regime and training upgrade
 
 **130 automated offline Python tests passed**, including 13 additional tests for cost-aware candidate choice, regime-specific learning, sparse-evidence fallback, non-finite/old model rejection, UTC daily loss halts, gap handling, checkpoint recovery and per-market review deadlines. A resolved-label checkpoint run resumes to the same trained model and final results as a fresh run. The causal holdout regression also verifies that a better pooled diagnostic cannot replace a losing updating policy. JavaScript syntax and diff whitespace checks passed.

@@ -101,6 +101,12 @@ class Service:
                     self.agent.configure({"fee_rate":body["fee_rate"]})
                 self.autolearn.start()
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
+            if path == "/api/learning/practice" and method == "POST":
+                if set(body)-{"fee_rate", "symbols"}:
+                    raise ValueError("Historical practice accepts only fee_rate and symbols")
+                fees = {"fee_rate":body["fee_rate"]} if "fee_rate" in body else None
+                self.autolearn.start_history(body.get("symbols"), fees)
+                return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/stop" and method == "POST":
                 self.autolearn.stop()
                 return 200, {"ok":True,"learning":self.autolearn.status()}, {}

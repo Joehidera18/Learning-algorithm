@@ -7,11 +7,13 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 import threading
 import time
 
 from .adaptive import POLICY_VERSION, approved_profile, profile_key, write_in_transaction
 from .engine import ENGINE_VERSION
+from .coinbase_feed import REST
 from .data import INTERVAL_MS
 from .learning_research import LEARNING_REPORT_VERSION, learn_history
 from .paper_store import db_connect, load_state, save_state
@@ -68,14 +70,56 @@ class AutoLearner:
             if self.worker and self.worker.is_alive():
                 if self.stop_event.is_set():
                     raise RuntimeError("The previous learning task is still stopping")
+                if self.state.get("mode") == "historical_replay":
+                    raise ValueError("Historical practice is still running")
                 return
             if self.research_manager.worker and self.research_manager.worker.is_alive():
                 raise ValueError("Finish or cancel the existing research run before starting automatic learning")
             self.agent.configure({"learning_enabled":True, "validated_only":True})
             self.stop_event.clear()
-            self._update(enabled=True, phase="starting", message="Starting market monitoring and learning.")
+            self._update(enabled=True, mode="continuous", phase="starting", message="Starting market monitoring and learning.")
             self.worker = threading.Thread(target=self._run, daemon=True, name="automatic-learning")
             self.worker.start()
+
+    def start_history(self, symbols=None, fee_settings=None):
+        """Replay recorded prices without starting a ticker or a paper/live runner."""
+        symbols = ["BTC-USD", "ETH-USD", "SOL-USD"] if symbols is None else symbols
+        if not isinstance(symbols, list) or not 1 <= len(symbols) <= TRAINING_MARKETS:
+            raise ValueError("Choose one to five Coinbase USD markets")
+        if any(not isinstance(s, str) or not re.fullmatch(r"[A-Z0-9]{2,16}-USD", s) for s in symbols):
+            raise ValueError("Use Coinbase market names such as BTC-USD")
+        symbols = list(dict.fromkeys(symbols))
+        with self.lock:
+            if self.worker and self.worker.is_alive():
+                raise ValueError("A learning task is already running")
+            if self.research_manager.worker and self.research_manager.worker.is_alive():
+                raise ValueError("Finish or cancel the existing research run first")
+            if fee_settings:
+                self.agent.configure(fee_settings)
+            self.stop_event.clear()
+            settings = dict(self.agent.settings)
+            self._update(enabled=True, mode="historical_replay", phase="starting",
+                message="Preparing accelerated practice on recorded Coinbase prices.")
+            self.worker = threading.Thread(target=self._run_history, args=(symbols, settings),
+                daemon=True, name="historical-practice")
+            self.worker.start()
+
+    def _run_history(self, symbols, settings):
+        phase = "completed"
+        try:
+            results = self.study(symbols, settings)
+            if all(r.get("error") for r in results):
+                phase = "error"
+                self._update(message="Could not load real market history. "+results[0]["error"])
+            else:
+                self._update(message="Historical practice finished. Decisions were tested on recorded prices without waiting for live candles. See each market's results.")
+        except InterruptedError:
+            phase = "stopped"
+        except Exception as exc:
+            phase = "error"
+            self._update(message=str(exc))
+        finally:
+            self._update(enabled=False, phase=phase)
 
     def stop(self):
         self.stop_event.set()
@@ -171,6 +215,10 @@ class AutoLearner:
                     result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
                         checkpoint=checkpoint)
                     result["fingerprint"] = fingerprint
+                    result["market_data"] = {"provider":"Coinbase Exchange",
+                        "kind":"recorded_market_candles", "endpoint":REST+f"/products/{symbol}/candles",
+                        "retrieval":"Public candle API with saved local download chunks",
+                        "synthetic_fallback":False}
                     save_state(self.db_path, "learning_result_"+fingerprint, result)
                 if self.stop_event.is_set():
                     raise InterruptedError("Learning cancelled")

@@ -12,7 +12,7 @@ from .research import cost_signature, bootstrap_interval, daily_goal_report
 from .data import INTERVAL_MS
 from .learning_data import prepare_learning_history
 
-LEARNING_REPORT_VERSION = 3
+LEARNING_REPORT_VERSION = 4
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None):
@@ -125,6 +125,12 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         "learning_report_version":LEARNING_REPORT_VERSION,
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_selection":coverage,
+        "replay":{"clock":"Historical candles processed without wall-clock waits",
+            "decision_interval":interval, "training_start_ts":rows[240]["ts"],
+            "training_end_ts":rows[development-1]["ts"]+step,
+            "test_start_ts":rows[holdout_start]["ts"], "test_end_ts":rows[-1]["ts"]+step,
+            "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
+            "feedback_rule":"Learn a trade result only after its exit candle closes."},
         "data_quality":quality, "data_hours":len(rows)*step/3600000,
         "historical_examples":len(examples), "candidate_count":len(candidates),
         "regime_examples":regime_examples,
