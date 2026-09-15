@@ -20,7 +20,7 @@ from .strategies import profit_candidates
 from .execution import simulate
 from .paper_store import load_state, save_state
 
-COST_KEYS = ("decision_interval", "fee_rate", "slippage_rate", "risk_per_trade", "max_notional_fraction")
+COST_KEYS = ("decision_interval", "fee_rate", "slippage_rate", "risk_per_trade", "max_notional_fraction", "daily_loss_limit")
 
 
 def cost_signature(settings):
@@ -45,7 +45,7 @@ def bootstrap_interval(values, seed=7, runs=500):
             "samples": len(values), "method": "95% moving-block bootstrap of historical net R"}
 
 
-def validate_rows(rows, interval):
+def validate_rows(rows, interval, allow_gaps=False):
     if interval not in ("5m", "15m", "1h"):
         raise ValueError("Use 5m, 15m, or 1h candles")
     if len(rows) < 3000:
@@ -61,8 +61,10 @@ def validate_rows(rows, interval):
             raise ValueError("The history contains invalid quote volume")
         if int(row["ts"]) != row["ts"] or row["ts"] % step:
             raise ValueError("Candle timestamps must align to their interval in milliseconds")
-        if previous is not None and row["ts"] - previous != step:
-            raise ValueError("The history must be chronological with no missing or duplicate candles")
+        if previous is not None:
+            delta = row["ts"] - previous
+            if delta <= 0 or delta % step or (delta != step and not allow_gaps):
+                raise ValueError("The history must be chronological with no missing or duplicate candles")
         if row["ts"] + step > int(time.time() * 1000):
             raise ValueError("The history includes an unfinished or future candle")
         previous = row["ts"]
@@ -286,10 +288,10 @@ class ResearchManager:
     def cancel(self):
         self.cancel_event.set()
 
-    def _history(self, symbol, interval, days):
+    def _history(self, symbol, interval, days, end_ms=None):
         import csv
         step = INTERVAL_MS[interval]
-        end = int(time.time() * 1000) // step * step
+        end = int(time.time() * 1000 if end_ms is None else end_ms) // step * step
         start = end - days * 86400000
         folder = self.data_dir / "history"
         folder.mkdir(parents=True, exist_ok=True)

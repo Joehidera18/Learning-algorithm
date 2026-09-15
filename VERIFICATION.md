@@ -1,5 +1,46 @@
 # V11 verification
 
+## 15 September 2026 pre-opening check
+
+**140 Python tests passed with the production dependencies installed**, using Python 3.12.14. Two new regressions reproduced failures before the fixes: manual practice reused a failed download until the automatic retry deadline, and a rejected automatic-start request changed the fee setting while another task was active. Manual retries now bypass failed results' backoff, while automatic polling retains it; rejected starts preserve settings.
+
+Installed Gunicorn 23.0.0, Coinbase Advanced SDK 1.8.4 and the remaining requirements in an isolated dependency directory. Both Coinbase REST/WebSocket client imports succeeded. All 11 SDK methods used by the adapter exist; explicitly supplied argument signatures were checked. This does not verify authenticated account responses or real order execution.
+
+Started the actual `app:app` entry point under Gunicorn with one worker, eight threads and a 300-second timeout, using a temporary database and disabled live execution. Verified over HTTP:
+
+- Dashboard HTML, three static assets and the public health endpoint.
+- Eleven private status/export endpoints, rejection of missing/incorrect tokens, JSON/CSV exports and a valid SQLite backup header.
+- Malformed JSON, invalid body types, content types and payload-size limits.
+- Historical-practice start, rejection of an overlapping automatic start without changing fees, immediate retry after a failed download, and stop controls.
+- Twenty-four concurrent dashboard requests during a download, all returning successfully while the paper runner remained stopped.
+- Process restart with the same database: fees persisted and learning/paper runners remained stopped.
+
+The real Coinbase history request again timed out. The app reported the error with zero downloaded training hours and no active model; it did not invent a dataset or a successful report. There is still no verified real-market training result or profitability evidence.
+
+Added a Python 3.12 runtime selection for Render and updated the existing-service deployment instructions. Python compilation, both JavaScript syntax checks, launcher shell syntax and diff whitespace checks passed. Browser preview navigation was blocked by the environment (`ERR_BLOCKED_BY_CLIENT`), so browser interactions and mobile rendering remain unverified. The actual Render service was not deployed or inspected. Earlier entries below record the checks available at those stages; this entry supersedes their dependency-installation and local-server limitations.
+
+## 15 September 2026 direct historical practice
+
+**138 offline Python tests passed**, including eight new checks of the historical-practice control and Coinbase download command. They verify that historical practice does not start the live scanner, paper runner or Coinbase runner; a failed download never invokes learning or creates a substitute report; invalid requests do not mutate fee settings; the existing app token is required; and command-line intervals/end dates and source labels reach the report correctly. JavaScript syntax and diff whitespace checks passed.
+
+The real command `python run_research.py --coinbase --learning --symbol BTC-USD --interval 1h --days 365 --end 2025-01-01` was attempted with a separate empty cache. Coinbase's public request timed out; the command exited with status 1 and did not produce a training report. Tests use fixtures to exercise software behavior, and are not substitutes for the requested real historical run. That run still needs access to Coinbase from the machine hosting the app.
+
+## 15 September 2026 regime and training upgrade
+
+**130 automated offline Python tests passed**, including 13 additional tests for cost-aware candidate choice, regime-specific learning, sparse-evidence fallback, non-finite/old model rejection, UTC daily loss halts, gap handling, checkpoint recovery and per-market review deadlines. A resolved-label checkpoint run resumes to the same trained model and final results as a fresh run. The causal holdout regression also verifies that a better pooled diagnostic cannot replace a losing updating policy. JavaScript syntax and diff whitespace checks passed.
+
+An end-to-end `run_research.py --learning` invocation processed 12,000 artificial hourly candles using random seed 61904 and alternating drift conditions. It took 0.89 seconds and 40.6 MiB peak child-process memory in this workspace. It generated 411 development examples, made three final-period trades, lost $2.61 in that period and failed qualification; higher costs prevented all final-period trades. This checks processing and rejection behavior, not market profitability. No thresholds were fitted to this artificial trial.
+
+A real Coinbase historical download did not complete here. Actual historical performance, improvement over the pooled baseline, Render operation and Coinbase execution remain unverified. The code requests real history when automatic learning runs on the user's server; it contains no pretrained profitable model.
+
+## 15 September 2026 follow-up
+
+**117 automated offline Python tests passed**, including seven new tests for learning diagnostics, changed-market reviews, versioned caches, and bounded retry scheduling. JavaScript syntax and diff whitespace checks passed. Diagnostics cover both valid signals blocked by costs and candidates blocked by insufficient or weak learning evidence; checks also verify that reporting does not update model weights or invent trades.
+
+A public Coinbase candle request timed out in this environment. Real historical performance, the deployed Render service, and real Coinbase execution were not verified by this follow-up.
+
+## Original V11 verification
+
 Verified during the 9 September 2026 UTC upgrade.
 
 **110 automated offline tests passed** using Python 3.12. The final suite completed in under two seconds. JavaScript syntax validation, Python compilation, and the Mac/Linux launcher's shell syntax check also passed.
@@ -77,10 +118,10 @@ An additional artificial flat-price dataset with 105,120 candles completed in 5.
 
 ## What is not verified
 
-- **No real V11 historical profit result.** The supplied archive contained no historical dataset or running account database. Direct network access for dependency installation and historical market downloads did not complete in this workspace.
+- **No real V11 historical profit result.** The supplied archive contained no historical dataset or running account database. Dependency installation now succeeds; real Coinbase historical downloads still time out in this workspace.
 - No end-to-end Coinbase WebSocket or REST download run. Pagination, parsing, and failure controls were tested with mocked responses and checked against official API documentation.
-- No authenticated Coinbase account integration or real fills. Exchange constraints, permissions, uncertain submissions and partial-fill reconciliation were exercised with offline mocks; actual SDK/account compatibility remains unverified.
-- No browser-based visual/interaction test and no actual Windows launcher run.
+- No authenticated Coinbase account integration or real fills. SDK imports and method signatures were checked; exchange constraints, permissions, uncertain submissions and partial-fill reconciliation were exercised with offline mocks. Actual account compatibility remains unverified.
+- No browser-based visual/interaction test because preview navigation was blocked, and no actual Windows launcher run.
 - No multi-week unattended runtime test, real outage drill, or hosted deployment.
 - No portfolio-level historical validation of combined markets and live execution controls.
 - No proof that the $10–$15 daily goal is achievable, or that V11 outperforms earlier versions. The paired comparison needs actual market history and the user's real fee tier.

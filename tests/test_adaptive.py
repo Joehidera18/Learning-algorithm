@@ -16,7 +16,7 @@ from lab.coinbase_live import CoinbaseTrader
 from lab.continuous import ContinuousLearner, DEFAULTS
 from lab.engine import ENGINE_VERSION, build_feature_cache
 from lab.execution import simulate
-from lab.learning_research import learn_history
+from lab.learning_research import LEARNING_REPORT_VERSION, learn_history
 from lab.paper_store import db_connect, load_state, save_state, recent_trades
 from lab.research import cost_signature, ResearchManager
 from lab.service import Service
@@ -46,6 +46,43 @@ def install(db, settings, stamp=None):
 
 
 class OnlineModelTests(unittest.TestCase):
+    def test_diagnostics_distinguish_signal_samples_recent_and_estimated_return(self):
+        policy=AdaptivePolicy()
+        params=profit_candidates()[0]
+        policy.choose(F)
+        self.assertGreater(policy.last_diagnostics["rejections"]["insufficient_learning_samples"],0)
+        policy=AdaptivePolicy(trained_state())
+        before=policy.export()
+        self.assertIsNotNone(policy.choose(F))
+        self.assertEqual(policy.export(),before)
+        detail=policy.last_diagnostics
+        self.assertEqual(detail["candidates_checked"],
+            detail["eligible_candidates"]+sum(detail["rejections"].values()))
+        model=policy.state["models"][action_key(params)]
+        model["regimes"]["BULL"]["recent_r"]=-.1
+        self.assertIsNone(policy.choose(F))
+        self.assertEqual(policy.last_diagnostics["rejections"]["nonpositive_recent_return"],1)
+        model["regimes"]["BULL"]["recent_r"]=.1
+        model["weights"]=[0.]*len(model["weights"])
+        model["regimes"]["BULL"]["weights"]=[0.]*len(model["weights"])
+        self.assertIsNone(policy.choose(F))
+        self.assertEqual(policy.last_diagnostics["rejections"]["low_estimated_return"],1)
+        policy.choose(dict(F,atr_regime=3))
+        self.assertEqual(policy.last_diagnostics["rejections"],{"extreme_volatility":16})
+
+    def test_replay_reports_candidate_blocks_without_inventing_trades(self):
+        rows=candles(250)
+        fs=[dict(F) for _ in rows]
+        policy=AdaptivePolicy()
+        before=policy.export()
+        metrics,trades=simulate(rows,fs,240,len(rows),500,.0075,.004,.001,
+            {"family":"adaptive_policy","direction":"LONG"},policy=policy)
+        funnel=metrics["signal_funnel"]
+        self.assertFalse(trades)
+        self.assertGreater(funnel["learning_candidate_rejections"]["insufficient_learning_samples"],0)
+        self.assertEqual(funnel["rejections"]["no_positive_learned_setup"],9)
+        self.assertEqual(policy.export(),before)
+
     def test_losses_lower_and_wins_raise_the_same_setup_estimate(self):
         policy=AdaptivePolicy(trained_state())
         params=profit_candidates()[0]; vector=feature_vector(F)
@@ -117,7 +154,24 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertEqual(result["historical_examples"],0)
         self.assertFalse(result["holdout_trades"])
         self.assertEqual(result["data_hours"],750)
+        diagnostics=result["training_diagnostics"]
+        self.assertEqual(len(diagnostics["candidates"]),16)
+        self.assertEqual(sum(c["resolved_examples"] for c in diagnostics["candidates"]),0)
+        self.assertGreater(sum(diagnostics["totals"]["rejections"].values()),0)
+        self.assertIn("No completed training examples",result["rejection_reasons"][0])
         json.dumps(result,allow_nan=False)
+
+    def test_training_diagnostics_expose_cost_blocks_on_valid_signals(self):
+        rows=candles(3000)
+        fs=[dict(F,_atr=.01) for _ in rows]
+        with patch("lab.learning_research.build_feature_cache",return_value={"features":fs}):
+            result=learn_history(rows,"BTC-USD",dict(DEFAULTS,fee_rate=.02))
+        totals=result["training_diagnostics"]["totals"]
+        self.assertGreater(totals["qualified_setups"],0)
+        self.assertGreater(totals["rejections"]["trading_cost_too_high"],0)
+        self.assertEqual(totals["entries_opened"],0)
+        self.assertEqual(result["historical_examples"],0)
+        self.assertFalse(result["validated"])
 
     def test_future_outcomes_cannot_change_the_pre_holdout_model_or_select_frozen_results(self):
         rows=candles(5000)
@@ -127,8 +181,8 @@ class LearningProtocolTests(unittest.TestCase):
             calls.append((start,end,training,kwargs.get("policy")))
             indices=[240+i*35 for i in range(100)] if training else [start+i for i in range(40)]
             payoff=(1. if data[-1]["close"]==100 else -1.) if start>=4000 else 1.
-            if not training and kwargs["policy"].learn is False:
-                payoff=2.  # Diagnostic can look better; it still cannot replace the updating policy.
+            if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation):
+                payoff=2.  # Neither diagnostic can replace the updating policy.
             trades=[{"features":F,"r_multiple":payoff,"pnl":payoff,"entry_ts":data[i]["ts"],
                 "exit_ts":data[i]["ts"],"strategy_family":params["family"],"reason":"TARGET2"} for i in indices]
             return {"net_pnl":len(trades)*payoff,"return_pct":len(trades)*payoff/5,
@@ -142,6 +196,9 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertFalse(b["validated"])
         self.assertLess(b["holdout"]["net_pnl"],0)
         self.assertGreater(b["frozen_holdout"]["net_pnl"],0)
+        self.assertGreater(b["upgrade_comparison"]["baseline"]["net_pnl"],0)
+        self.assertLess(b["upgrade_comparison"]["net_pnl_difference"],0)
+        self.assertFalse(b["upgrade_comparison"]["selection_uses_comparison"])
         self.assertLess(b["learning_pnl_difference"],0)
         self.assertTrue(all(end<=3904 for start,end,training,_ in calls if training))
         self.assertLess(b["training_label_end_ts"],b["holdout_start_ts"])
@@ -282,6 +339,54 @@ class AutomaticWorkflowTests(unittest.TestCase):
             a.study(["BTC-USD"],dict(self.service.agent.settings))
             self.assertEqual(history.call_args.args[2],HISTORY_DAYS)
             train.assert_called_once()
+        self.assertFalse(a._needs_review(["BTC-USD"],self.service.agent.settings))
+        self.assertTrue(a._needs_review(["ETH-USD"],self.service.agent.settings))
+
+    def test_new_market_selection_is_reviewed_before_the_scheduled_date(self):
+        s=self.service; a=s.autolearn
+        a.state.update(tested_costs=cost_signature(s.agent.settings),tested_engine=ENGINE_VERSION,
+            tested_policy=POLICY_VERSION,tested_report_version=LEARNING_REPORT_VERSION,
+            tested_symbols=["BTC-USD"],next_review_at=time.time()+86400)
+        def start_market():
+            s.agent.runtime.update(running=True,bootstrapped=True)
+            s.agent.product_ids=["ETH-USD"]
+        def study(symbols,settings):
+            self.assertEqual(symbols,["ETH-USD"])
+            a.stop_event.set()
+        with patch.object(s.agent,"start",side_effect=start_market),patch.object(a,"study",side_effect=study) as run:
+            a.start()
+            a.worker.join(timeout=2)
+            self.assertFalse(a.worker.is_alive())
+            run.assert_called_once()
+
+    def test_review_tracks_versions_settings_and_time_but_not_rank_order(self):
+        a=self.service.autolearn; settings=self.service.agent.settings
+        a.state.update(tested_costs=cost_signature(settings),tested_engine=ENGINE_VERSION,
+            tested_policy=POLICY_VERSION,tested_report_version=LEARNING_REPORT_VERSION,
+            tested_symbols=["BTC-USD","ETH-USD"],next_review_at=time.time()+86400)
+        self.assertFalse(a._needs_review(["ETH-USD","BTC-USD"],settings))
+        self.assertTrue(a._needs_review(["BTC-USD","ETH-USD"],dict(settings,fee_rate=.002)))
+        for key,value in (("tested_engine","old"),("tested_policy","old"),
+                          ("tested_report_version",0),("next_review_at",0)):
+            with self.subTest(key=key),patch.dict(a.state,{key:value}):
+                self.assertTrue(a._needs_review(["BTC-USD","ETH-USD"],settings))
+
+    def test_failed_market_waits_until_retry_instead_of_repeating_every_poll(self):
+        a=self.service.autolearn; settings=self.service.agent.settings
+        with patch.object(a.downloader,"_history",side_effect=RuntimeError("offline")),patch("lab.autolearn.time.time",return_value=100):
+            a.study(["BTC-USD"],settings)
+            self.assertEqual(a.state["next_review_at"],3700)
+            self.assertFalse(a._needs_review(["BTC-USD"],settings))
+        with patch("lab.autolearn.time.time",return_value=3700):
+            self.assertTrue(a._needs_review(["BTC-USD"],settings))
+
+    def test_result_cache_tracks_policy_and_report_versions(self):
+        a=self.service.autolearn; settings=self.service.agent.settings
+        rows=candles(5)
+        original=a._fingerprint(rows,"BTC-USD",settings)
+        for name in ("POLICY_VERSION","LEARNING_REPORT_VERSION"):
+            with self.subTest(name=name),patch("lab.autolearn."+name,"new"):
+                self.assertNotEqual(original,a._fingerprint(rows,"BTC-USD",settings))
 
     def test_learning_endpoints_use_the_existing_access_token(self):
         self.service.token="private-test-token"

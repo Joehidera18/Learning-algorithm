@@ -1,3 +1,31 @@
+# Direct practice on real history — 15 September 2026 UTC
+
+- Add **Practice on real market history** to run accelerated learning on recorded Coinbase BTC, ETH and SOL candles without starting a live ticker, scanner or trading runner. Existing runners are not restarted or stopped by this action.
+- Add a direct `--coinbase --learning` command, an exclusive historical `--end` date, 30–1095 download days and a reusable candle cache. Separate symbols and 5m/15m/1h intervals can be studied with separate runs.
+- Show the price-data source and actual training/final-test dates in reports. Failed downloads return errors without creating replacement prices or training a new model; supplied CSV sources remain labeled unverified.
+- Advance report version to 4. Keep the same causal simulator, qualified-model installation checks and separation of historical practice from current-market account trades.
+- Add eight focused workflow and command tests; all 138 offline tests pass. The actual Coinbase download command was attempted here but the request timed out. No real-market training result is claimed.
+
+# Regime learning and resumable training — 15 September 2026 UTC
+
+- Learn separate entry-condition estimates for rising, falling and sideways markets, blended with pooled evidence after a minimum sample count. Count each resolved outcome once. Keep the existing long-only strategy templates and historical qualification thresholds.
+- Check fees, slippage and net payoff at the known signal close before ranking candidates; still validate entry gaps and costs at the actual modeled fill. A cost-infeasible favorite no longer blocks a feasible alternative.
+- Apply the configured UTC daily loss halt during adaptive policy tests, including conservative intrabar marks. Report fees and halted days; preserve account accounting and monitoring of existing positions.
+- Add ordinary/stressed comparisons with pooled learning and cash/buy-and-hold benchmarks. A favorable diagnostic cannot replace a losing updating policy or change qualification.
+- Disclose actual continuous history used after missing candles, reject invalid prices or too-short suffixes, and never invent missing bars.
+- Save completed candidate labels, pin training cutoffs across restarts within 24 hours, and discard incompatible checkpoints. Review rejected markets daily, qualified markets every 28 days, and failed downloads hourly, independently per market.
+- Add `run_research.py --learning` for historical CSV evaluation. Advance policy and report versions and include daily-loss settings in qualification signatures; previous models need retraining.
+- All 130 offline tests pass. A 12,000-hour artificial CSV trial processed 411 development examples and correctly rejected its losing final-period result. No real-market profit or improvement has been demonstrated; see VERIFICATION.md.
+
+# Learning diagnostics and automatic reviews — 15 September 2026 UTC
+
+- Review newly selected training markets on resume instead of waiting for the previous universe's 28-day schedule. Reordering the same markets does not trigger another study; failed downloads retain the one-hour retry delay.
+- Include policy and report versions in cached learning results and review scheduling so updated learners cannot silently reuse an incompatible report.
+- Preserve per-variant training signal matches, simulated entries, completed examples, and rejection counts in learning reports. Surface common blocks in the dashboard and distinguish insufficient samples, nonpositive recent returns, and low estimated returns during replay and paper monitoring.
+- Count candidate evaluations separately from account trades; overlapping variants do not become independent evidence. Entry rules, qualification thresholds, and real-order activation are unchanged.
+- The first resumed study after this update regenerates reports using cached candles where available. Installing a new result follows the existing model-replacement behavior; prior trade journals remain saved.
+- Added seven offline regression tests. All 117 Python tests pass. A public Coinbase candle request timed out in this environment; no real-market performance claim or hosted deployment was verified.
+
 # V11 automatic learning — 9 September 2026 UTC
 
 - Replace the main manual research flow with one Start learning & paper trading control.

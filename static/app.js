@@ -41,7 +41,7 @@
       const button = $(id); button.disabled = true;
       try { await action(); } catch (e) { notice(e.message, true); }
       finally {
-        button.disabled = id==="startBtn" && learningState ?
+        button.disabled = (id==="startBtn" || id==="practiceBtn") && learningState ?
           !!learningState.enabled || learningState.phase==="stopping" : false;
       }
     });
@@ -69,7 +69,9 @@
       return "<tr><td><b>" + escape(p.product_id) + "</b><small>" + escape(family(p.family)) + "</small></td><td>" + price(p.entry) + "</td><td>" + price(p.stop) + "<small>" + price(p.target) + "</small></td><td>" + money(p.risk_usd) + '</td><td class="' + tone(p.unrealized_pnl) + '">' + money(p.unrealized_pnl) + (p.price_stale ? "<small>Stale quote</small>" : "") + '</td><td><button class="small" data-close="' + escape(p.product_id) + '">Close</button></td></tr>';
     }).join("") : emptyRow(6,"No open paper positions.");
     $("marketsTable").innerHTML = s.coins.length ? s.coins.map(function (c) {
-      return "<tr><td><b>" + escape(c.product_id) + "</b></td><td>" + price(c.price) + '</td><td class="' + (c.price_stale ? "negative" : "") + '">' + (c.quote_age_seconds == null ? "No quote" : num(c.quote_age_seconds,0) + "s") + "</td><td>" + ["5m","15m","1h","4h"].map(function (iv) { return c.bar_counts[iv] || 0; }).join(" / ") + "</td><td>" + escape(c.regime) + "<small>" + escape(c.structure) + "</small></td><td>" + escape(c.last_decision || c.readiness) + "</td></tr>";
+      const blocks = rejectionSummary(c.rejections);
+      return "<tr><td><b>" + escape(c.product_id) + "</b></td><td>" + price(c.price) + '</td><td class="' + (c.price_stale ? "negative" : "") + '">' + (c.quote_age_seconds == null ? "No quote" : num(c.quote_age_seconds,0) + "s") + "</td><td>" + ["5m","15m","1h","4h"].map(function (iv) { return c.bar_counts[iv] || 0; }).join(" / ") + "</td><td>" + escape(c.regime) + "<small>" + escape(c.structure) + "</small></td><td>" + escape(c.last_decision || c.readiness) +
+        (blocks ? '<details><summary>Candidate checks</summary><small>'+blocks+'</small></details>' : '') + "</td></tr>";
     }).join("") : emptyRow(6,"Start the paper trader to load markets.");
     if (!settingsLoaded) {
       $("autoFee").value = Number((s.settings.fee_rate*100).toFixed(6));
@@ -105,17 +107,70 @@
       return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) + "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
+  function rejectionSummary(counts) {
+    const labels = {
+      trading_cost_too_high:"Trading costs too high",
+      net_reward_too_small:"Reward after costs too small",
+      entry_gap_too_large:"Entry price moved too far",
+      daily_loss_limit:"Daily loss halt",
+      insufficient_learning_samples:"Too few completed training examples",
+      nonpositive_recent_return:"Recent learned returns are not positive",
+      low_estimated_return:"Estimated return below the entry threshold",
+      no_positive_learned_setup:"No candidate passed the learning checks",
+      no_current_learning_model:"No current qualifying model"
+    };
+    return Object.entries(counts || {}).filter(function (entry) { return entry[1]>0; })
+      .sort(function (a,b) { return b[1]-a[1]; }).slice(0,3).map(function (entry) {
+        return escape(labels[entry[0]] || entry[0].replace(/_/g," "))+": "+num(entry[1],0);
+      }).join(" · ");
+  }
+  function renderLearningDiagnostics(r) {
+    const diagnostics=r.training_diagnostics;
+    if (!diagnostics) return "";
+    const totals=diagnostics.totals || {};
+    const training=rejectionSummary(totals.rejections);
+    const held=(r.holdout || {}).signal_funnel || {};
+    const execution=rejectionSummary(held.rejections);
+    const learned=rejectionSummary(held.learning_candidate_rejections);
+    return '<p class="footnote"><b>Training:</b> '+num(r.historical_examples,0)+
+      ' completed examples from '+num(totals.qualified_setups,0)+' signal matches and '+
+      num(totals.entries_opened,0)+' simulated entries across '+num(r.candidate_count,0)+
+      ' variants. Variants can overlap on the same candles.</p>'+
+      (training ? '<p class="footnote"><b>Most common training blocks:</b> '+training+'</p>' : '')+
+      (execution ? '<p class="footnote"><b>Final-test entry blocks:</b> '+execution+'</p>' : '')+
+      (learned ? '<p class="footnote"><b>Final-test candidate blocks:</b> '+learned+'</p>' : '');
+  }
+  function renderLearningComparison(r) {
+    const comparison=r.upgrade_comparison, coverage=r.data_selection, regimes=r.regime_examples;
+    let html="";
+    if (r.market_data) html+='<p class="footnote"><b>Price data:</b> '+escape(r.market_data.provider)+
+      ' recorded market candles. Trades are simulated.</p>';
+    if (r.replay) html+='<p class="footnote"><b>Past-market practice:</b> '+escape(date(r.replay.training_start_ts,true))+
+      ' to '+escape(date(r.replay.training_end_ts,true))+'. Final later test: '+escape(date(r.replay.test_start_ts,true))+
+      ' to '+escape(date(r.replay.test_end_ts,true))+'. Decisions cannot see later prices.</p>';
+    if (regimes) html+='<p class="footnote"><b>Completed examples by market condition:</b> Rising '+
+      num(regimes.BULL,0)+' · Falling '+num(regimes.BEAR,0)+' · Sideways '+num(regimes.CHOP,0)+'. Includes overlapping variants.</p>';
+    if (coverage && coverage.excluded_candles) html+='<p class="footnote">Used '+num(coverage.used_hours,0)+
+      ' hours of continuous history. Excluded '+num(coverage.excluded_candles,0)+' earlier candles because of gaps.</p>';
+    if (comparison) html+='<p class="footnote"><b>Change versus pooled learning:</b> '+money(comparison.net_pnl_difference)+
+      ' in the final test; '+money(comparison.stress_net_pnl_difference)+' at higher costs. Negative means this upgrade did worse. This comparison does not choose the model.</p>';
+    if (r.benchmarks) html+='<p class="footnote">Same-period buy-and-hold net result on $500: '+money(r.benchmarks.buy_hold_net_pnl)+
+      '. Holding cash: $0. Exposure differs from the trading policy.</p>';
+    if (r.next_review_at) html+='<p class="footnote">Next scheduled historical review: '+escape(date(r.next_review_at))+'.</p>';
+    return html;
+  }
   function renderLearning(s) {
     learningState=s;
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
       learning:"Learning",testing:"Testing",watching:"Watching & learning",waiting:"Waiting for evidence",
-      error:"Needs attention",stopping:"Stopping"};
+      error:"Needs attention",stopping:"Stopping",completed:"Practice complete"};
     $("learningPhase").textContent=phases[s.phase] || s.phase;
     $("learningMessage").textContent=s.message;
     $("learningHours").textContent=Math.round(s.market_data_hours || 0).toLocaleString();
     $("learningTrades").textContent=String(s.forward_learning_trades || 0);
     $("learningMarkets").textContent=String((s.active_markets || []).length);
     $("startBtn").disabled=!!s.enabled || s.phase==="stopping";
+    $("practiceBtn").disabled=!!s.enabled || s.phase==="stopping";
     $("startBtn").textContent=(s.results || []).length ? "Resume learning & paper trading" : "Start learning & paper trading";
     $("stopBtn").disabled=!s.enabled && !s.paper_running && s.phase!=="stopping";
     $("learningResults").innerHTML=(s.results || []).length ? s.results.map(function (r) {
@@ -124,7 +179,8 @@
         (r.validated ? "Passed historical checks" : "Not qualified")+'</span><p>'+
         (r.error ? escape(r.error) : 'Final test: '+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
-        '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p></div>';
+        '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
+        renderLearningDiagnostics(r)+renderLearningComparison(r)+'</div>';
     }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
   }
@@ -186,6 +242,11 @@
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
     await api("/api/learning/start",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
+  });
+  bind("practiceBtn",async function () {
+    const input=$("autoFee");
+    if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
+    await api("/api/learning/practice",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
   });
   bind("stopBtn",async function () { await api("/api/continuous/stop",{}); await refresh(); });
   bind("pauseBtn",async function () { await api("/api/continuous/pause",{paused:!(state && state.settings.entries_paused)}); await refresh(); });

@@ -476,7 +476,8 @@ class ContinuousLearner:
             for choice in choices:
                 choice["learning"]["cost_signature"] = cost_signature(self.settings)
             with self.lock:
-                self.market[pid]["rejections"] = {} if choices else {"no_qualified_learned_setup":1}
+                self.market[pid]["rejections"] = (dict(policy.last_diagnostics["rejections"])
+                    if policy else {"no_current_learning_model":1})
             return choices
         con = db_connect(self.db_path)
         rows = con.execute("SELECT * FROM continuous_memory WHERE context_key=? AND (symbol='*' OR symbol=?)",
