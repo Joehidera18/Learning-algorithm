@@ -1,8 +1,19 @@
 # Put CryptO V11 online
 
-The ZIP already contains a Python web app. The shortest supported path for this package is to upload the extracted source to a private GitHub repository and deploy its included Render Blueprint. Use a computer for the initial folder upload; after deployment, you can open the dashboard on your phone.
+This repository contains the Python web app and its Render Blueprint. If the project is already connected to Render, update the existing service using the next section. The new-deployment instructions below also support the original extracted source package. After deployment, you can open the dashboard on your phone.
 
 This setup creates a paid Render web service and persistent disk. Review the price Render displays before deploying. Hosting is an additional account expense and is not included in the app's trading returns. Check [current Render pricing](https://render.com/pricing).
+
+## Update an existing Render service
+
+1. Merge the reviewed changes into the branch your existing Render service deploys, usually `main`. Changes that remain only in a pull request do not update that branch.
+2. Open that service in Render and check its connected repository and branch. The included Blueprint disables automatic code deployments.
+3. After backing up any existing account state, select **Manual Deploy → Deploy latest commit** on the service's Deploys page. Check the deployment's commit and logs, and wait for it to finish before opening the service URL. See [Render's deployment controls](https://render.com/docs/deploys).
+4. Connect using your existing app access token. Set your actual fee rate and choose **Practice on real market history** to download and replay recorded Coinbase prices without starting market monitoring or an exchange runner.
+
+The repository's `.python-version` selects the latest Python 3.12 patch. If the service already has a `PYTHON_VERSION` environment variable, it overrides this file; remove a stale override or set it to an appropriate fully qualified 3.12 version. See [Render's Python version settings](https://render.com/docs/python-version).
+
+These instructions do not deploy the code. Local verification and a saved GitHub change do not establish which version is currently running on Render.
 
 ## 1. Upload the extracted source
 
@@ -35,7 +46,7 @@ Research and paper trading do not require a Coinbase key. Start with these modes
 
 | Setting | Included value | Purpose |
 | --- | --- | --- |
-| Runtime | Python 3.12 series | Matches the major/minor version used for offline verification |
+| Runtime | Python 3.12 series via `.python-version` | Matches the major/minor version used for tests and local Gunicorn verification |
 | Compute | 0.5c-512mb paid service | Initial small instance; monitor memory during larger research runs |
 | Persistent disk | 1 GB at /var/data | Retain the database, candles, and backups across ordinary restarts |
 | RESEARCH_DB_PATH | /var/data/research.sqlite3 | Account state and order journal |
@@ -54,7 +65,9 @@ The configuration follows the [Blueprint reference](https://render.com/docs/blue
 
 ## First use and later restarts
 
-Set your actual fee rate and click Start learning & paper trading. Automatic mode studies up to three years for five liquid markets; progress and completed work are saved. Monitor the small server's memory during the first real run and select a larger compute plan if needed. Advanced research remains available for smaller manual diagnostics. A successful website deployment establishes that the app is running, not that its strategy is profitable.
+Set your actual fee rate and click **Practice on real market history** for accelerated replay, initially on BTC, ETH and SOL. This control does not start a paper or exchange runner. A failed download shows an error and can be retried immediately with the same button; it never substitutes generated prices. Completed studies retain their scheduled review dates and saved results.
+
+**Start learning & paper trading** additionally starts market monitoring and the simulated account. Automatic mode studies up to three years for five liquid markets; progress and completed work are saved. Monitor the small server's memory during the first real run and select a larger compute plan if needed. Advanced research remains available for smaller manual diagnostics. A successful website deployment establishes that the app is running, not that its strategy is profitable.
 
 Closing your phone browser leaves a running server process alone. Server restarts and deployments are different: the app retains its stored state but starts its runners stopped. Reopen the dashboard and inspect the account before restarting them. A healthy website does not prove that quotes are fresh or the paper trader is running.
 
@@ -68,4 +81,4 @@ When upgrading an existing service, keep its current service identity and databa
 - The dashboard asks for a token: copy APP_ACCESS_TOKEN from this service's Render environment into the app's access-token field.
 - History vanishes after a restart: check that both persistent path variables point inside the attached /var/data disk.
 - Large research runs exhaust memory: reduce simultaneous workload or choose a larger compute plan after reviewing its cost. Changing plans does not require extra workers.
-- Dependency/build errors: inspect Render's build log. The Coinbase SDK install and a real hosted startup were not tested in this workspace; do not interpret the offline test count as a successful cloud deployment.
+- Dependency/build errors: inspect Render's build log and Python version. Dependency installation, Coinbase SDK imports and a local Gunicorn startup were verified on Python 3.12; the actual hosted Render build and service still need verification.

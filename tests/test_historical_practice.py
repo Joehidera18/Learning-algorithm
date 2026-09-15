@@ -77,6 +77,39 @@ class HistoricalPracticeTests(unittest.TestCase):
         s.research.worker = None
         self.assertEqual(s.agent.settings, before)
 
+    def test_manual_practice_retries_a_failed_download_before_automatic_deadline(self):
+        s = self.service
+        with patch.object(s.autolearn.downloader, "_history", side_effect=TimeoutError("Coinbase unavailable")):
+            s.autolearn.start_history(["BTC-USD"])
+            s.autolearn.worker.join(timeout=5)
+        self.assertEqual(s.autolearn.status()["phase"], "error")
+        with patch.object(s.autolearn.downloader, "_history", return_value=candles(3000)) as history:
+            # Automatic polling retains its backoff; an explicit retry can recover now.
+            s.autolearn.study(["BTC-USD"], dict(s.agent.settings))
+            history.assert_not_called()
+            s.autolearn.start_history(["BTC-USD"])
+            s.autolearn.worker.join(timeout=5)
+        history.assert_called_once()
+        self.assertFalse(s.autolearn.worker.is_alive())
+        self.assertEqual(s.autolearn.status()["phase"], "completed")
+        self.assertNotIn("error", s.autolearn.status()["results"][0])
+        self.assertFalse(s.agent.runtime["running"])
+
+    def test_rejected_automatic_start_preserves_fees_during_another_task(self):
+        s = self.service
+        before = dict(s.agent.settings)
+        for controller in (s.autolearn, s.research):
+            with self.subTest(controller=type(controller).__name__):
+                controller.worker = Mock(is_alive=lambda:True)
+                s.autolearn.state["mode"] = "historical_replay"
+                try:
+                    code, _, _ = s.handle("POST", "/api/learning/start", body={"fee_rate":.001},
+                                         headers={"Content-Type":"application/json"})
+                    self.assertEqual(code, 400)
+                    self.assertEqual(s.agent.settings, before)
+                finally:
+                    controller.worker = None
+
     def test_practice_requires_existing_app_authentication(self):
         s = self.service
         s.token = "private-test-token"

@@ -97,9 +97,8 @@ class Service:
             if path == "/api/learning/start" and method == "POST":
                 if set(body)-{"fee_rate"}:
                     raise ValueError("Automatic start accepts only the fee_rate setting")
-                if "fee_rate" in body:
-                    self.agent.configure({"fee_rate":body["fee_rate"]})
-                self.autolearn.start()
+                fees = {"fee_rate":body["fee_rate"]} if "fee_rate" in body else None
+                self.autolearn.start(fees)
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/practice" and method == "POST":
                 if set(body)-{"fee_rate", "symbols"}:

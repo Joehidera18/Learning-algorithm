@@ -65,7 +65,7 @@ class AutoLearner:
             paper_running=self.agent.runtime["running"])
         return result
 
-    def start(self):
+    def start(self, fee_settings=None):
         with self.lock:
             if self.worker and self.worker.is_alive():
                 if self.stop_event.is_set():
@@ -75,7 +75,7 @@ class AutoLearner:
                 return
             if self.research_manager.worker and self.research_manager.worker.is_alive():
                 raise ValueError("Finish or cancel the existing research run before starting automatic learning")
-            self.agent.configure({"learning_enabled":True, "validated_only":True})
+            self.agent.configure({**(fee_settings or {}), "learning_enabled":True, "validated_only":True})
             self.stop_event.clear()
             self._update(enabled=True, mode="continuous", phase="starting", message="Starting market monitoring and learning.")
             self.worker = threading.Thread(target=self._run, daemon=True, name="automatic-learning")
@@ -107,7 +107,7 @@ class AutoLearner:
     def _run_history(self, symbols, settings):
         phase = "completed"
         try:
-            results = self.study(symbols, settings)
+            results = self.study(symbols, settings, retry_failed=True)
             if all(r.get("error") for r in results):
                 phase = "error"
                 self._update(message="Could not load real market history. "+results[0]["error"])
@@ -182,8 +182,8 @@ class AutoLearner:
             save_state(self.db_path, key, job)
         return job
 
-    def study(self, symbols, settings):
-        """Sequential, cancellable study; failures retain the other market results."""
+    def study(self, symbols, settings, retry_failed=False):
+        """Study sequentially; explicit practice can retry failed downloads now."""
         results = []
         previous = {r["symbol"]:r for r in self.state.get("results", [])}
         scope = self._scope(settings)
@@ -192,6 +192,7 @@ class AutoLearner:
                 raise InterruptedError("Learning cancelled")
             old = previous.get(symbol, {})
             if (old.get("review_scope") == scope and time.time() < old.get("next_review_at", 0)
+                    and not (retry_failed and old.get("error"))
                     and (not old.get("validated") or approved_profile(self.db_path, symbol, settings))):
                 results.append(old)
                 self._update(results=results, completed_markets=len(results), total_markets=len(symbols))
