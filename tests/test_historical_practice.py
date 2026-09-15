@@ -43,7 +43,8 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.agent.settings, before)
         self.assertFalse(s.agent.runtime["running"])
-        self.assertEqual(history.call_args.args, ("BTC-USD", "15m", 1095))
+        self.assertEqual(history.call_args_list[0].args, ("BTC-USD", "15m", 1095))
+        self.assertEqual(history.call_args_list[1].args, ("BTC-USD", "1d", 1125))
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
         self.assertFalse(status["enabled"])
@@ -126,7 +127,7 @@ class HistoricalPracticeTests(unittest.TestCase):
             history.assert_not_called()
             s.autolearn.start_history(["BTC-USD"])
             s.autolearn.worker.join(timeout=5)
-        history.assert_called_once()
+        self.assertEqual([c.args[1] for c in history.call_args_list], ["15m", "1d"])
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.autolearn.status()["phase"], "completed")
         self.assertNotIn("error", s.autolearn.status()["results"][0])
@@ -191,7 +192,10 @@ class HistoricalPracticeTests(unittest.TestCase):
             s.autolearn.start_history(["HBAR", "XRP", "XLM"])
             s.autolearn.worker.join(timeout=5)
         self.assertFalse(s.autolearn.worker.is_alive())
-        self.assertEqual([c.args[0] for c in download.call_args_list], ["HBAR-USD", "XRP-USD", "XLM-USD"])
+        self.assertEqual([c.args[0] for c in download.call_args_list if c.args[1]=="15m"],
+                         ["HBAR-USD", "XRP-USD", "XLM-USD"])
+        self.assertEqual([c.args[0] for c in download.call_args_list if c.args[1]=="1d"],
+                         ["XRP-USD", "XLM-USD"])
         results = s.autolearn.status()["results"]
         self.assertIn("error", results[0])
         self.assertNotIn("error", results[1])
@@ -209,8 +213,9 @@ class HistoricalCommandTests(unittest.TestCase):
                 code = main(["--coinbase", "--learning", "--symbol", "ETH-USD", "--interval", "1h",
                              "--days", "365", "--end", "2025-01-01", "--out", str(out)])
             self.assertEqual(code, 0)
-            self.assertEqual(history.call_args.args, ("ETH-USD", "1h", 365))
-            self.assertEqual(history.call_args.kwargs["end_ms"], 1735689600000)
+            self.assertEqual(history.call_args_list[0].args, ("ETH-USD", "1h", 365))
+            self.assertEqual(history.call_args_list[0].kwargs["end_ms"], 1735689600000)
+            self.assertEqual(history.call_args_list[1].args, ("ETH-USD", "1d", 395))
             self.assertIs(learn.call_args.args[0], rows)
             self.assertEqual(learn.call_args.args[2]["decision_interval"], "1h")
             result = json.loads(out.read_text())

@@ -83,8 +83,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         if on_resolved and reason != "END":
             on_resolved(p, pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
         if policy and feedback is None and reason != "END":
+            from .outcome_memory import trade_feedback
             policy.observe(p["decision_params"], p["learning"]["vector"],
-                           pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
+                           pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms,
+                           outcome=trade_feedback(p))
         if training_examples:
             # Label collection: independently funded examples, not account returns.
             cash = float(balance)

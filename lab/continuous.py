@@ -15,7 +15,7 @@ from .coinbase_feed import CoinbaseClient, CoinbaseTickerStream
 from .engine import build_feature_cache, evaluate_signal
 from .strategies import profit_candidates
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
-from .daily_context import daily_context
+from .daily_context import independent_daily_context, DAY_MS
 from .paper_store import (init_continuous_db, db_connect, load_state, log_activity,
                          recent_trades, activity_rows, memory_leaderboard)
 
@@ -332,7 +332,7 @@ class ContinuousLearner:
             source.close()
 
     def _empty_market(self):
-        return {"bars": {iv: [] for iv in INTERVAL_MS}, "ticker": {}, "readiness": "Loading candles",
+        return {"bars": {iv: [] for iv in (*INTERVAL_MS, "1d")}, "ticker": {}, "readiness": "Loading candles",
                 "last_sync_ts": None, "last_decision": "Waiting for history", "rejections": {}}
 
     def _sync_product(self, pid, bootstrap=False):
@@ -340,21 +340,23 @@ class ContinuousLearner:
         now = now_ms()
         with self.lock:
             existing = copy.deepcopy(self.market[pid]["bars"])
-        for iv in ("5m", "15m", "1h"):
+        existing.setdefault("1d", [])
+        for iv in ("5m", "15m", "1h", "1d"):
             if self.stop_event.is_set():
                 return
-            step = INTERVAL_MS[iv]
+            step = DAY_MS if iv == "1d" else INTERVAL_MS[iv]
+            capacity = 60 if iv == "1d" else MAX_BARS[iv]
             expected = now // step * step - step
             if existing[iv] and existing[iv][-1]["ts"] >= expected:
                 continue
             if bootstrap or not existing[iv]:
-                count = 1040 if iv == "1h" else 300
+                count = 60 if iv == "1d" else (1040 if iv == "1h" else 300)
             else:
-                count = min(MAX_BARS[iv], max(3, (expected - existing[iv][-1]["ts"]) // step + 3))
+                count = min(capacity, max(3, (expected - existing[iv][-1]["ts"]) // step + 3))
             try:
                 fetched = self.client.candles(pid, iv, limit=count, end_ms=now)
                 combined = {r["ts"]: r for r in existing[iv] + fetched if r["ts"] + step <= now}
-                existing[iv] = [combined[t] for t in sorted(combined)][-MAX_BARS[iv]:]
+                existing[iv] = [combined[t] for t in sorted(combined)][-capacity:]
             except Exception as exc:
                 with self.lock:
                     self.market[pid]["last_decision"] = f"{iv} history unavailable: {exc}"
@@ -443,23 +445,33 @@ class ContinuousLearner:
 
     def _latest_feature(self, pid, iv):
         with self.lock:
-            rows = self.market.get(pid, {}).get("bars", {}).get(iv, [])
-            signature = (len(rows), rows[-1]["ts"] if rows else None)
+            bars = self.market.get(pid, {}).get("bars", {})
+            rows = bars.get(iv, [])
+            direct_daily = list(bars.get("1d", []))
+            signature = (len(rows), rows[-1]["ts"] if rows else None,
+                         len(direct_daily), direct_daily[-1]["ts"] if direct_daily else None)
             cached = self._feature_cache.get((pid, iv))
             if cached and cached[0] == signature:
                 return cached[1]
             snapshot = list(rows)
-            # Existing hourly bootstrap covers >40 days. Complete 4-hour bars
-            # supply daily context even when the decision cache is shorter.
+            # Match replay: restart intraday indicators after any missing bar.
+            for i in range(len(snapshot)-1, 0, -1):
+                if snapshot[i]["ts"]-snapshot[i-1]["ts"] != INTERVAL_MS[iv]:
+                    snapshot = snapshot[i:]
+                    break
             asof = rows[-1]["ts"]+INTERVAL_MS[iv] if rows else 0
-            daily_rows = [r for r in self.market.get(pid, {}).get("bars", {}).get("4h", [])
+            daily_rows = [r for r in bars.get("4h", [])
                           if r["ts"]+INTERVAL_MS["4h"] <= asof]
         feature = None
         if len(snapshot) >= 241:
             feature = build_feature_cache(snapshot, iv)["features"][-1]
             if feature:
-                contexts = daily_context(daily_rows, INTERVAL_MS["4h"])
-                feature["daily"] = contexts[-1] if contexts else {}
+                if not direct_daily and daily_rows:
+                    from .data_repair import aggregate_complete
+                    first_day = (daily_rows[0]["ts"]+DAY_MS-1)//DAY_MS*DAY_MS
+                    direct_daily = aggregate_complete(daily_rows, INTERVAL_MS["4h"], DAY_MS,
+                                                      first_day, asof//DAY_MS*DAY_MS)
+                feature["daily"] = independent_daily_context([snapshot[-1]], INTERVAL_MS[iv], direct_daily)[0]
         with self.lock:
             self._feature_cache[(pid, iv)] = (signature, feature)
         return feature
@@ -809,7 +821,9 @@ class ContinuousLearner:
                     from .adaptive import record_outcome, write_in_transaction
                     try:
                         record_outcome(con,pid,"paper",pos["decision"]["params"],
-                            pos["decision"].get("learning"),result,ts)
+                            pos["decision"].get("learning"),result,ts,
+                            outcome={"reason":reason,"gross_r":gross/max(pos["risk_usd"],1e-12),
+                                     "fee_r":fees/max(pos["risk_usd"],1e-12)})
                     except (KeyError, TypeError, ValueError) as exc:
                         # A bad model must not prevent the closed trade being recorded.
                         write_in_transaction(con,"adaptive_error_paper_"+pid,

@@ -1,8 +1,8 @@
-# CryptO V11.2 — automatic learning and Coinbase
+# CryptO V11.3 — automatic learning and Coinbase
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The supplied models start untrained; the program downloads and studies history when you run it. An initial exported Coinbase-history report exposed training and missing-data limitations addressed in this update. Its profitability still needs a new real-history evaluation.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.3 adds outcome memory, targeted candle recovery and independent daily context. Replays of the supplied DOT candles at 15 minutes and 1 hour did not qualify a profitable model; both stayed in cash. See [the measured results and exact changes](OUTCOME_MEMORY_RESEARCH.md).
 
 ## Start here
 
@@ -31,11 +31,13 @@ This is a small online machine-learning model. It learns entry preferences and s
 
 The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first five in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
 
-## Cost-aware learning update
+## Learning from failed trades and fuller candle context
 
-V11.2 uses entry costs as model inputs, separates evidence by cost level, applies a prediction-error penalty and continues historical learning from skipped opportunities as their outcomes become available. It reports fees by strategy, tests account-only feedback, and marks previously reviewed history separately from confirmation on newer prices. See [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md) for the report-12 findings and exact rules. New profitability has not been established.
+V11.3 learns recent net outcomes in comparable cost, intraday and daily-trend conditions. Its diagnostics distinguish stop losses, time-exit losses and gross gains erased by fees. A context with enough recent losing evidence blocks entries; later completed successes can restore it. The report compares the memory adjustment with the same learner without that adjustment. See [OUTCOME_MEMORY_RESEARCH.md](OUTCOME_MEMORY_RESEARCH.md) for the declared rules, research sources and measured limits. The earlier cost-model work is documented in [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md).
 
-Each market offers **Download candles & report** for reproducible analysis of its actual saved data.
+Practice now retries remaining internal gaps, first directly and then using complete smaller Coinbase candles. It also downloads separate daily candles so an intraday gap need not erase daily context. If daily retrieval fails, the report names the fallback to complete intraday days. Intraday indicators still restart at gaps, and missing daily candles still reset daily warmup. An explicit Practice action rechecks both sources before the automatic deadline; identical observations reuse completed training. New external data could not be downloaded in the development environment, so actual recovery of the supplied gaps is still unverified.
+
+Each market offers **Download candles & report** for reproducible analysis of its actual saved data. Separate daily inputs, when used, are included as `daily-candles.csv` with their own checked hash. Add `--daily-csv daily-candles.csv` to an offline `--csv --learning` command to reproduce that context.
 
 ## Paper and real trading
 

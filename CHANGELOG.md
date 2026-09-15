@@ -1,3 +1,11 @@
+# Outcome memory and candle context — 15 September 2026 UTC
+
+- Learn recency-weighted net outcomes by strategy, cost burden, intraday regime and completed daily trend. Keep gross returns and fees reconciled; distinguish fee-erased gains, stops and time-exit losses. Share attribution across replay and separate paper/Coinbase journals.
+- Retry gaps and reconstruct only complete smaller-interval Coinbase observations. Fetch independent completed daily candles, join them as of the signal close and expose remaining missing data. Match replay's intraday gap warmup in ongoing monitoring.
+- Recheck data on explicit practice, hash both data sources into cache identity and export the exact daily inputs. Keep existing fees, risk, candidates, account controls and qualification requirements.
+- Record report 16 as reviewed history. Include a fixed 15m/1h reproduction script and a memory-disabled comparison. Both DOT final tests selected zero trades and made $0; profitability is not demonstrated. Direct additional Coinbase retrieval timed out here.
+- Versions: engine `market-structure-v11.3-outcome-memory`, policy `online-net-r-v6-outcome-memory`, report 8. Old models require fresh practice and qualification.
+
 # Cost-aware learning — 15 September 2026 UTC
 
 - Use signal-time cost, net reward/risk and holding period in the 19-input learner. Separate low, moderate and high cost evidence and apply a pre-update prediction-error penalty.

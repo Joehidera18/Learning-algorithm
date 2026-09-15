@@ -77,5 +77,26 @@ class ResearchBundleTests(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             self.assertIsNone(json.loads(archive.read("manifest.json"))["matches_report_data_sha256"])
 
+    def test_daily_context_is_exported_exactly_and_changed_context_is_rejected(self):
+        step=86400000
+        rows=candles(24,step=step,start=self.rows[0]["ts"]-21*step)
+        daily=self.path.with_name("BTC-USD_1d.csv")
+        def write():
+            with daily.open("w",newline="") as handle:
+                writer=csv.DictWriter(handle,fieldnames=DATA_FIELDS)
+                writer.writeheader();writer.writerows(rows)
+        write()
+        self.report["daily_data"]={"source":"independent_daily_candles","rows":len(rows),
+            "start_ts":rows[0]["ts"],"end_ts":rows[-1]["ts"],"data_sha256":dataset_digest(rows)}
+        code,data,_=self.get()
+        self.assertEqual(code,200)
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            self.assertEqual(archive.read("daily-candles.csv").decode().splitlines(),daily.read_text().splitlines())
+            self.assertEqual(json.loads(archive.read("manifest.json"))["daily_data"]["data_sha256"],dataset_digest(rows))
+        rows[-1]["close"]-=.01; write()
+        self.assertEqual(self.get()[0],400)
+        daily.unlink()
+        self.assertEqual(self.get()[0],400)
+
 
 if __name__=="__main__": unittest.main()

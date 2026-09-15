@@ -74,7 +74,7 @@ class RegimeAndCostTests(unittest.TestCase):
         self.assertGreater(policy.predict(p, feature_vector(F)), policy.predict(p, feature_vector(chop)))
         self.assertIsNotNone(policy.choose(F))
         self.assertIsNone(policy.choose(chop))
-        self.assertIsNone(AdaptivePolicy(policy.export(), regime_adaptation=False).choose(F))
+        self.assertIsNone(AdaptivePolicy(policy.export(), regime_adaptation=False, failure_adaptation=False).choose(F))
         self.assertEqual(AdaptivePolicy(json.loads(json.dumps(policy.export()))).export(), policy.export())
 
     def test_sparse_regime_uses_pooled_estimate(self):
@@ -254,7 +254,9 @@ class ReviewPersistenceTests(unittest.TestCase):
             self.assertEqual(results[1]["next_review_at"], stamp+UNQUALIFIED_REVIEW_SECONDS)
             with patch("lab.autolearn.time.time", return_value=stamp+UNQUALIFIED_REVIEW_SECONDS):
                 self.learner.study(["BTC-USD", "ETH-USD"], self.settings)
-            self.assertEqual(history.call_count, 3)
+            self.assertEqual([c.args[:2] for c in history.call_args_list], [
+                ("BTC-USD","15m"),("BTC-USD","1d"),("ETH-USD","15m"),("ETH-USD","1d"),
+                ("ETH-USD","15m"),("ETH-USD","1d")])
             self.assertEqual(history.call_args.args[0], "ETH-USD")
             self.assertEqual(train.call_count, 2)  # identical prices reuse the completed result
 

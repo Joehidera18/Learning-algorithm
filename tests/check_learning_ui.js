@@ -26,9 +26,14 @@ if (original.results.length) {
   assert.match(element("learningResults").innerHTML,/BTC-USD/);
   assert.equal(element("learningTestTrades").textContent,String(original.results.reduce((n,r)=>n+(r.holdout?.trades||0),0)));
 }
-const current={...original,current_policy_version:"fixture",current_report_version:7,historical_examples:130625,
-  results:[{symbol:'BTC-USD<img src=x onerror="bad()">',interval:"15m",policy_version:"fixture",learning_report_version:7,
+const current={...original,current_policy_version:"fixture",current_report_version:8,historical_examples:130625,
+  results:[{symbol:'BTC-USD<img src=x onerror="bad()">',interval:"15m",policy_version:"fixture",learning_report_version:8,
     validated:false,holdout:{net_pnl:-.62,trades:16},holdout_stressed:{net_pnl:-21.84},data_quality:{rows:3000},
+    market_data:{provider:"Fixture",gap_repair:{recovered_direct:2,recovered_from_smaller_candles:3,missing_after:4},
+      daily_context:{status:"daily_download_unavailable"}},
+    daily_data:{source:"complete_intraday_aggregation",holdout_ready_candles:500,holdout_candles:1000},
+    failure_learning:{by_family:{trend_pullback_simple:{causes:{stopped_out:7,fee_erased_gain:8,stalled_trade:9,other_loss:10}}}},
+    outcome_memory_comparison:{net_pnl_difference:0,stress_net_pnl_difference:-1.23},
     holdout_shadow_feedback:{resolved_examples:120},performance_attribution:{scope:"Modeled costs",
       by_family:{daily_trend_momentum_simple:{trades:16,gross_pnl:9.01,fees_paid:9.63,net_pnl:-.62}}},
     evaluation:{reuses_reviewed_history:true,reviewed_through_ts:1789448400000,confirmation:{start_ts:1789448400000,
@@ -37,6 +42,8 @@ const current={...original,current_policy_version:"fixture",current_report_versi
 context.testUI.renderLearning(current);
 const html=element("learningResults").innerHTML;
 for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confirmation on later prices",
+  "Missing candle recovery","50.0%","Separate daily history could not be downloaded",
+  "What happened in the failed trade examples?","Effect of the new outcome memory","-$1.23",
   "Selected-trade feedback on later prices","-$2.00","-$3.00","Download candles &amp; report"])
   assert.ok(html.includes(text),text);
 assert.ok(!html.includes("<img"));assert.ok(html.includes("&lt;img"));

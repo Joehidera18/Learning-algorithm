@@ -21,7 +21,7 @@ except ImportError:
 
 REST = "https://api.exchange.coinbase.com"
 WS = "wss://ws-feed.exchange.coinbase.com"
-GRANULARITY = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600}
+GRANULARITY = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "1d": 86400}
 STABLE_BASES = {"USDC", "USDT", "DAI", "PYUSD", "EURC", "USDG", "GUSD", "PAX", "TUSD", "USDP", "FDUSD", "USDS", "RLUSD"}
 PREFERRED = ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "DOGE-USD", "ADA-USD", "LINK-USD", "AVAX-USD", "LTC-USD", "BCH-USD"]
 

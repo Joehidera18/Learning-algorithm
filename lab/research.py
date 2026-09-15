@@ -253,6 +253,7 @@ class ResearchManager:
         self.lock = threading.RLock()
         self.cancel_event = threading.Event()
         self.worker = None
+        self.data_reports = {}
         self.state = load_state(db_path, "profitability_research", {"status": "idle", "message": "No historical validation yet", "results": []})
         if self.state.get("status") in ("running", "downloading", "training"):
             self.state.update(status="interrupted", message="Research was interrupted. Run again to reuse downloaded candles.")
@@ -322,8 +323,47 @@ class ResearchManager:
                 self._update(status="downloading", message=f"{symbol}: {len(rows):,} historical candles collected")
             cursor = window_start
         ordered = [rows[k] for k in sorted(rows)]
+        if len(ordered) > 1:
+            from .data_repair import repair_history
+            ordered, repair = repair_history(self.client, symbol, interval, ordered,
+                self.cancel_event.is_set, self._update)
+            rows = {r["ts"]: r for r in ordered}
+            report_path = path.with_suffix(".quality.json")
+            # Preserve how recovered observations entered this cache across
+            # later checks that find no gaps. Current-check counters stay separate.
+            previous = {}
+            if report_path.exists():
+                try:
+                    previous = json.loads(report_path.read_text())
+                except (OSError, ValueError):
+                    pass
+            history = {r["ts"]:r for r in previous.get("recovery_history", previous.get("recovered", []))
+                       if r.get("ts") in rows}
+            history.update({r["ts"]:r for r in repair["recovered"]})
+            repair["recovery_history"] = [history[t] for t in sorted(history)]
+            self.data_reports[(symbol, interval)] = repair
+            report_tmp = report_path.with_suffix(".tmp")
+            report_tmp.write_text(json.dumps(repair, indent=2, allow_nan=False))
+            report_tmp.replace(report_path)
         checkpoint()
         return ordered
+
+    def daily_history(self, symbol, days, end_ms):
+        """Optional richer context; a failed daily download does not invent data."""
+        from .daily_context import DAY_MS, independent_daily_context
+        try:
+            rows = self._history(symbol, "1d", days+30, end_ms=end_ms)
+            rows = [r for r in rows if r["ts"]+DAY_MS <= end_ms]
+            independent_daily_context([], DAY_MS, rows)  # validate the actual response
+            if len(rows) < 21:
+                raise ValueError("Fewer than 21 completed daily candles")
+            return rows, {"source": "Coinbase Exchange daily candles", "status": "available",
+                "repair": self.data_reports.get((symbol, "1d"), {})}
+        except InterruptedError:
+            raise
+        except Exception as exc:
+            return None, {"source": "Complete intraday aggregation", "status": "daily_download_unavailable",
+                "message": str(exc)[:240]}
 
     def _run(self, symbols, days, settings):
         try:

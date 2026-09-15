@@ -51,7 +51,7 @@ class OnlineModelTests(unittest.TestCase):
         params=profit_candidates()[0]
         policy.choose(F)
         self.assertGreater(policy.last_diagnostics["rejections"]["insufficient_learning_samples"],0)
-        policy=AdaptivePolicy(trained_state())
+        policy=AdaptivePolicy(trained_state(), failure_adaptation=False)
         before=policy.export()
         self.assertIsNotNone(policy.choose(F))
         self.assertEqual(policy.export(),before)
@@ -136,7 +136,7 @@ class OnlineModelTests(unittest.TestCase):
                 events.append(("choose",f["_ts"]+900000))
                 return {"params":profit_candidates()[0],"score":70,
                         "learning":{"vector":feature_vector(f)}}
-            def observe(self,p,v,r,available_ts): events.append(("learn",available_ts,v,r))
+            def observe(self,p,v,r,available_ts,outcome=None): events.append(("learn",available_ts,v,r))
         _,trades=simulate(rows,fs,240,len(rows),500,.0075,0,0,
             {"family":"adaptive_policy","direction":"LONG"},policy=Policy())
         learned=[e for e in events if e[0]=="learn"]
@@ -346,8 +346,13 @@ class AutomaticWorkflowTests(unittest.TestCase):
                 "lab.autolearn.learn_history",return_value=result) as train:
             a.study(["BTC-USD"],dict(self.service.agent.settings))
             a.study(["BTC-USD"],dict(self.service.agent.settings))
-            self.assertEqual(history.call_args.args[2],HISTORY_DAYS)
+            self.assertEqual(history.call_args_list[0].args, ("BTC-USD","15m",HISTORY_DAYS))
+            self.assertEqual(history.call_args_list[1].args, ("BTC-USD","1d",HISTORY_DAYS+30))
+            self.assertEqual(history.call_count,2)
             train.assert_called_once()
+            a.study(["BTC-USD"],dict(self.service.agent.settings),retry_failed=True)
+            self.assertEqual(history.call_count,4)  # explicit practice rechecks both data sources
+            train.assert_called_once()  # identical observations reuse trained result
         self.assertFalse(a._needs_review(["BTC-USD"],self.service.agent.settings))
         self.assertTrue(a._needs_review(["ETH-USD"],self.service.agent.settings))
 
