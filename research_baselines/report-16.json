@@ -1,0 +1,514 @@
+{
+  "source_filename": "learning-results 16.json",
+  "source_sha256": "3e0925d46867029615eb3d873336fa99ea4acc352685bec3a3136b0f315b2e8b",
+  "scope": "User-supplied report reviewed before v11.3 design; these test windows cannot newly qualify this revision. Separate $500 accounts, not a combined portfolio.",
+  "markets": [
+    {
+      "symbol": "BTC-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "208aef32fe4ebdf1a77af020af8c0d66860862ab37beca2e1589140cfa215b44",
+      "data_quality": {
+        "valid": true,
+        "rows": 105063,
+        "gaps": 57,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.95,
+        "start_ts": 1694845800000,
+        "end_ts": 1789452900000
+      },
+      "historical_examples": 10007,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789453800000
+    },
+    {
+      "symbol": "ETH-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "781d9f673ddd7ac6e696b7df7a9f86769eb4f34dbf1667c2fa22e4a462bfda85",
+      "data_quality": {
+        "valid": true,
+        "rows": 105061,
+        "gaps": 59,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694845800000,
+        "end_ts": 1789452900000
+      },
+      "historical_examples": 9860,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 2,
+        "net_pnl": -7.4718749999999545,
+        "max_drawdown_pct": 1.7816648593474051,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789453800000
+    },
+    {
+      "symbol": "SOL-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "9acc7a4e8f2e56d7b7a6b790e04e0f03aee42603801b00be64502cd6ed36b4e4",
+      "data_quality": {
+        "valid": true,
+        "rows": 105062,
+        "gaps": 58,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694845800000,
+        "end_ts": 1789452900000
+      },
+      "historical_examples": 10637,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 2,
+        "net_pnl": 3.8776262000411066,
+        "max_drawdown_pct": 0.7794150912755143,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 2,
+        "net_pnl": -7.471875000000011,
+        "max_drawdown_pct": 1.533138108424984,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789453800000
+    },
+    {
+      "symbol": "HBAR-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "b56180986cb75e72a62ab4b230aec860406ee590ef772aee6016ce06f11f8dc5",
+      "data_quality": {
+        "valid": true,
+        "rows": 105060,
+        "gaps": 60,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694845800000,
+        "end_ts": 1789452900000
+      },
+      "historical_examples": 9951,
+      "profitable_folds": 1,
+      "holdout": {
+        "trades": 1,
+        "net_pnl": -3.75,
+        "max_drawdown_pct": 0.9330435847801508,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789453800000
+    },
+    {
+      "symbol": "XRP-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "e8af03557e0bfa1b587709ddc2c06a2167226e987b3563d8447af62a57e69e9b",
+      "data_quality": {
+        "valid": true,
+        "rows": 105062,
+        "gaps": 58,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 9821,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 4,
+        "net_pnl": -4.927368560610034,
+        "max_drawdown_pct": 2.624481153559314,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "XLM-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "da3843664d6d7013defe0270421b08f93ca25be444c3f885806a2ace67fdd2ad",
+      "data_quality": {
+        "valid": true,
+        "rows": 105063,
+        "gaps": 57,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.95,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 9738,
+      "profitable_folds": 1,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "ADA-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "f6595e026a3af1b283850f2cbededd937fa3c193c0e40dc097dda8190d4fbcdb",
+      "data_quality": {
+        "valid": true,
+        "rows": 105062,
+        "gaps": 58,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 9700,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 1,
+        "net_pnl": 6.547876353651247,
+        "max_drawdown_pct": 0.3280109323543932,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "DOGE-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "0120474f75ace124b9edb1bf6b8cf376de55fc6c7fa6cf582e4c4787c83d0422",
+      "data_quality": {
+        "valid": true,
+        "rows": 105063,
+        "gaps": 57,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.95,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 9983,
+      "profitable_folds": 1,
+      "holdout": {
+        "trades": 1,
+        "net_pnl": -3.75,
+        "max_drawdown_pct": 0.75,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "AVAX-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "7ba60e680993209f81d75b1e3a6e5c79549dd2a9147dbaf6e00fc2312b1ae90c",
+      "data_quality": {
+        "valid": true,
+        "rows": 105043,
+        "gaps": 77,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.93,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 10227,
+      "profitable_folds": 1,
+      "holdout": {
+        "trades": 3,
+        "net_pnl": -5.610306061557594,
+        "max_drawdown_pct": 1.7035860956619113,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 3,
+        "net_pnl": -5.989253162019054,
+        "max_drawdown_pct": 1.690461226351712,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "LINK-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "7800814df8f1041d16babfb04af41157491a57ad28d4318969cd0d0f4265542e",
+      "data_quality": {
+        "valid": true,
+        "rows": 105063,
+        "gaps": 57,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.95,
+        "start_ts": 1694846700000,
+        "end_ts": 1789453800000
+      },
+      "historical_examples": 10896,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789454700000
+    },
+    {
+      "symbol": "LTC-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "227b76fe2dabfd822e9658d74e1b1c3b55c7c62da8ee1faa3fe305f8b0684b69",
+      "data_quality": {
+        "valid": true,
+        "rows": 105063,
+        "gaps": 57,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.95,
+        "start_ts": 1694847600000,
+        "end_ts": 1789454700000
+      },
+      "historical_examples": 10567,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789455600000
+    },
+    {
+      "symbol": "BCH-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "e7a1500f0d02d4b4c6a08808c7c48b34c2c4021dc74443b48ca49cab77a86dff",
+      "data_quality": {
+        "valid": true,
+        "rows": 105062,
+        "gaps": 58,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.94,
+        "start_ts": 1694847600000,
+        "end_ts": 1789454700000
+      },
+      "historical_examples": 9437,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789455600000
+    },
+    {
+      "symbol": "DOT-USD",
+      "engine_version": "market-structure-v11.2-cost-learning",
+      "policy_version": "online-net-r-v5-cost-context",
+      "interval": "15m",
+      "data_sha256": "842fd0b348f1253eca2e9b2430a2377aefe7e666c1f580cede4a6291f15038dd",
+      "data_quality": {
+        "valid": true,
+        "rows": 105049,
+        "gaps": 71,
+        "duplicates": 0,
+        "bad_ohlc": 0,
+        "coverage_pct": 99.93,
+        "start_ts": 1694847600000,
+        "end_ts": 1789454700000
+      },
+      "historical_examples": 9797,
+      "profitable_folds": 0,
+      "holdout": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "holdout_stressed": {
+        "trades": 0,
+        "net_pnl": 0.0,
+        "max_drawdown_pct": 0,
+        "complete": true
+      },
+      "validated": false,
+      "costs": {
+        "fee_per_side": 0.004,
+        "slippage_per_fill": 0.0005,
+        "assumed_half_spread": 0.0005,
+        "stress_multiplier": 1.5
+      },
+      "reviewed_through_ts": 1789455600000
+    }
+  ]
+}

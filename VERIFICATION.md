@@ -1,5 +1,15 @@
 # V11 verification
 
+## 15 September 2026: V11.3 outcome memory and data recovery
+
+**195 Python tests passed in 14.35 seconds.** New checks exercise comparable-context losses, fee-erased gains, recovery after later successes, finite/consistent outcome state, direct and complete smaller-bar recovery, cancellation/request bounds, persistent recovery provenance, daily joins without future information, intraday gap warmup in replay and monitoring, daily input cache identity, explicit rechecks and exact daily exports. Existing execution, qualification and separate account-journal tests continue to pass.
+
+The actual dashboard JavaScript passed Node-based checks against the supplied report 16 and fixtures for the new failure table, recovery counters, context availability, memory comparison, escaping and download handoff. This is a mocked-document check, not verification of a deployed website or mobile layout.
+
+The real supplied DOT bundle reproduces the prior report's canonical data hash. The fixed revised 15m replay learns 9,797 development examples; complete 1h aggregation learns 3,035. Both have zero profitable later folds and zero selected final-period account trades at ordinary or stressed costs. Both reject qualification. The memory-disabled controls also return $0, so measured account-profit improvement is $0. See [OUTCOME_MEMORY_RESEARCH.md](OUTCOME_MEMORY_RESEARCH.md) and [the machine-readable comparison](research_baselines/dot-v11.3-comparison.json).
+
+Additional Coinbase requests timed out. Actual recovery of the 71 missing supplied intervals and performance with independent daily downloads remain unverified on real additional data. Newer data, portfolio performance, hosted execution and real fills have not been validated. No exchange order or deployment was performed.
+
 ## 15 September 2026 cost-aware learning and reproducible exports
 
 **182 Python tests passed in 12.13 seconds** with production dependencies available. The new regressions cover signal-time cost inputs, separately learned cost groups, pre-update prediction-error penalties, and continued feedback when selected account trades are zero. Historical shadow outcomes agree with the shared execution engine; changing future prices cannot alter earlier labels. Missing-price outcomes and forced end-of-window closes are excluded, and account closures are not learned twice. No test placed an exchange order.

@@ -90,7 +90,10 @@ class CoinbaseTrader:
                             if not math.isfinite(risk) or risk <= 0:
                                 raise ValueError("Invalid learning risk denominator")
                             record_outcome(con,trade["product_id"],"coinbase",signal["params"],
-                                signal["learning"],float(trade["pnl"])/risk,int(trade["closed_at"]*1000))
+                                signal["learning"],float(trade["pnl"])/risk,int(trade["closed_at"]*1000),
+                                outcome=({"reason":trade.get("exit_reason","UNKNOWN"),
+                                    "gross_r":float(trade["gross_pnl"])/risk,
+                                    "fee_r":float(trade["fees_paid"])/risk} if "fees_paid" in trade else None))
                         except (KeyError, TypeError, ValueError) as exc:
                             write_in_transaction(con,"adaptive_error_coinbase_"+trade["product_id"],
                                 {"message":str(exc),"trade_id":trade["id"],"time":self.clock()})
@@ -298,6 +301,8 @@ class CoinbaseTrader:
                 trade["status"] = "SETTLING"
             else:
                 trade.update(status="CLOSED",closed_at=self.clock(),
+                    gross_pnl=number(sold_value-decimal(entry["value"])),
+                    fees_paid=number(sold_fees+decimal(entry["fees"])),
                     pnl=number(sold_value-sold_fees-decimal(entry["value"])-decimal(entry["fees"])))
                 self._state_save(close_trade_id=None)
             self._trade_save(trade)

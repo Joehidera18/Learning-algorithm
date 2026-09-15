@@ -3,7 +3,7 @@ import json
 import hashlib
 from pathlib import Path
 
-BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-12.json").read_text())
+BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-16.json").read_text())
 REVIEWED_THROUGH = {r["symbol"]:r["reviewed_through_ts"] for r in BASELINE["markets"]}
 DATA_FIELDS = ("ts", "open", "high", "low", "close", "volume", "quote_volume", "trades")
 

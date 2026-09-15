@@ -125,6 +125,7 @@
       daily_loss_limit:"Daily loss halt",
       insufficient_learning_samples:"Too few completed training examples",
       nonpositive_recent_return:"Recent learned returns are not positive",
+      recent_context_losses:"Similar recent setups lost money after costs",
       low_estimated_return:"Estimated return below the entry threshold",
       prediction_error_too_large:"Prediction error leaves too little estimated return",
       no_positive_learned_setup:"No candidate passed the learning checks",
@@ -172,6 +173,16 @@
     let html="";
     if (r.market_data) html+='<p class="footnote"><b>Price data:</b> '+escape(r.market_data.provider)+
       ' recorded market candles. Trades are simulated.</p>';
+    const repair=(r.market_data || {}).gap_repair, daily=r.daily_data;
+    if (repair) html+='<p class="footnote"><b>Missing candle recovery:</b> '+num(repair.recovered_direct,0)+
+      ' recovered directly and '+num(repair.recovered_from_smaller_candles,0)+' rebuilt from complete smaller candles on the latest check. '+
+      num(repair.missing_after,0)+' missing intervals remain. Prices are never interpolated.</p>';
+    if (daily) html+='<p class="footnote"><b>Daily market context:</b> '+
+      (daily.source==="independent_daily_candles" ? 'Separate daily candles' : 'Complete days from the intraday candles')+
+      '; available on '+num(daily.holdout_candles ? 100*daily.holdout_ready_candles/daily.holdout_candles : 0,1)+
+      '% of final-test candles. Only days already closed can inform a decision.</p>';
+    if ((r.market_data || {}).daily_context?.status==="daily_download_unavailable")
+      html+='<p class="footnote">Separate daily history could not be downloaded. This run used only complete days available in the intraday data.</p>';
     if (r.replay) html+='<p class="footnote"><b>Past-market practice:</b> '+escape(date(r.replay.training_start_ts,true))+
       ' to '+escape(date(r.replay.training_end_ts,true))+'. Final later test: '+escape(date(r.replay.test_start_ts,true))+
       ' to '+escape(date(r.replay.test_end_ts,true))+'. Decisions cannot see later prices.</p>';
@@ -197,6 +208,17 @@
   }
   function renderCostLearning(r) {
     let html="";
+    if (r.failure_learning) html+='<details><summary>What happened in the failed trade examples?</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Stopped out</th><th>Fees erased a gain</th><th>Time exit loss</th><th>Other losses</th></tr></thead><tbody>'+
+      Object.entries(r.failure_learning.by_family || {}).map(function (entry) {
+        const a=entry[1].causes || {};
+        return '<tr><td>'+escape(family(entry[0]))+'</td><td>'+num(a.stopped_out || 0,0)+
+          '</td><td>'+num(a.fee_erased_gain || 0,0)+'</td><td>'+num(a.stalled_trade || 0,0)+
+          '</td><td>'+num(a.other_loss || 0,0)+'</td></tr>';
+      }).join('')+'</tbody></table></div><p class="footnote">The learner uses recent net outcomes from similar market conditions to adjust entries. These are overlapping historical examples. Exit labels describe what happened; they do not prove why a trade failed.</p></details>';
+    if (r.outcome_memory_comparison) html+='<p class="footnote"><b>Effect of the new outcome memory:</b> '+
+      money(r.outcome_memory_comparison.net_pnl_difference)+' in the final test; '+
+      money(r.outcome_memory_comparison.stress_net_pnl_difference)+
+      ' at higher costs, compared with the same learner with this adjustment disabled. Negative means it did worse.</p>';
     const feedback=r.holdout_shadow_feedback;
     if (feedback) html+='<p class="footnote"><b>Continued historical practice:</b> '+num(feedback.resolved_examples,0)+
       ' additional hypothetical outcomes learned during the later test, including opportunities the account skipped. '+

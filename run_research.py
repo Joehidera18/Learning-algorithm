@@ -7,7 +7,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from lab.continuous import DEFAULTS
 from lab.coinbase_feed import REST
-from lab.data import load_history
+from lab.data import load_history, INTERVAL_MS
 from lab.paper_store import init_continuous_db
 from lab.research import ResearchManager, research
 from lab.learning_research import learn_history
@@ -23,11 +23,14 @@ def main(argv=None):
     parser.add_argument("--fee", type=float, default=.004, help="Fee fraction per side; .004 means 0.4%%")
     parser.add_argument("--slippage", type=float, default=.0005)
     parser.add_argument("--learning", action="store_true", help="Train and evaluate the adaptive policy used by automatic learning")
+    parser.add_argument("--daily-csv", type=Path, help="Optional recorded 1d OHLCV candles for --csv --learning; included as completed context only")
     parser.add_argument("--days", type=int, default=1095, help="History to download, up to 1095 days")
     parser.add_argument("--end", help="Optional exclusive historical end date, YYYY-MM-DD in UTC; requires --coinbase")
     parser.add_argument("--cache-dir", type=Path, default=Path("data/automatic"), help="Saved Coinbase download directory")
     parser.add_argument("--out", type=Path, default=Path("research-result.json"))
     args = parser.parse_args(argv)
+    if args.daily_csv and (not args.csv or not args.learning):
+        parser.error("--daily-csv requires --csv and --learning")
     import re
     if args.coinbase and not re.fullmatch(r"[A-Z0-9]{2,16}-USD", args.symbol):
         parser.error("Use a Coinbase USD market such as BTC-USD")
@@ -46,6 +49,7 @@ def main(argv=None):
     settings = {**DEFAULTS, "decision_interval": args.interval, "fee_rate": args.fee, "slippage_rate": args.slippage}
     if not 0 <= args.fee <= .02 or not 0 <= args.slippage <= .01:
         parser.error("Fee or slippage is outside the supported range")
+    daily_rows, daily_source = None, None
     if args.coinbase:
         # The temporary research controller does not create a trading account or
         # connect a ticker. Download chunks persist in the explicit cache folder.
@@ -56,19 +60,26 @@ def main(argv=None):
             downloader._update = lambda **status: print(status.get("message", ""), flush=True)
             try:
                 rows = downloader._history(args.symbol, args.interval, args.days, end_ms=end_ms)
+                if args.learning and rows:
+                    daily_rows, daily_source = downloader.daily_history(args.symbol, args.days,
+                        rows[-1]["ts"]+INTERVAL_MS[args.interval])
             except Exception as exc:
                 print(f"Real Coinbase history could not be downloaded: {exc}. No substitute prices were generated.")
                 return 1
         provenance = {"provider":"Coinbase Exchange", "kind":"recorded_market_candles",
             "endpoint":REST+f"/products/{args.symbol}/candles", "synthetic_fallback":False,
-            "retrieval":"Public candle API with saved local download chunks"}
+            "retrieval":"Public candle API with saved local download chunks",
+            "gap_repair":downloader.data_reports.get((args.symbol, args.interval)),
+            "daily_context":daily_source}
     else:
         rows = load_history(args.csv)
+        if args.daily_csv:
+            daily_rows = load_history(args.daily_csv)
         provenance = {"provider":"User-supplied CSV (source not independently verified)",
             "kind":"provided_ohlcv", "filename":args.csv.name, "synthetic_fallback":False}
     if args.learning:
         result = learn_history(rows, args.symbol, settings,
-            progress=lambda **status: print(status.get("message", ""), flush=True))
+            progress=lambda **status: print(status.get("message", ""), flush=True), daily_rows=daily_rows)
     else:
         result = research(rows, args.symbol, settings,
             progress=lambda stage, done, total, message: print(f"{done}/{total} {message}", flush=True))

@@ -12,7 +12,7 @@ from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
 
-ENGINE_VERSION="market-structure-v11.2-cost-learning"
+ENGINE_VERSION="market-structure-v11.3-outcome-memory"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={
@@ -135,9 +135,11 @@ def _rolling_extreme(vals,n,mode="max"):
         dq.append(i)
     return out
 
-def build_feature_cache(rows,interval,simple_only=False):
-    from .daily_context import daily_context
-    daily = daily_context(rows, INTERVAL_MS.get(interval,900000))
+def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
+    from .daily_context import daily_context, independent_daily_context
+    step = INTERVAL_MS.get(interval,900000)
+    daily = (independent_daily_context(rows, step, daily_rows) if daily_rows is not None
+             else daily_context(rows, step))
     n=len(rows)
     c=[r["close"] for r in rows];o=[r["open"] for r in rows]
     h=[r["high"] for r in rows];l=[r["low"] for r in rows]

@@ -14,11 +14,12 @@ from .data import INTERVAL_MS
 from .learning_data import prepare_learning_history, FEATURE_WARMUP
 from .shadow_learning import HistoricalFeedback
 from .evaluation import reviewed_boundary, attribution, dataset_digest
+from .outcome_memory import trade_feedback, summarize as summarize_outcomes
 
-LEARNING_REPORT_VERSION = 7
+LEARNING_REPORT_VERSION = 8
 
 
-def build_learning_features(rows, interval, segments, cancelled=None):
+def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
     """Keep chronology and restart all indicators at every missing-data boundary."""
     features = [None]*len(rows)
     for segment in segments:
@@ -26,13 +27,14 @@ def build_learning_features(rows, interval, segments, cancelled=None):
             raise InterruptedError("Learning cancelled")
         start, end = segment["start_index"], segment["end_index"]
         if end-start > FEATURE_WARMUP:
-            cache = build_feature_cache(rows[start:end], interval, simple_only=True)["features"]
+            cache = build_feature_cache(rows[start:end], interval, simple_only=True,
+                                        daily_rows=daily_rows)["features"]
             features[start+FEATURE_WARMUP:end] = cache[FEATURE_WARMUP:]
     return features
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
-                  reviewed_through_ts=None):
+                  reviewed_through_ts=None, daily_rows=None):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -43,7 +45,13 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     purge = math.ceil(24*3600000/step)
     holdout_start = int(len(rows)*.80)
     development = holdout_start-purge
-    features = build_learning_features(rows, interval, coverage["segments"], cancelled)
+    # Context inputs are snapshotted and hashed, including when supplied by CSV.
+    # Future daily rows are not retained in the research artifact.
+    if daily_rows is not None:
+        from .daily_context import independent_daily_context, DAY_MS
+        independent_daily_context([], step, daily_rows)
+        daily_rows = [r for r in daily_rows if r["ts"]+DAY_MS <= rows[-1]["ts"]+step]
+    features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows)
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"]).candidates
     examples = []
@@ -65,7 +73,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                 cancelled=cancelled, training_examples=True, bar_interval_ms=step)
             labels = [(trade["exit_ts"]+step, index,
                        trade["training_vector"],
-                       trade["r_multiple"])
+                       trade["r_multiple"], trade_feedback(trade))
                       for trade in trades if trade["reason"] != "END"]
             saved = {"labels":labels, "diagnostics":{"params":dict(params),
                 "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})}}
@@ -91,16 +99,17 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         while cursor < len(examples) and examples[cursor][0] <= cut_ts:
             if cursor % 500 == 0 and cancelled():
                 raise InterruptedError("Learning cancelled")
-            stamp, index, vector, reward = examples[cursor]
-            seed.observe(candidates[index], vector, reward, stamp)
+            stamp, index, vector, reward, outcome = examples[cursor]
+            seed.observe(candidates[index], vector, reward, stamp, outcome=outcome)
             cursor += 1
         return seed.export()
 
-    def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True):
+    def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True,
+             failure_adaptation=True):
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
-            legacy_candidates_only=legacy)
+            legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline)
         feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
                     if learn and shadow else None)
         metrics, trades = simulate(rows, features, start, end, 500,
@@ -136,6 +145,10 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     legacy_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,legacy=True)
     account_only, _, _ = test(initial,holdout_start,len(rows),shadow=False)
     account_only_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,shadow=False)
+    # Declared ablation: same observations and candidates, memory adjustment off.
+    # Its performance is reported; it cannot select or qualify another policy.
+    no_memory, _, _ = test(initial,holdout_start,len(rows),failure_adaptation=False)
+    no_memory_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,failure_adaptation=False)
     # This release was designed after the supplied report was reviewed. Reusing
     # its test window is useful research, but cannot provide fresh qualification.
     boundary = reviewed_boundary(symbol, reviewed_through_ts)
@@ -219,7 +232,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "decision_interval":interval, "training_start_ts":rows[240]["ts"],
             "training_end_ts":rows[development-1]["ts"]+step,
             "test_start_ts":rows[holdout_start]["ts"], "test_end_ts":rows[-1]["ts"]+step,
-            "daily_context_rule":"Only complete UTC days; 21 consecutive days required after each gap.",
+            "daily_context_rule":"Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
             "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
             "feedback_rule":"Learn a trade result only after its exit candle closes."},
         "evaluation":{"reviewed_through_ts":boundary, "reuses_reviewed_history":reused,
@@ -227,6 +240,13 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "confirmation":confirmation,
             "note":"Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."},
         "data_quality":quality, "data_sha256":dataset_digest(rows), "data_hours":len(rows)*step/3600000,
+        "daily_data":{"source":"independent_daily_candles" if daily_rows is not None else "complete_intraday_aggregation",
+            "rows":len(daily_rows) if daily_rows is not None else None,
+            "data_sha256":dataset_digest(daily_rows) if daily_rows is not None else None,
+            "start_ts":daily_rows[0]["ts"] if daily_rows else None,
+            "end_ts":daily_rows[-1]["ts"] if daily_rows else None,
+            "holdout_ready_candles":sum(bool(f and f.get("daily",{}).get("ready")) for f in features[holdout_start:]),
+            "holdout_candles":len(rows)-holdout_start},
         "historical_examples":len(examples), "candidate_count":len(candidates),
         "regime_examples":regime_examples,
         "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
@@ -263,6 +283,12 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                     "Continuous paper and Coinbase journals use selected-trade feedback between scheduled historical reviews. "
                     "This control must also be profitable before qualification."},
         "performance_attribution":attribution(trades),
+        "failure_learning":summarize_outcomes(trained["models"]),
+        "outcome_memory_comparison":{"baseline":no_memory, "baseline_stressed":no_memory_stressed,
+            "net_pnl_difference":pnl_difference(holdout, no_memory),
+            "stress_net_pnl_difference":pnl_difference(stressed, no_memory_stressed),
+            "selection_uses_comparison":False,
+            "label":"Same version, data, candidates, seed and costs with the new outcome-memory selection adjustment disabled."},
         "holdout_expectancy_interval":uncertainty, "validated":not reasons,
         "rejection_reasons":reasons, "cost_signature":cost_signature(settings),
         "costs":{"fee_per_side":fee, "slippage_per_fill":settings["slippage_rate"],

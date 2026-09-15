@@ -12,8 +12,10 @@ import time
 from .strategies import profit_candidates, simple_signal
 from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
+from .outcome_memory import (setup_context, empty_memory, update_memory, validate_detail,
+    validate_memory, estimate as context_estimate, SHRINKAGE)
 
-POLICY_VERSION = "online-net-r-v5-cost-context"
+POLICY_VERSION = "online-net-r-v6-outcome-memory"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -91,9 +93,10 @@ def update_model(model, vector, result_r):
 class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
-                 legacy_candidates_only=False):
+                 legacy_candidates_only=False, failure_adaptation=True):
         self.learn = learn
         self.legacy_candidates_only = legacy_candidates_only
+        self.failure_adaptation = failure_adaptation
         self.fee_rate, self.slippage_rate = float(fee_rate), float(slippage_rate)
         if not (0 <= self.fee_rate <= .05 and 0 <= self.slippage_rate <= .05):
             raise ValueError("Invalid learning cost assumptions")
@@ -107,6 +110,15 @@ class AdaptivePolicy:
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
         for model in self.state["models"].values():
+            if "outcomes" in model:
+                validate_memory(model["outcomes"])
+            for key, memory in model.get("setup_contexts", {}).items():
+                parts = key.split("/")
+                if (len(parts) != 3 or parts[0] not in ("low", "moderate", "high")
+                        or parts[1] not in ("BULL", "BEAR", "CHOP")
+                        or parts[2] not in ("up", "down", "mixed", "unavailable")):
+                    raise ValueError("Invalid setup context")
+                validate_memory(memory)
             costs = model.get("cost_contexts", {})
             if not set(costs).issubset({"low", "moderate", "high"}):
                 raise ValueError("Invalid learning cost context")
@@ -138,7 +150,17 @@ class AdaptivePolicy:
             weight = local["samples"]/(local["samples"]+REGIME_SHRINKAGE)
             contextual = sum(w*x for w,x in zip(local["weights"],vector))
             pooled = (1-weight)*pooled+weight*contextual
+        context = self.context_evidence(params, vector)
+        if context:
+            weight = context["effective_samples"]/(context["effective_samples"]+SHRINKAGE)
+            pooled = (1-weight)*pooled+weight*context["recent_net_r"]
         return bounded(pooled, -3, 3)
+
+    def context_evidence(self, params, vector):
+        if not self.failure_adaptation:
+            return None
+        model = self.state["models"].get(action_key(params), {})
+        return context_estimate(model.get("setup_contexts", {}).get(setup_context(vector)))
 
     def evidence(self, params, vector):
         model = self.state["models"].get(action_key(params))
@@ -154,7 +176,7 @@ class AdaptivePolicy:
         # independent evidence. Fixed before the new replay is examined.
         return math.sqrt(model.get("squared_error", 0)/max(1, n))/math.sqrt(max(1, min(n, 100)))
 
-    def observe(self, params, vector, result_r, available_ts):
+    def observe(self, params, vector, result_r, available_ts, outcome=None):
         if not self.learn:
             return
         if len(vector) != DIMENSIONS or any(not math.isfinite(float(v)) for v in vector):
@@ -167,7 +189,12 @@ class AdaptivePolicy:
         key = action_key(params)
         if key not in {action_key(p) for p in self.candidates}:
             raise ValueError("Unknown learning candidate")
+        detail = outcome if outcome is not None else {}
+        detail = validate_detail(result_r, detail)
         model = self.state["models"].setdefault(key, empty_model())
+        update_memory(model.setdefault("outcomes", empty_memory()), result_r, available_ts, detail)
+        memory = model.setdefault("setup_contexts", {}).setdefault(setup_context(vector), empty_memory())
+        update_memory(memory, result_r, available_ts, detail)
         local = model.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
         update_model(model, vector, result_r)
         update_model(local, vector, result_r)
@@ -206,7 +233,11 @@ class AdaptivePolicy:
                 continue
             local = model.get("regimes", {}).get(vector_regime(vector)) if self.regime_adaptation else None
             recent = local if local and local["samples"] >= MIN_REGIME_SAMPLES else model
-            if recent["recent_r"] <= 0:
+            context = self.context_evidence(p, vector)
+            if context and context["recent_net_r"] <= 0:
+                reject("recent_context_losses")
+                continue
+            if not context and recent["recent_r"] <= 0:
                 reject("nonpositive_recent_return")
                 continue
             estimate = self.predict(p, vector)
@@ -214,6 +245,8 @@ class AdaptivePolicy:
                 reject("low_estimated_return")
                 continue
             penalty = self.error_penalty(model)
+            if context:
+                penalty = max(penalty, context["penalty_r"])
             conservative = estimate-penalty
             if conservative < MIN_ESTIMATED_R:
                 reject("prediction_error_too_large")
@@ -224,6 +257,7 @@ class AdaptivePolicy:
                 "learned":{"samples":model["samples"], "expectancy_r":estimate,
                     "cost_context":cost_context(vector), "regime":vector_regime(vector),
                     "regime_samples":local["samples"] if local else 0},
+                "outcome_context":{"key":setup_context(vector), **(context or {})},
                 "learning":{"version":POLICY_VERSION, "vector":list(vector)}})
         self.last_diagnostics["eligible_candidates"] = len(result)
         return sorted(result, key=lambda x:x["conservative_net_r"], reverse=True)
@@ -278,7 +312,7 @@ def current_policy(db_path, symbol, settings, channel="paper"):
         return None
 
 
-def record_outcome(con, symbol, channel, params, learning, result_r, closed_ms):
+def record_outcome(con, symbol, channel, params, learning, result_r, closed_ms, outcome=None):
     """Caller atomically marks a journal trade CLOSED in this SAME transaction.
 
     Paper and real Coinbase outcomes never train each other's forward models.
@@ -298,7 +332,7 @@ def record_outcome(con, symbol, channel, params, learning, result_r, closed_ms):
     policy = AdaptivePolicy(saved["model"], profile["cost_signature"]["max_notional_fraction"])
     # A late reconciliation is new information at reconciliation time.
     available = max(int(closed_ms), policy.state["last_label_ts"])
-    policy.observe(params, learning["vector"], result_r, available)
+    policy.observe(params, learning["vector"], result_r, available, outcome=outcome)
     saved.update(model=policy.export(), forward_trades=saved["forward_trades"]+1,
                  forward_net_r=saved["forward_net_r"]+float(result_r))
     write_in_transaction(con, key, saved)

@@ -31,6 +31,19 @@ def market_bundle(learner, symbol, interval):
     digest = dataset_digest(rows)
     if len(rows)!=quality["rows"] or (report.get("data_sha256") and digest!=report["data_sha256"]):
         raise ValueError("The cached candles no longer match this report. Run practice again before exporting its data.")
+    daily = report.get("daily_data", {})
+    daily_content = None
+    if daily.get("source") == "independent_daily_candles":
+        daily_path = path.with_name(f"{symbol}_1d.csv")
+        if not daily_path.is_file():
+            raise ValueError("Daily context candles are missing. Run practice again before exporting its data.")
+        daily_rows = [r for r in load_history(daily_path)
+                      if daily["start_ts"] is not None and daily["start_ts"] <= r["ts"] <= daily["end_ts"]]
+        if len(daily_rows) != daily["rows"] or dataset_digest(daily_rows) != daily["data_sha256"]:
+            raise ValueError("The cached daily candles no longer match this report. Run practice again before exporting its data.")
+        daily_content = io.StringIO(newline="")
+        daily_writer = csv.DictWriter(daily_content, fieldnames=DATA_FIELDS)
+        daily_writer.writeheader(); daily_writer.writerows(canonical_candle(row) for row in daily_rows)
     content = io.StringIO(newline="")
     writer = csv.DictWriter(content,fieldnames=DATA_FIELDS)
     writer.writeheader(); writer.writerows(canonical_candle(row) for row in rows)
@@ -38,10 +51,13 @@ def market_bundle(learner, symbol, interval):
         "start_ts":quality["start_ts"],"end_ts":quality["end_ts"],"data_sha256":digest,
         "matches_report_data_sha256":True if report.get("data_sha256") else None,
         "market_data":report.get("market_data"),
+        "daily_data":daily,
         "scope":"Recorded candle data and one historical report. Old reports without a data hash can verify dates and count only. No API keys, account database or exchange journal is included."}
     output = io.BytesIO()
     with zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("candles.csv",content.getvalue())
+        if daily_content is not None:
+            archive.writestr("daily-candles.csv",daily_content.getvalue())
         archive.writestr("learning-result.json",json.dumps(report,indent=2,allow_nan=False))
         archive.writestr("manifest.json",json.dumps(manifest,indent=2,allow_nan=False))
     return output.getvalue(),f"{symbol}_{interval}_learning-data.zip"

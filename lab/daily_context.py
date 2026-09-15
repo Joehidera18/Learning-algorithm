@@ -4,6 +4,7 @@ The current UTC day supplies no daily indicator before its final bar closes.
 A gap resets warmup. No missing candle or price is synthesized.
 """
 from collections import deque
+from bisect import bisect_right
 
 DAY_MS = 86400000
 DAILY_WARMUP = 21
@@ -47,3 +48,27 @@ def daily_context(rows, step):
                     "trend_down":close<ma20 and ma20<prior_ma20}
         contexts.append(context)
     return contexts
+
+
+def independent_daily_context(rows, step, daily_rows):
+    """As-of join to completed daily observations, independent of intraday gaps.
+
+    A missing DAILY candle still resets daily warmup. Stale context is never
+    carried across a missing day, and an in-progress day cannot supply features.
+    """
+    from .data_repair import valid_candle
+    previous = None
+    for row in daily_rows:
+        if not valid_candle(row, DAY_MS) or (previous is not None and row["ts"] <= previous):
+            raise ValueError("Daily candles must be valid, unique and chronological")
+        previous = row["ts"]
+    contexts = daily_context(daily_rows, DAY_MS)
+    available = [r["ts"]+DAY_MS for r in daily_rows]
+    joined = []
+    for row in rows:
+        clock = row["ts"]+step
+        i = bisect_right(available, clock)-1
+        # Latest completed UTC day must actually be represented.
+        expected_close = clock//DAY_MS*DAY_MS
+        joined.append(contexts[i] if i >= 0 and available[i] == expected_close else {})
+    return joined

@@ -142,10 +142,12 @@ class AutoLearner:
         self._update(enabled=False, phase="stopping" if stopping else "stopped",
             message="Stopping learning; completed work is saved." if stopping else "Automatic learning stopped. Models are saved.")
 
-    def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None):
+    def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None, daily_rows=None):
+        from .evaluation import dataset_digest
         digest = hashlib.sha256(json.dumps({"symbol":symbol,"engine":ENGINE_VERSION,
             "policy":POLICY_VERSION, "report_version":LEARNING_REPORT_VERSION,
             "reviewed_through_ts":reviewed_boundary(symbol, reviewed_through_ts),
+            "daily_data_sha256":dataset_digest(daily_rows) if daily_rows is not None else None,
             "costs":cost_signature(settings)}, sort_keys=True).encode())
         for row in rows:
             digest.update(json.dumps(row,sort_keys=True,separators=(",",":")).encode())
@@ -197,7 +199,7 @@ class AutoLearner:
         return job
 
     def study(self, symbols, settings, retry_failed=False):
-        """Study sequentially; explicit practice can retry failed downloads now."""
+        """Explicit practice rechecks data, including gaps in successful downloads."""
         results = []
         previous = {r["symbol"]:r for r in self.state.get("results", [])}
         scope = self._scope(settings)
@@ -206,7 +208,7 @@ class AutoLearner:
                 raise InterruptedError("Learning cancelled")
             old = previous.get(symbol, {})
             if (old.get("review_scope") == scope and time.time() < old.get("next_review_at", 0)
-                    and not (retry_failed and old.get("error"))
+                    and not retry_failed
                     and (not old.get("validated") or approved_profile(self.db_path, symbol, settings))):
                 results.append(old)
                 self._update(results=results, completed_markets=len(results), total_markets=len(symbols))
@@ -222,7 +224,8 @@ class AutoLearner:
                 self._update(phase="downloading", message=f"{symbol}: collecting up to three years of history.")
                 rows = self.downloader._history(symbol, settings["decision_interval"], HISTORY_DAYS,
                     end_ms=job["end_ms"])
-                fingerprint = self._fingerprint(rows, symbol, settings, boundary)
+                daily_rows, daily_source = self.downloader.daily_history(symbol, HISTORY_DAYS, job["end_ms"])
+                fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows)
                 if job.get("fingerprint") and job["fingerprint"] != fingerprint:
                     self._finish_job(symbol, job)
                 job["fingerprint"] = fingerprint
@@ -234,11 +237,13 @@ class AutoLearner:
                         "load":lambda index:load_state(self.db_path, prefix+str(index)),
                         "save":lambda index, value:save_state(self.db_path, prefix+str(index), value)}
                     result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
-                        checkpoint=checkpoint, reviewed_through_ts=boundary)
+                        checkpoint=checkpoint, reviewed_through_ts=boundary, daily_rows=daily_rows)
                     result["fingerprint"] = fingerprint
                     result["market_data"] = {"provider":"Coinbase Exchange",
                         "kind":"recorded_market_candles", "endpoint":REST+f"/products/{symbol}/candles",
                         "retrieval":"Public candle API with saved local download chunks",
+                        "gap_repair":self.downloader.data_reports.get((symbol, settings["decision_interval"])),
+                        "daily_context":daily_source,
                         "synthetic_fallback":False}
                     save_state(self.db_path, "learning_result_"+fingerprint, result)
                 if self.stop_event.is_set():
