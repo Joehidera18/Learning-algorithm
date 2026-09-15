@@ -1,5 +1,13 @@
 # V11 verification
 
+## 15 September 2026 regime and training upgrade
+
+**130 automated offline Python tests passed**, including 13 additional tests for cost-aware candidate choice, regime-specific learning, sparse-evidence fallback, non-finite/old model rejection, UTC daily loss halts, gap handling, checkpoint recovery and per-market review deadlines. A resolved-label checkpoint run resumes to the same trained model and final results as a fresh run. The causal holdout regression also verifies that a better pooled diagnostic cannot replace a losing updating policy. JavaScript syntax and diff whitespace checks passed.
+
+An end-to-end `run_research.py --learning` invocation processed 12,000 artificial hourly candles using random seed 61904 and alternating drift conditions. It took 0.89 seconds and 40.6 MiB peak child-process memory in this workspace. It generated 411 development examples, made three final-period trades, lost $2.61 in that period and failed qualification; higher costs prevented all final-period trades. This checks processing and rejection behavior, not market profitability. No thresholds were fitted to this artificial trial.
+
+A real Coinbase historical download did not complete here. Actual historical performance, improvement over the pooled baseline, Render operation and Coinbase execution remain unverified. The code requests real history when automatic learning runs on the user's server; it contains no pretrained profitable model.
+
 ## 15 September 2026 follow-up
 
 **117 automated offline Python tests passed**, including seven new tests for learning diagnostics, changed-market reviews, versioned caches, and bounded retry scheduling. JavaScript syntax and diff whitespace checks passed. Diagnostics cover both valid signals blocked by costs and candidates blocked by insufficient or weak learning evidence; checks also verify that reporting does not update model weights or invent trades.

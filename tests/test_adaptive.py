@@ -59,11 +59,12 @@ class OnlineModelTests(unittest.TestCase):
         self.assertEqual(detail["candidates_checked"],
             detail["eligible_candidates"]+sum(detail["rejections"].values()))
         model=policy.state["models"][action_key(params)]
-        model["recent_r"]=-.1
+        model["regimes"]["BULL"]["recent_r"]=-.1
         self.assertIsNone(policy.choose(F))
         self.assertEqual(policy.last_diagnostics["rejections"]["nonpositive_recent_return"],1)
-        model["recent_r"]=.1
+        model["regimes"]["BULL"]["recent_r"]=.1
         model["weights"]=[0.]*len(model["weights"])
+        model["regimes"]["BULL"]["weights"]=[0.]*len(model["weights"])
         self.assertIsNone(policy.choose(F))
         self.assertEqual(policy.last_diagnostics["rejections"]["low_estimated_return"],1)
         policy.choose(dict(F,atr_regime=3))
@@ -180,8 +181,8 @@ class LearningProtocolTests(unittest.TestCase):
             calls.append((start,end,training,kwargs.get("policy")))
             indices=[240+i*35 for i in range(100)] if training else [start+i for i in range(40)]
             payoff=(1. if data[-1]["close"]==100 else -1.) if start>=4000 else 1.
-            if not training and kwargs["policy"].learn is False:
-                payoff=2.  # Diagnostic can look better; it still cannot replace the updating policy.
+            if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation):
+                payoff=2.  # Neither diagnostic can replace the updating policy.
             trades=[{"features":F,"r_multiple":payoff,"pnl":payoff,"entry_ts":data[i]["ts"],
                 "exit_ts":data[i]["ts"],"strategy_family":params["family"],"reason":"TARGET2"} for i in indices]
             return {"net_pnl":len(trades)*payoff,"return_pct":len(trades)*payoff/5,
@@ -195,6 +196,9 @@ class LearningProtocolTests(unittest.TestCase):
         self.assertFalse(b["validated"])
         self.assertLess(b["holdout"]["net_pnl"],0)
         self.assertGreater(b["frozen_holdout"]["net_pnl"],0)
+        self.assertGreater(b["upgrade_comparison"]["baseline"]["net_pnl"],0)
+        self.assertLess(b["upgrade_comparison"]["net_pnl_difference"],0)
+        self.assertFalse(b["upgrade_comparison"]["selection_uses_comparison"])
         self.assertLess(b["learning_pnl_difference"],0)
         self.assertTrue(all(end<=3904 for start,end,training,_ in calls if training))
         self.assertLess(b["training_label_end_ts"],b["holdout_start_ts"])

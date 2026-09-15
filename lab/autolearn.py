@@ -12,6 +12,7 @@ import time
 
 from .adaptive import POLICY_VERSION, approved_profile, profile_key, write_in_transaction
 from .engine import ENGINE_VERSION
+from .data import INTERVAL_MS
 from .learning_research import LEARNING_REPORT_VERSION, learn_history
 from .paper_store import db_connect, load_state, save_state
 from .research import ResearchManager, cost_signature
@@ -19,6 +20,7 @@ from .research import ResearchManager, cost_signature
 HISTORY_DAYS = 1095
 TRAINING_MARKETS = 5
 REVIEW_SECONDS = 28*86400
+UNQUALIFIED_REVIEW_SECONDS = 86400
 
 
 class AutoLearner:
@@ -109,37 +111,88 @@ class AutoLearner:
         finally:
             con.close()
 
+    def _scope(self, settings):
+        return hashlib.sha256(json.dumps({"engine":ENGINE_VERSION, "policy":POLICY_VERSION,
+            "report":LEARNING_REPORT_VERSION, "costs":cost_signature(settings)}, sort_keys=True).encode()).hexdigest()
+
+    def _finish_job(self, symbol, job):
+        con = db_connect(self.db_path)
+        try:
+            with con:
+                con.execute("DELETE FROM continuous_state WHERE key=?", ("learning_job_"+symbol,))
+                if job.get("fingerprint"):
+                    con.execute("DELETE FROM continuous_state WHERE key LIKE ?",
+                        ("learning_candidate_"+job["fingerprint"]+"_%",))
+        finally:
+            con.close()
+
+    def _job(self, symbol, settings):
+        key = "learning_job_"+symbol
+        job = load_state(self.db_path, key, {})
+        stamp = int(time.time()*1000)
+        scope = self._scope(settings)
+        if job.get("scope") != scope or not 0 <= stamp-job.get("end_ms",0) < 86400000:
+            self._finish_job(symbol, job)
+            step = INTERVAL_MS[settings["decision_interval"]]
+            job = {"scope":scope, "end_ms":stamp//step*step}
+            save_state(self.db_path, key, job)
+        return job
+
     def study(self, symbols, settings):
         """Sequential, cancellable study; failures retain the other market results."""
         results = []
+        previous = {r["symbol"]:r for r in self.state.get("results", [])}
+        scope = self._scope(settings)
         for symbol in symbols:
             if self.stop_event.is_set():
                 raise InterruptedError("Learning cancelled")
+            old = previous.get(symbol, {})
+            if (old.get("review_scope") == scope and time.time() < old.get("next_review_at", 0)
+                    and (not old.get("validated") or approved_profile(self.db_path, symbol, settings))):
+                results.append(old)
+                self._update(results=results, completed_markets=len(results), total_markets=len(symbols))
+                continue
+            job = self._job(symbol, settings)
             try:
                 self._update(phase="downloading", message=f"{symbol}: collecting up to three years of history.")
-                rows = self.downloader._history(symbol, settings["decision_interval"], HISTORY_DAYS)
+                rows = self.downloader._history(symbol, settings["decision_interval"], HISTORY_DAYS,
+                    end_ms=job["end_ms"])
                 fingerprint = self._fingerprint(rows, symbol, settings)
+                if job.get("fingerprint") and job["fingerprint"] != fingerprint:
+                    self._finish_job(symbol, job)
+                job["fingerprint"] = fingerprint
+                save_state(self.db_path, "learning_job_"+symbol, job)
                 result = load_state(self.db_path, "learning_result_"+fingerprint)
                 if result is None:
-                    result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set)
+                    prefix = "learning_candidate_"+fingerprint+"_"
+                    checkpoint = {
+                        "load":lambda index:load_state(self.db_path, prefix+str(index)),
+                        "save":lambda index, value:save_state(self.db_path, prefix+str(index), value)}
+                    result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
+                        checkpoint=checkpoint)
                     result["fingerprint"] = fingerprint
                     save_state(self.db_path, "learning_result_"+fingerprint, result)
                 if self.stop_event.is_set():
                     raise InterruptedError("Learning cancelled")
                 self._install(result, fingerprint)
-                results.append({k:v for k,v in result.items() if k not in ("model","holdout_trades")})
+                report = {k:v for k,v in result.items() if k not in ("model","holdout_trades")}
+                report.update(review_scope=scope, next_review_at=time.time()+(
+                    REVIEW_SECONDS if result["validated"] else UNQUALIFIED_REVIEW_SECONDS))
+                results.append(report)
+                self._finish_job(symbol, job)
                 del rows
             except InterruptedError:
                 raise
             except Exception as exc:
                 results.append({"symbol":symbol, "validated":False, "error":str(exc),
+                    "review_scope":scope, "next_review_at":time.time()+3600,
                     "rejection_reasons":["Historical learning could not finish for this market."]})
+                self._finish_job(symbol, job)
             self._update(results=results, completed_markets=len(results), total_markets=len(symbols))
-        errors = any(r.get("error") for r in results)
         self._update(results=results, tested_costs=cost_signature(settings),
             tested_engine=ENGINE_VERSION, tested_policy=POLICY_VERSION,
             tested_report_version=LEARNING_REPORT_VERSION, tested_symbols=list(symbols),
-            next_review_at=time.time()+(3600 if errors else REVIEW_SECONDS))
+            next_review_at=min((r["next_review_at"] for r in results), default=time.time()+3600))
         return results
 
     def _needs_review(self, symbols, settings):
@@ -175,7 +228,7 @@ class AutoLearner:
                 active = self.status()["active_markets"]
                 self._update(phase="watching" if active else "waiting",
                     message="Learning from completed paper trades and watching for qualified setups." if active else
-                    "No market has passed the checks yet. The system is monitoring without forcing trades.")
+                    "No market has passed yet. Historical learning will retry with new data within a day; see each market's results.")
                 if self.stop_event.wait(15):
                     break
         except InterruptedError:

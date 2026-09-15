@@ -112,6 +112,7 @@
       trading_cost_too_high:"Trading costs too high",
       net_reward_too_small:"Reward after costs too small",
       entry_gap_too_large:"Entry price moved too far",
+      daily_loss_limit:"Daily loss halt",
       insufficient_learning_samples:"Too few completed training examples",
       nonpositive_recent_return:"Recent learned returns are not positive",
       low_estimated_return:"Estimated return below the entry threshold",
@@ -139,6 +140,20 @@
       (execution ? '<p class="footnote"><b>Final-test entry blocks:</b> '+execution+'</p>' : '')+
       (learned ? '<p class="footnote"><b>Final-test candidate blocks:</b> '+learned+'</p>' : '');
   }
+  function renderLearningComparison(r) {
+    const comparison=r.upgrade_comparison, coverage=r.data_selection, regimes=r.regime_examples;
+    let html="";
+    if (regimes) html+='<p class="footnote"><b>Completed examples by market condition:</b> Rising '+
+      num(regimes.BULL,0)+' · Falling '+num(regimes.BEAR,0)+' · Sideways '+num(regimes.CHOP,0)+'. Includes overlapping variants.</p>';
+    if (coverage && coverage.excluded_candles) html+='<p class="footnote">Used '+num(coverage.used_hours,0)+
+      ' hours of continuous history. Excluded '+num(coverage.excluded_candles,0)+' earlier candles because of gaps.</p>';
+    if (comparison) html+='<p class="footnote"><b>Change versus pooled learning:</b> '+money(comparison.net_pnl_difference)+
+      ' in the final test; '+money(comparison.stress_net_pnl_difference)+' at higher costs. Negative means this upgrade did worse. This comparison does not choose the model.</p>';
+    if (r.benchmarks) html+='<p class="footnote">Same-period buy-and-hold net result on $500: '+money(r.benchmarks.buy_hold_net_pnl)+
+      '. Holding cash: $0. Exposure differs from the trading policy.</p>';
+    if (r.next_review_at) html+='<p class="footnote">Next scheduled historical review: '+escape(date(r.next_review_at))+'.</p>';
+    return html;
+  }
   function renderLearning(s) {
     learningState=s;
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
@@ -159,7 +174,7 @@
         (r.error ? escape(r.error) : 'Final test: '+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        renderLearningDiagnostics(r)+'</div>';
+        renderLearningDiagnostics(r)+renderLearningComparison(r)+'</div>';
     }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
   }

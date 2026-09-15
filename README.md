@@ -12,13 +12,15 @@ A trading program that studies market history, learns which setups work in diffe
 
 The program handles the research work in the background. It loads the market scanner, requests up to three years of history for five liquid Coinbase USD markets, trains models, and tests them on later data. Qualified models can open paper trades and update after those trades close. Unqualified markets stay out of the account.
 
-The first download can take time. Completed downloads and results are saved, so a cancelled run can reuse its progress. A complete first study of five markets with three years each represents 131,400 market-data hours; these are summed across coins and are not 131,400 independent hours of market history. The dashboard shows the hours actually processed.
+The first download can take time. Completed download chunks, candidate training labels, and results are saved. A restart within 24 hours resumes the same training cutoff and skips completed candidates; an interrupted candidate restarts. A complete first study of five markets with three years each represents 131,400 market-data hours; these are summed across coins and are not 131,400 independent hours of market history. The dashboard shows the hours actually processed. If prices contain gaps, only the most recent continuous portion is used, with excluded history disclosed.
 
 Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
 
 ## What learns
 
-The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 16 stop/target variants within four defined trade types: trend pullback, volume breakout, range reclaim, and combined confirmations.
+The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 16 stop/target variants within four defined trade types: trend pullback, volume breakout, range reclaim, and combined confirmations. Each variant combines an overall estimate with evidence for rising, falling, or sideways conditions when enough examples exist. The templates remain long-only, so bearish conditions can mean no eligible trades or training examples.
+
+Candidates must cover modeled fees, slippage, and spread before they are ranked. Historical tests also apply the configured daily loss halt. Reports compare the updating policy with pooled learning, frozen learning, holding cash, and buying and holding the market. These comparisons can show deterioration; they do not select a winner after seeing the final test.
 
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
@@ -45,6 +47,14 @@ Use the V11 source files, preserve your database and persistent storage, and sto
 
 Your database is research.sqlite3 by default. Set RESEARCH_DB_PATH and RESEARCH_DATA_DIR for persistent hosted storage; the included Render template already does this. Keep Coinbase keys outside the source folder and GitHub.
 
-Automatic review is scheduled every 28 days while the controller is running, or after tested fee/sizing/interval settings change. Models expire after 30 days without fresh qualification. Retried reviews may overlap old test periods; they are not independent proof of improvement. A new historical model replaces the forward model on its next use, while the old trade journal and reports remain saved.
+Qualified markets are reviewed every 28 days while the controller runs. Rejected markets retry after a day and failed downloads after an hour. Changes to tested fee, sizing, interval, or daily-loss settings require a new review. Models expire after 30 days without fresh qualification. Retried reviews may overlap old test periods; they are not independent proof of improvement. A new historical model replaces the forward model on its next use, while the old trade journal and reports remain saved. The regime/cost upgrade requires retraining earlier model versions.
+
+To evaluate the adaptive learner on an existing historical CSV without starting the server:
+
+```sh
+python run_research.py --learning --csv BTC-USD_1h.csv --symbol BTC-USD --interval 1h --fee 0.004 --out learning-result.json
+```
+
+The CSV needs chronological, completed candles with `ts` in UTC milliseconds and `open,high,low,close,volume` columns. Optional `quote_volume,trades` columns are supported. Supply the actual fee fraction per side. This command creates a report; it does not install a model or start trading.
 
 [What the learner does and how it is tested](V11_LEARNING.md) · [Verification and limits](VERIFICATION.md) · [Change history](CHANGELOG.md)

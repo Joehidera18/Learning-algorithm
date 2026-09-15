@@ -11,10 +11,13 @@ import time
 
 from .strategies import profit_candidates, simple_signal
 from .paper_store import db_connect, load_state
+from .trade_quality import signal_cost_check
 
-POLICY_VERSION = "online-net-r-v1"
+POLICY_VERSION = "online-net-r-v2-regime-costs"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
+MIN_REGIME_SAMPLES = 15
+REGIME_SHRINKAGE = 50
 DIMENSIONS = 13
 
 
@@ -41,9 +44,36 @@ def action_key(p):
     return json.dumps([p["family"], p["stop_atr"], p["rr2"], p["volume_z_min"]], separators=(",", ":"))
 
 
+def vector_regime(vector):
+    return "BULL" if vector[10] else ("BEAR" if vector[11] else "CHOP")
+
+
+def empty_model():
+    return {"weights":[0.]*DIMENSIONS, "samples":0, "wins":0, "sum_r":0., "recent_r":0.}
+
+
+def update_model(model, vector, result_r):
+    predicted = sum(w*x for w,x in zip(model["weights"],vector))
+    target = bounded(result_r, -3, 3)
+    rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
+    error = bounded(target-predicted, -3, 3)
+    norm = 1 + sum(x*x for x in vector)
+    model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
+                        for w,x in zip(model["weights"],vector)]
+    model["recent_r"] += .03*(target-model["recent_r"])
+    model["samples"] += 1
+    model["wins"] += int(result_r > 0)
+    model["sum_r"] += result_r
+
+
 class AdaptivePolicy:
-    def __init__(self, state=None, max_notional_fraction=.30, learn=True):
+    def __init__(self, state=None, max_notional_fraction=.30, learn=True,
+                 fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True):
         self.learn = learn
+        self.fee_rate, self.slippage_rate = float(fee_rate), float(slippage_rate)
+        if not (0 <= self.fee_rate <= .05 and 0 <= self.slippage_rate <= .05):
+            raise ValueError("Invalid learning cost assumptions")
+        self.regime_adaptation, self.cost_filter = regime_adaptation, cost_filter
         self.candidates = [dict(p, max_notional_fraction=max_notional_fraction) for p in profit_candidates()]
         if state is not None and state.get("version") != POLICY_VERSION:
             raise ValueError("This learning model needs to be retrained")
@@ -53,17 +83,30 @@ class AdaptivePolicy:
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
         for model in self.state["models"].values():
-            if len(model["weights"]) != DIMENSIONS or model["samples"] < 0:
-                raise ValueError("Invalid learning model state")
-            for value in model["weights"] + [model["recent_r"], model["sum_r"]]:
-                bounded(value, -1e12, 1e12)
+            regimes = model.get("regimes", {})
+            if not set(regimes).issubset({"BULL", "BEAR", "CHOP"}):
+                raise ValueError("Invalid learning regime")
+            for component in [model, *regimes.values()]:
+                if len(component["weights"]) != DIMENSIONS or component["samples"] < 0:
+                    raise ValueError("Invalid learning model state")
+                for value in component["weights"] + [component["recent_r"], component["sum_r"]]:
+                    bounded(value, -1e12, 1e12)
 
     def export(self):
         return copy.deepcopy(self.state)
 
     def predict(self, params, vector):
         model = self.state["models"].get(action_key(params))
-        return bounded(sum(w*x for w,x in zip(model["weights"],vector)), -3, 3) if model else 0.
+        if not model:
+            return 0.
+        pooled = sum(w*x for w,x in zip(model["weights"],vector))
+        local = model.get("regimes", {}).get(vector_regime(vector)) if self.regime_adaptation else None
+        if local and local["samples"] >= MIN_REGIME_SAMPLES:
+            # Shrink sparse context estimates toward all-condition evidence.
+            weight = local["samples"]/(local["samples"]+REGIME_SHRINKAGE)
+            contextual = sum(w*x for w,x in zip(local["weights"],vector))
+            pooled = (1-weight)*pooled+weight*contextual
+        return bounded(pooled, -3, 3)
 
     def observe(self, params, vector, result_r, available_ts):
         if not self.learn:
@@ -78,20 +121,11 @@ class AdaptivePolicy:
         key = action_key(params)
         if key not in {action_key(p) for p in self.candidates}:
             raise ValueError("Unknown learning candidate")
-        model = self.state["models"].setdefault(key,
-            {"weights": [0.]*DIMENSIONS, "samples":0, "wins":0, "sum_r":0., "recent_r":0.})
-        predicted = sum(w*x for w,x in zip(model["weights"],vector))
-        target = bounded(result_r, -3, 3)
-        # Limit one outcome's influence without clipping the account's actual loss.
-        rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
-        error = bounded(target-predicted, -3, 3)
-        norm = 1 + sum(x*x for x in vector)
-        model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
-                            for w,x in zip(model["weights"],vector)]
-        model["recent_r"] += .03*(target-model["recent_r"])
-        model["samples"] += 1
-        model["wins"] += int(result_r > 0)
-        model["sum_r"] += result_r
+        model = self.state["models"].setdefault(key, empty_model())
+        local = model.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
+        update_model(model, vector, result_r)
+        update_model(local, vector, result_r)
+        # Two estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1
         self.state["last_label_ts"] = int(available_ts)
 
@@ -109,11 +143,18 @@ class AdaptivePolicy:
             if score is None:
                 reject(reason or "no_setup")
                 continue
+            if self.cost_filter:
+                _, reason = signal_cost_check(f, p, self.fee_rate, self.slippage_rate)
+                if reason:
+                    reject(reason)
+                    continue
             model = self.state["models"].get(action_key(p))
             if not model or model["samples"] < MIN_SAMPLES:
                 reject("insufficient_learning_samples")
                 continue
-            if model["recent_r"] <= 0:
+            local = model.get("regimes", {}).get(vector_regime(vector)) if self.regime_adaptation else None
+            recent = local if local and local["samples"] >= MIN_REGIME_SAMPLES else model
+            if recent["recent_r"] <= 0:
                 reject("nonpositive_recent_return")
                 continue
             estimate = self.predict(p, vector)
@@ -122,7 +163,8 @@ class AdaptivePolicy:
                 continue
             result.append({"params":p, "score":score, "raw_score":score,
                 "adjusted_score":estimate, "estimated_net_r":estimate,
-                "learned":{"samples":model["samples"], "expectancy_r":estimate},
+                "learned":{"samples":model["samples"], "expectancy_r":estimate,
+                    "regime":vector_regime(vector), "regime_samples":local["samples"] if local else 0},
                 "learning":{"version":POLICY_VERSION, "vector":list(vector)}})
         self.last_diagnostics["eligible_candidates"] = len(result)
         return sorted(result, key=lambda x:x["estimated_net_r"], reverse=True)
@@ -171,7 +213,8 @@ def current_policy(db_path, symbol, settings, channel="paper"):
     saved = load_state(db_path, "adaptive_"+channel+"_"+symbol, {})
     state = saved.get("model") if saved.get("fingerprint")==profile["fingerprint"] else profile["model"]
     try:
-        return AdaptivePolicy(state, settings["max_notional_fraction"])
+        return AdaptivePolicy(state, settings["max_notional_fraction"],
+            fee_rate=settings["fee_rate"], slippage_rate=settings["slippage_rate"]+.0005)
     except (KeyError, TypeError, ValueError):
         return None
 

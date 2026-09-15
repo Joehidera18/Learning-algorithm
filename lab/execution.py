@@ -10,7 +10,7 @@ from .trade_quality import net_payoff, cooldown_minutes
 
 def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
-             training_examples=False):
+             training_examples=False, daily_loss_limit=None):
     from .engine import evaluate_signal
     cash, position, next_entry_ts = float(balance), None, 0
     trades, curve = [], [cash]
@@ -22,6 +22,16 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
     learning_rejections = {}
     if policy:
         funnel["learning_candidate_rejections"] = learning_rejections
+    if daily_loss_limit is not None and not 0 < daily_loss_limit < 1:
+        raise ValueError("Daily loss limit must be between zero and one")
+    day_id, day_start, day_halted, halted_days = None, float(balance), False, 0
+
+    def check_daily_limit(equity):
+        nonlocal day_halted, halted_days
+        if (daily_loss_limit is not None and not day_halted and
+                equity <= day_start*(1-daily_loss_limit)):
+            day_halted = True
+            halted_days += 1
 
     def reject(reason):
         funnel["rejections"][reason] = funnel["rejections"].get(reason, 0) + 1
@@ -55,12 +65,18 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         if cancelled and i % 500 == 0 and cancelled():
             raise InterruptedError("Learning cancelled")
         signal, candle = rows[i], rows[i + 1]
+        current_day = candle["ts"]//86400000
+        if current_day != day_id:
+            day_id, day_start, day_halted = current_day, curve[-1], False
+        check_daily_limit(curve[-1])
         f = features[i]
         funnel["candles_checked"] += 1
         funnel["features_available"] += int(bool(f))
         # A position already alive at this candle's open forbids re-entry in it.
         held_at_open = position is not None
-        if not held_at_open and f and cash > 1 and candle["ts"] >= next_entry_ts:
+        if not held_at_open and day_halted:
+            reject("daily_loss_limit")
+        if not held_at_open and not day_halted and f and cash > 1 and candle["ts"] >= next_entry_ts:
             detail = edge_model.predict_detail({**f, "direction_num": sign}) if edge_model else {}
             choice = policy.choose(f) if policy else None
             if policy:
@@ -132,6 +148,12 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
                             funnel["entries_opened"] += 1
         if position:
             p = position
+            # Once a stop fills, do not mark through lower prices later in the bar.
+            # Intrabar ordering is unknown; a drawdown may precede a target touch.
+            adverse = (min(candle["open"], max(candle["low"], p["stop"])) if sign == 1 else
+                       max(candle["open"], min(candle["high"], p["stop"])))
+            adverse *= 1-sign*base_slip
+            check_daily_limit(cash+(adverse-p["entry"])*p["qty"]*sign-adverse*p["qty"]*fee_rate)
             # Handle gaps at the open before any intrabar touch.
             if (candle["open"] <= p["stop"] if sign == 1 else candle["open"] >= p["stop"]):
                 p["mae_price"] = candle["open"]
@@ -157,6 +179,7 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
             mark += (liquidation - position["entry"]) * position["qty"] * sign
             mark -= liquidation * position["qty"] * fee_rate
         curve.append(mark)
+        check_daily_limit(mark)
     if position:
         close(rows[end - 1]["close"], rows[end - 1], "END")
         curve.append(cash)
@@ -182,5 +205,8 @@ def simulate(rows, features, start, end, balance, risk, fee_rate, base_slip,
         "profit_factor": profit / loss if loss else None,
         "expectancy_r": statistics.mean(returns) if returns else None,
         "max_drawdown_pct": dd * 100, "signal_funnel": funnel,
+        "gross_pnl":sum(t["gross_pnl"] for t in trades),
+        "fees_paid":sum(t["fees_paid"] for t in trades),
+        "halted_utc_days":halted_days, "daily_loss_limit":daily_loss_limit,
         "family": params["family"], "direction": direction}
     return metrics, trades if keep_trades else []
