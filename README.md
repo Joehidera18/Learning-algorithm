@@ -1,4 +1,4 @@
-# CryptO V11.1 — automatic learning and Coinbase
+# CryptO V11.2 — automatic learning and Coinbase
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
@@ -30,6 +30,12 @@ Historical training explores signal-matched setups even when their modeled costs
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
 The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first five in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
+
+## Cost-aware learning update
+
+V11.2 uses entry costs as model inputs, separates evidence by cost level, applies a prediction-error penalty and continues historical learning from skipped opportunities as their outcomes become available. It reports fees by strategy, tests account-only feedback, and marks previously reviewed history separately from confirmation on newer prices. See [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md) for the report-12 findings and exact rules. New profitability has not been established.
+
+Each market offers **Download candles & report** for reproducible analysis of its actual saved data.
 
 ## Paper and real trading
 

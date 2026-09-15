@@ -18,6 +18,7 @@ from .data import INTERVAL_MS
 from .learning_research import LEARNING_REPORT_VERSION, learn_history
 from .paper_store import db_connect, load_state, save_state
 from .research import ResearchManager, cost_signature
+from .evaluation import reviewed_boundary
 
 HISTORY_DAYS = 1095
 TRAINING_MARKETS = 5
@@ -141,9 +142,10 @@ class AutoLearner:
         self._update(enabled=False, phase="stopping" if stopping else "stopped",
             message="Stopping learning; completed work is saved." if stopping else "Automatic learning stopped. Models are saved.")
 
-    def _fingerprint(self, rows, symbol, settings):
+    def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None):
         digest = hashlib.sha256(json.dumps({"symbol":symbol,"engine":ENGINE_VERSION,
             "policy":POLICY_VERSION, "report_version":LEARNING_REPORT_VERSION,
+            "reviewed_through_ts":reviewed_boundary(symbol, reviewed_through_ts),
             "costs":cost_signature(settings)}, sort_keys=True).encode())
         for row in rows:
             digest.update(json.dumps(row,sort_keys=True,separators=(",",":")).encode())
@@ -211,10 +213,16 @@ class AutoLearner:
                 continue
             job = self._job(symbol, settings)
             try:
+                boundary_key = "learning_review_boundary_"+scope+"_"+symbol
+                boundary = load_state(self.db_path, boundary_key)
+                if boundary is None:
+                    changed = old.get("review_scope") != scope
+                    boundary = reviewed_boundary(symbol, old.get("replay", {}).get("test_end_ts", 0) if changed else 0)
+                    save_state(self.db_path, boundary_key, boundary)
                 self._update(phase="downloading", message=f"{symbol}: collecting up to three years of history.")
                 rows = self.downloader._history(symbol, settings["decision_interval"], HISTORY_DAYS,
                     end_ms=job["end_ms"])
-                fingerprint = self._fingerprint(rows, symbol, settings)
+                fingerprint = self._fingerprint(rows, symbol, settings, boundary)
                 if job.get("fingerprint") and job["fingerprint"] != fingerprint:
                     self._finish_job(symbol, job)
                 job["fingerprint"] = fingerprint
@@ -226,7 +234,7 @@ class AutoLearner:
                         "load":lambda index:load_state(self.db_path, prefix+str(index)),
                         "save":lambda index, value:save_state(self.db_path, prefix+str(index), value)}
                     result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
-                        checkpoint=checkpoint)
+                        checkpoint=checkpoint, reviewed_through_ts=boundary)
                     result["fingerprint"] = fingerprint
                     result["market_data"] = {"provider":"Coinbase Exchange",
                         "kind":"recorded_market_candles", "endpoint":REST+f"/products/{symbol}/candles",
