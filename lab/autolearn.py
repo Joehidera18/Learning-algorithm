@@ -62,7 +62,9 @@ class AutoLearner:
             market_data_hours=sum(r.get("data_hours",0) for r in reports),
             historical_examples=sum(r.get("historical_examples",0) for r in reports),
             history_days=HISTORY_DAYS, max_training_markets=TRAINING_MARKETS,
-            paper_running=self.agent.runtime["running"])
+            paper_running=self.agent.runtime["running"],
+            current_policy_version=POLICY_VERSION,
+            current_report_version=LEARNING_REPORT_VERSION)
         return result
 
     def start(self, fee_settings=None):

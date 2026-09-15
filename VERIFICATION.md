@@ -1,5 +1,15 @@
 # V11 verification
 
+## 15 September 2026 exported-report training repair
+
+The supplied `learning-results 5.json` is an actual application export reporting Coinbase Exchange prices. In that older run, BTC had 3,436 signal matches and all 3,436 entry attempts failed the cost screen. ETH had 3,160 matches, 3,155 cost blocks, one net-reward block, and four completed examples. Only 12,461 candles per market were retained; 92,602 BTC and 92,600 ETH candles before the final gap were discarded. The export contains report aggregates and models, not the raw candles, so these observations do not independently verify the source prices.
+
+**151 Python tests passed with production dependencies available.** New regressions verify that both observed sections around a gap survive, indicators restart causally, short sections have no entry features, and history too fragmented for warmup is rejected. Cost-rejected training examples pay full entry/exit fees and slippage and can teach negative outcomes; policy entries retain the cost gates. Missing prices cannot cause an entry jump, an invented exit, an unknown training label, or a qualifying incomplete account result. Existing causality, qualification, restart/checkpoint, cost, paper, and Coinbase controls also passed.
+
+A service integration test exercised historical practice, saved examples, JSON report download, and reconstruction from the same database with the updated versions. It retained both fixture price sections, exported nonzero costed examples and model observations, kept the original fee, and installed no qualifying model for a losing fixture. Trading runners remained stopped. These deterministic fixtures check behavior; they are not real market performance.
+
+JavaScript syntax, Python compilation, and diff checks passed. Node-based dashboard checks exercised costly examples, missing outcomes, retained-history descriptions, incomplete results, and obsolete model labels with a mocked document. These are rendering-logic checks, not a Safari/mobile browser verification. A fresh run on the user's cached Coinbase candles and deployment of this patch are still required; neither profitability nor a better final-test return is claimed.
+
 ## 15 September 2026 pre-opening check
 
 **140 Python tests passed with the production dependencies installed**, using Python 3.12.14. Two new regressions reproduced failures before the fixes: manual practice reused a failed download until the automatic retry deadline, and a rejected automatic-start request changed the fee setting while another task was active. Manual retries now bypass failed results' backoff, while automatic polling retains it; rejected starts preserve settings.

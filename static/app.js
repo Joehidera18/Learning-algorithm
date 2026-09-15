@@ -112,6 +112,7 @@
       trading_cost_too_high:"Trading costs too high",
       net_reward_too_small:"Reward after costs too small",
       entry_gap_too_large:"Entry price moved too far",
+      missing_market_candles:"Missing market candles",
       daily_loss_limit:"Daily loss halt",
       insufficient_learning_samples:"Too few completed training examples",
       nonpositive_recent_return:"Recent learned returns are not positive",
@@ -129,6 +130,8 @@
     if (!diagnostics) return "";
     const totals=diagnostics.totals || {};
     const training=rejectionSummary(totals.rejections);
+    const entryBlocks=rejectionSummary(totals.entry_rejections);
+    const explored=rejectionSummary(totals.training_cost_overrides);
     const held=(r.holdout || {}).signal_funnel || {};
     const execution=rejectionSummary(held.rejections);
     const learned=rejectionSummary(held.learning_candidate_rejections);
@@ -136,6 +139,12 @@
       ' completed examples from '+num(totals.qualified_setups,0)+' signal matches and '+
       num(totals.entries_opened,0)+' simulated entries across '+num(r.candidate_count,0)+
       ' variants. Variants can overlap on the same candles.</p>'+
+      (typeof totals.exploratory_entries === "number" ? '<p class="footnote"><b>Learning from costly setups:</b> '+
+        num(totals.exploratory_entries,0)+' hypothetical entries studied despite the cost screen, with all fees and slippage charged. '+
+        'These examples do not approve a strategy for trading.'+(explored ? ' '+explored+'.' : '')+'</p>' : '')+
+      (totals.gap_censored_examples ? '<p class="footnote"><b>Unknown outcomes:</b> '+num(totals.gap_censored_examples,0)+
+        ' training entries crossed missing prices and were excluded from learning. No exit was invented.</p>' : '')+
+      (entryBlocks ? '<p class="footnote"><b>Training entry blocks after a signal matched:</b> '+entryBlocks+'</p>' : '')+
       (training ? '<p class="footnote"><b>Most common training blocks:</b> '+training+'</p>' : '')+
       (execution ? '<p class="footnote"><b>Final-test entry blocks:</b> '+execution+'</p>' : '')+
       (learned ? '<p class="footnote"><b>Final-test candidate blocks:</b> '+learned+'</p>' : '');
@@ -152,6 +161,10 @@
       num(regimes.BULL,0)+' · Falling '+num(regimes.BEAR,0)+' · Sideways '+num(regimes.CHOP,0)+'. Includes overlapping variants.</p>';
     if (coverage && coverage.excluded_candles) html+='<p class="footnote">Used '+num(coverage.used_hours,0)+
       ' hours of continuous history. Excluded '+num(coverage.excluded_candles,0)+' earlier candles because of gaps.</p>';
+    if (coverage && coverage.segment_count) html+='<p class="footnote"><b>Recorded history retained:</b> '+num(coverage.used_hours,0)+
+      ' hours across '+num(coverage.segment_count,0)+' continuous sections. '+num(coverage.missing_intervals,0)+
+      ' missing intervals were not filled in. Indicators restart in each section; '+num(coverage.warmup_candles,0)+
+      ' observed candles are used for warmup before entries can be considered.</p>';
     if (comparison) html+='<p class="footnote"><b>Change versus pooled learning:</b> '+money(comparison.net_pnl_difference)+
       ' in the final test; '+money(comparison.stress_net_pnl_difference)+' at higher costs. Negative means this upgrade did worse. This comparison does not choose the model.</p>';
     if (r.benchmarks) html+='<p class="footnote">Same-period buy-and-hold net result on $500: '+money(r.benchmarks.buy_hold_net_pnl)+
@@ -175,9 +188,13 @@
     $("stopBtn").disabled=!s.enabled && !s.paper_running && s.phase!=="stopping";
     $("learningResults").innerHTML=(s.results || []).length ? s.results.map(function (r) {
       const h=r.holdout || {}, stressed=r.holdout_stressed || {}, d=r.daily_goal || {};
-      return '<div class="learning-result"><b>'+escape(r.symbol)+'</b><span class="badge '+(r.validated ? "positive" : "negative")+'">'+
-        (r.validated ? "Passed historical checks" : "Not qualified")+'</span><p>'+
-        (r.error ? escape(r.error) : 'Final test: '+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
+      const stale=(s.current_policy_version && r.policy_version!==s.current_policy_version) ||
+        (s.current_report_version && r.learning_report_version!==s.current_report_version);
+      const incomplete=h.complete===false || stressed.complete===false;
+      return '<div class="learning-result"><b>'+escape(r.symbol)+'</b><span class="badge '+(r.validated && !stale ? "positive" : "negative")+'">'+
+        (stale ? "Updated learner · practice again" : (r.validated ? "Passed historical checks" : "Not qualified"))+'</span><p>'+
+        (r.error ? escape(r.error) : incomplete ? 'Final test incomplete: missing candles interrupted an open position. A full-period result is unavailable.' :
+          'Final test: '+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
         renderLearningDiagnostics(r)+renderLearningComparison(r)+'</div>';

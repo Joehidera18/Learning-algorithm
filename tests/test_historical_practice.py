@@ -7,8 +7,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from lab.adaptive import approved_profile
+from lab.adaptive import POLICY_VERSION, approved_profile
+from lab.learning_research import LEARNING_REPORT_VERSION
 from lab.service import Service
+from tests.test_adaptive import F
 from tests.test_execution import candles
 from run_research import main
 
@@ -60,6 +62,40 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertEqual(s.autolearn.status()["phase"], "error")
         self.assertEqual(s.autolearn.status()["market_data_hours"], 0)
         self.assertIn("Could not load real market history", s.autolearn.status()["message"])
+        self.assertIsNone(approved_profile(s.db_path, "BTC-USD", s.agent.settings))
+
+    def test_gap_training_report_download_and_restart_preserve_costed_examples(self):
+        s = self.service
+        rows = candles(6000)
+        del rows[1000]
+        def fixture_features(section, *args, **kwargs):
+            return {"features":[dict(F, _atr=.01) for _ in section]}
+        with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
+                "lab.learning_research.build_feature_cache", side_effect=fixture_features):
+            s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
+            s.autolearn.worker.join(timeout=5)
+        self.assertFalse(s.autolearn.worker.is_alive())
+        status = s.autolearn.status()
+        self.assertEqual(status["phase"], "completed")
+        self.assertEqual(status["current_policy_version"], POLICY_VERSION)
+        self.assertEqual(status["current_report_version"], LEARNING_REPORT_VERSION)
+        report = status["results"][0]
+        self.assertEqual(report["data_selection"]["used_candles"], len(rows))
+        self.assertEqual(report["data_selection"]["segment_count"], 2)
+        self.assertGreater(report["historical_examples"], 0)
+        self.assertGreater(report["training_diagnostics"]["totals"]["exploratory_entries"], 0)
+        self.assertFalse(report["validated"])
+        code, content, headers = s.handle("GET", "/api/learning/export")
+        self.assertEqual(code, 200)
+        self.assertIn("attachment", headers["Content-Disposition"])
+        exported = json.loads(content)["results"][0]
+        self.assertEqual(exported["training_diagnostics"], report["training_diagnostics"])
+        self.assertGreater(exported["model"]["observations"], 0)
+        self.assertEqual(exported["costs"]["fee_per_side"], .004)
+        restarted = Service(BASE, s.db_path, self.root/"data")
+        self.assertEqual(restarted.autolearn.status()["results"], status["results"])
+        self.assertFalse(restarted.agent.runtime["running"])
+        self.assertFalse(restarted.autolearn.status()["enabled"])
         self.assertIsNone(approved_profile(s.db_path, "BTC-USD", s.agent.settings))
 
     def test_invalid_or_overlapping_request_does_not_change_fee_settings(self):
