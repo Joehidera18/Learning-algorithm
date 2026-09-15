@@ -201,6 +201,55 @@ class PaperAccountTests(unittest.TestCase):
         json.dumps(status,allow_nan=False)
         self.assertTrue(status["paper_only"])
 
+    def test_adaptive_readiness_requires_only_its_decision_history(self):
+        now=1700006400000//900000*900000
+        market=self.agent.market[self.pid]
+        market['bars']['15m']=candles(241,900000,now-241*900000)
+        self.agent.settings['learning_enabled']=True
+        feature={'_atr':2.,'_close':100.,'_ts':market['bars']['15m'][-1]['ts']}
+        with patch('lab.continuous.now_ms',return_value=now), \
+             patch.object(self.agent,'_latest_feature',return_value=feature), \
+             patch.object(self.agent,'_context',return_value=self.ctx), \
+             patch.object(self.agent,'_candidate_opportunities',return_value=[self.choice]), \
+             patch.object(self.agent,'_entry_block',return_value=None), \
+             patch.object(self.agent,'_open_position') as opened:
+            self.agent._decision_cycle(self.pid)
+            self.assertEqual(opened.call_count,1)
+            self.agent._processed.clear()
+            opened.reset_mock()
+            market['bars']['15m'][-2]['ts']-=900000
+            self.agent._decision_cycle(self.pid)
+            opened.assert_not_called()
+            self.assertIn('missing 15m',market['last_decision'])
+            market['bars']['15m']=candles(241,900000,now-240*900000)
+            self.agent._decision_cycle(self.pid)
+            opened.assert_not_called()
+        self.agent.settings['learning_enabled']=False
+        self.assertEqual(set(self.agent._required_signal_intervals()),set(INTERVAL_MS))
+
+    def test_coinbase_adaptive_signal_uses_the_same_required_history(self):
+        now=1700006400000//900000*900000
+        market=self.agent.market[self.pid]
+        market['bars']['15m']=candles(241,900000,now-241*900000)
+        self.agent.settings['learning_enabled']=True
+        feature={'_atr':2.,'_close':100.,'_ts':market['bars']['15m'][-1]['ts']}
+        self.agent._feature_cache[(self.pid,'15m')]=(None,feature)
+        with patch('lab.continuous.now_ms',return_value=now), \
+             patch('lab.adaptive.current_policy') as current, \
+             patch('lab.continuous.evaluate_signal',return_value=(70,None)):
+            current.return_value.choose.return_value=dict(self.choice,score=70,learning={})
+            signal=self.agent.coinbase_signal(self.pid)
+            self.assertEqual(signal['interval'],'15m')
+            self.assertEqual(current.call_args.args[-1],'coinbase')
+            market['bars']['15m'].pop(-2)
+            with self.assertRaisesRegex(ValueError,'complete signal history'):
+                self.agent.coinbase_signal(self.pid)
+
+    def test_research_exit_choice_cannot_open_an_ongoing_paper_position(self):
+        self.choice['params']=dict(self.choice['params'],exit_policy='fee_covered_break_even')
+        self.assertIsNone(self.open())
+        self.assertEqual(recent_trades(self.db),[])
+
     def test_another_process_cannot_run_the_same_account(self):
         first, second = RuntimeLease(self.db), RuntimeLease(self.db)
         first.acquire()

@@ -1,5 +1,15 @@
 # V11 verification
 
+## 15 September 2026: V11.5 causal exit learning and integrated finances
+
+**229 Python tests passed in 63.927 seconds** after integrating the main-screen finance changes. The new regressions check fee-covered zero-reward exits, prior-close/next-candle timing, same-bar and wick ambiguity, losses through gaps, unknown missing-price outcomes, short-side algebra, causal shadow feedback, additional trades after earlier exits, model/profile separation, and paper/Coinbase rejection of the research-only exit. Readiness tests cover unused timeframe gaps, required timeframe gaps, newly completed candles and separate Coinbase model selection. Checkpoints resume identically after interruption in both the original and experimental model, with no label overlap. Tests use synthetic fixtures and submit no exchange orders.
+
+Both dashboard JavaScript checks passed, including the new whole-account comparison, supplied report 19, separate financial accounts, complete ledger totals, old saved reports, stale updates and escaping. Both scripts passed syntax checks; Python compilation and diff checks passed. These are mocked-document checks, not a hosted/mobile browser verification.
+
+The exact supplied DOT and AVAX candle snapshots were run against V11.4 and the combined revision. With identical costs and reviewed-history boundaries, the current model's weights, observations, selected trades and reported account metrics match exactly. The independently trained exit model selects zero DOT trades for $0 and the same three AVAX trades for **−$5.610306**, or **−$5.989253** at higher costs. It creates more near-break-even development examples, but does not improve either final account result and passes no qualification. Its returned comparison contains no model that could be installed as a forward profile.
+
+See [the declared experiment and results](EXIT_LEARNING_RESEARCH.md), [the compact comparison](research_baselines/exit-learning-comparison.json), and `scripts/compare_exit_learning.py`. All report-19 market endpoints are registered as reviewed history. Requests for additional hosted-app/Coinbase data timed out; these are tests of the provided snapshots, not newly retrieved data. No deployment or real-money execution was performed.
+
 ## 15 September 2026: main-screen trade finances
 
 **217 Python tests passed in 40.252 seconds.** Eight new regressions cover net-result reconciliation, exact zero versus tiny losses, complete paper/Coinbase journals beyond visible table limits, open/rejected-order exclusion, account separation, restart persistence, incomplete historical reports, cached recovery from existing saved reports, unchanged original exports and Coinbase authentication boundaries. No request placed an exchange order.

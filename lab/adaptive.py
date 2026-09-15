@@ -14,8 +14,9 @@ from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
 from .outcome_memory import (setup_context, empty_memory, update_memory, validate_detail,
     validate_memory, estimate as context_estimate, SHRINKAGE)
+from .exit_management import FIXED_EXIT, EXIT_POLICIES
 
-POLICY_VERSION = "online-net-r-v7-trade-review"
+POLICY_VERSION = "online-net-r-v8-exit-study"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -55,7 +56,10 @@ def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
 
 
 def action_key(p):
-    return json.dumps([p["family"], p["stop_atr"], p["rr2"], p["volume_z_min"]], separators=(",", ":"))
+    key = [p["family"], p["stop_atr"], p["rr2"], p["volume_z_min"]]
+    if p.get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
+        key.append(p["exit_policy"])
+    return json.dumps(key, separators=(",", ":"))
 
 
 def vector_regime(vector):
@@ -93,7 +97,12 @@ def update_model(model, vector, result_r):
 class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
-                 legacy_candidates_only=False, failure_adaptation=True):
+                 legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT):
+        if exit_policy not in EXIT_POLICIES:
+            raise ValueError("Unknown exit policy")
+        if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
+            raise ValueError("Learning models with different exit policies cannot be mixed")
+        self.exit_policy = exit_policy
         self.learn = learn
         self.legacy_candidates_only = legacy_candidates_only
         self.failure_adaptation = failure_adaptation
@@ -102,10 +111,13 @@ class AdaptivePolicy:
             raise ValueError("Invalid learning cost assumptions")
         self.regime_adaptation, self.cost_filter = regime_adaptation, cost_filter
         self.candidates = [dict(p, max_notional_fraction=max_notional_fraction) for p in profit_candidates()]
+        if exit_policy != FIXED_EXIT:
+            self.candidates = [dict(p, exit_policy=exit_policy) for p in self.candidates]
         if state is not None and state.get("version") != POLICY_VERSION:
             raise ValueError("This learning model needs to be retrained")
         self.state = copy.deepcopy(state) if state else {
-            "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0}
+            "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
+            "exit_policy":exit_policy}
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
@@ -294,6 +306,8 @@ def approved_profile(db_path, symbol, settings):
     if not 0 <= time.time()*1000-profile.get("data_end_ts", 0) <= 30*86400000:
         return None
     if profile.get("model", {}).get("version") != POLICY_VERSION:
+        return None
+    if profile.get("model", {}).get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
         return None
     return profile
 

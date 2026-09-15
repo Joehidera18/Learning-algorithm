@@ -361,7 +361,26 @@
         '</td><td>'+num((selected.outcomes || {})[entry[0]] || 0,0)+'</td></tr>';}).join('')+'</tbody></table></div>'+
       '<p class="footnote">Development examples overlap. Detailed cases are a priority sample; the counts above cover all reviewed outcomes. '+
       'Observations suggest questions to test and do not prove why a trade lost. Later candles never enter its original decision.</p>'+
-      cases(selected.cases,"Selected account trade reviews")+cases(development.cases,"Priority practice reviews")+'</details>';
+      cases(selected.cases,"Selected account trade reviews")+cases(development.cases,"Priority practice reviews")+
+      renderExitStudy(r)+'</details>';
+  }
+  function renderExitStudy(r) {
+    const study=r.exit_policy_comparison;
+    if (!study) return "";
+    const original=r.holdout || {}, higher=r.holdout_stressed || {};
+    const alternative=study.holdout || {}, alternativeHigher=study.holdout_stressed || {};
+    function result(m) { return m.complete===false ? "Incomplete: missing candles" : money(m.net_pnl); }
+    return '<details><summary>Whole-account break-even experiment</summary>'+
+      '<p>A separate model learns from exits that move the stop to fee-covered break-even after a completed candle closes at +1 net R. '+
+      'The stop changes on the next candle. Targets and time limits stay in place; gaps can still cause losses.</p>'+
+      '<div class="table-wrap"><table><thead><tr><th>Test</th><th>Current model</th><th>Separate exit model</th></tr></thead><tbody>'+
+      '<tr><td>Selected trades</td><td>'+num(original.trades,0)+'</td><td>'+num(alternative.trades,0)+'</td></tr>'+
+      '<tr><td>Net after costs</td><td>'+result(original)+'</td><td>'+result(alternative)+'</td></tr>'+
+      '<tr><td>Net at higher costs</td><td>'+result(higher)+'</td><td>'+result(alternativeHigher)+'</td></tr></tbody></table></div>'+
+      '<p>Net change: '+money(study.net_pnl_difference)+'; at higher costs: '+money(study.stress_net_pnl_difference)+
+      '. The separate model studied '+num(study.historical_examples,0)+' development examples. Whole-account results include changed later entries and learning.</p>'+
+      '<p class="footnote">Research only. This experiment cannot control trading or qualify a market. '+
+      escape((study.rejection_reasons || []).join(" "))+'</p></details>';
   }
   function renderLearning(s) {
     learningState=s;

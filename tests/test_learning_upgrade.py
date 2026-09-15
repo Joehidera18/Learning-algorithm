@@ -163,7 +163,7 @@ class HistoricalCoverageTests(unittest.TestCase):
         def save(index, value):
             nonlocal stopped
             saved[index] = json.loads(json.dumps(value))
-            if index == 2:
+            if index in (2,24):
                 stopped = True
         def traced(*args, **kwargs):
             if kwargs.get("training_examples"):
@@ -180,12 +180,20 @@ class HistoricalCoverageTests(unittest.TestCase):
                                   checkpoint=checkpoint)
                 self.assertEqual(len(simulations), 3)
                 stopped = False
+                with self.assertRaises(InterruptedError):
+                    learn_history(rows, "BTC-USD", DEFAULTS, cancelled=lambda:stopped,
+                                  checkpoint=checkpoint)
+                self.assertEqual(len(simulations),25)
+                self.assertNotIn('exit_policy',saved[0]['diagnostics']['params'])
+                self.assertEqual(saved[22]['diagnostics']['params']['exit_policy'],'fee_covered_break_even')
+                stopped = False
                 resumed = learn_history(rows, "BTC-USD", DEFAULTS, checkpoint=checkpoint)
-                self.assertEqual(len(simulations), 22)
+                self.assertEqual(len(simulations), 44)
+                self.assertEqual(set(saved),set(range(44)))
             fresh = learn_history(rows, "BTC-USD", DEFAULTS)
         self.assertGreater(resumed["historical_examples"], 100)
         self.assertGreater(resumed["model"]["observations"], 0)
-        for key in ("model", "pre_holdout_model_sha256", "training_diagnostics", "holdout", "upgrade_comparison", "trade_reviews"):
+        for key in ("model", "pre_holdout_model_sha256", "training_diagnostics", "holdout", "upgrade_comparison", "trade_reviews", "exit_policy_comparison"):
             self.assertEqual(resumed[key], fresh[key], key)
         self.assertFalse(resumed["upgrade_comparison"]["selection_uses_comparison"])
 

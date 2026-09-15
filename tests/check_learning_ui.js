@@ -34,6 +34,9 @@ const current={...original,current_policy_version:"fixture",current_report_versi
     daily_data:{source:"complete_intraday_aggregation",holdout_ready_candles:500,holdout_candles:1000},
     failure_learning:{by_family:{trend_pullback_simple:{causes:{stopped_out:7,fee_erased_gain:8,stalled_trade:9,other_loss:10}}}},
     outcome_memory_comparison:{net_pnl_difference:0,stress_net_pnl_difference:-1.23},
+    exit_policy_comparison:{historical_examples:90,holdout:{net_pnl:2.25,trades:7},
+      holdout_stressed:{net_pnl:-4.5,trades:4},net_pnl_difference:2.87,stress_net_pnl_difference:17.34,
+      eligible_for_trading:false,rejection_reasons:['<img src=x onerror="bad()">']},
     trade_reviews:{break_even_band_r:.1,development:{examples:50,outcomes:{near_break_even:7},cases:[]},
       selected:{outcomes:{near_break_even:1},cases:[{strategy_family:"support_rsi_reclaim_simple",entry_ts:1789000000000,pnl:-.05,
         review:{outcome:"near_break_even",net_r:-.05,fee_r:.2,best_net_r:.6,giveback_r:.65,holding_hours:2,
@@ -54,6 +57,7 @@ for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confir
   "What happened in the failed trade examples?","Effect of the new outcome memory","-$1.23",
   "Loss and break-even study","Near break-even","Practice continued after losses","After exit:",
   "Fixed exit experiment","awaiting enough later candles","missing candles","Fees erased a gross gain",
+  "Whole-account break-even experiment","$2.25","-$4.50","This experiment cannot control trading",
   "Selected-trade feedback on later prices","-$2.00","-$3.00","Download candles &amp; report"])
   assert.ok(html.includes(text),text);
 assert.ok(!html.includes("<img"));assert.ok(html.includes("&lt;img"));

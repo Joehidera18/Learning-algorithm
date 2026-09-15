@@ -1,3 +1,11 @@
+# Causal exit learning and monitoring parity — 15 September 2026 UTC
+
+- Fix adaptive paper and Coinbase signal readiness to require the chosen decision timeframe. Unused higher-timeframe gaps no longer add a different filter from historical replay. Retain daily-context entry checks, legacy multi-timeframe readiness, quote timing, risk limits and activation controls.
+- Train a separate 22-candidate break-even-exit model on its own completed outcomes. Activate fee-covered protection only on the candle after a close at +1 net R; preserve targets, time limits, gap losses and original risk. Treat an algebraically zero exit as break-even without a floating-point win/loss reward.
+- Recompute the entire account path, online feedback, ordinary/higher costs, folds and account-feedback controls. Display the comparison under each market's loss study. This model cannot replace an approved profile, qualify a market or enter paper/Coinbase positions.
+- Keep independent checkpoint namespaces for both models; register all 13 markets in report 19 as reviewed history. Include a reproducible same-data comparison with V11.4. DOT and AVAX final account results are unchanged; no profit improvement is demonstrated.
+- Versions: engine `market-structure-v11.5-exit-study`, policy `online-net-r-v8-exit-study`, report 10. Fresh practice is required after deployment.
+
 # Main-screen trade finances — 15 September 2026 UTC
 
 - Add a finance panel above learning controls with completed trades, money won/lost, net result, wins, losses, exact break-even outcomes and win rate.

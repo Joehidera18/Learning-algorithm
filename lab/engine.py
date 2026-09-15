@@ -12,7 +12,7 @@ from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
 
-ENGINE_VERSION="market-structure-v11.4-trade-review"
+ENGINE_VERSION="market-structure-v11.5-exit-study"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={

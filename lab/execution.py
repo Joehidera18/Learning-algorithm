@@ -7,6 +7,7 @@ import math
 import statistics
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
 from .trade_review import close_review
+from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT, EXIT_POLICIES, protect_after_close
 
 
 def simulate(*args, **kwargs):
@@ -40,6 +41,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
               "entry_rejections": {}}
     if training_examples and policy is not None:
         raise ValueError("Independent training examples cannot be used for a policy account test")
+    if params.get("exit_policy", FIXED_EXIT) not in EXIT_POLICIES:
+        raise ValueError("Unknown exit policy")
     if training_examples:
         funnel.update(exploratory_entries=0, training_cost_overrides={}, gap_censored_examples=0,
                       loss_pause_overrides=0)
@@ -76,9 +79,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         pnl = p["realized_partial"] + gross - exit_fee
         p["gross_pnl"] += gross
         p["fees_paid"] += exit_fee
+        if reason == "BREAK_EVEN_STOP" and abs(pnl) < 1e-10:
+            # Algebraically zero at the fee-covered price. Do not learn a win or
+            # loss solely from binary floating-point cancellation.
+            cash -= pnl
+            pnl = 0.
+            p["gross_pnl"] = p["fees_paid"]
         p["slippage_notional"] += abs(raw - exit_price) * p["qty"]
         p.update(exit_ts=candle["ts"], exit=exit_price, pnl=pnl, reason=reason,
-                 outcome="WIN" if pnl > 0 else "LOSS", balance_after=cash)
+                 outcome="WIN" if pnl > 0 else "LOSS" if pnl < 0 else "BREAK_EVEN", balance_after=cash)
         p["review"] = close_review(p)
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
@@ -201,7 +210,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "strategy_family": trade_params["family"], "entry_mode": mode,
                                 "decision_params":dict(trade_params),
                                 "learning":choice.get("learning") if choice else None,
-                                "stop": stop, "target1": target, "target2": target,
+                                "stop": stop, "initial_stop":stop, "target1": target, "target2": target,
+                                "break_even_active_ts":None,
                                 "qty": qty, "qty_initial": qty, "risk_dollars": qty * unit_risk,
                                 "planned_cost_r": cost_r, "planned_net_rr":quality["net_rr"], "risk_multiplier": 1.0,
                                 "training_cost_override":cost_reason if training_examples else None,
@@ -228,14 +238,16 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             # Handle gaps at the open before any intrabar touch.
             if (candle["open"] <= p["stop"] if sign == 1 else candle["open"] >= p["stop"]):
                 p["mae_price"] = candle["open"]
-                close(candle["open"], candle, "STOP_GAP")
+                reason = ("BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None
+                          and candle["open"] == p["stop"] else "STOP_GAP")
+                close(candle["open"], candle, reason)
             else:
                 stop_hit = candle["low"] <= p["stop"] if sign == 1 else candle["high"] >= p["stop"]
                 target_hit = candle["high"] >= p["target2"] if sign == 1 else candle["low"] <= p["target2"]
                 if stop_hit:
                     # Never credit a target touched in a candle that also hits the stop.
                     p["mae_price"] = min(p["mae_price"], p["stop"]) if sign == 1 else max(p["mae_price"], p["stop"])
-                    close(p["stop"], candle, "STOP")
+                    close(p["stop"], candle, "BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None else "STOP")
                 elif target_hit:
                     p["mfe_price"] = max(p["mfe_price"], p["target2"]) if sign == 1 else min(p["mfe_price"], p["target2"])
                     close(p["target2"], candle, "TARGET2")
@@ -244,6 +256,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     p["mae_price"] = min(p["mae_price"], candle["low"]) if sign == 1 else max(p["mae_price"], candle["high"])
                     if candle["ts"] - p["entry_ts"] >= p["decision_params"].get("time_stop_hours", 24) * 3600000:
                         close(candle["close"], candle, "TIME")
+            if position:
+                protect_after_close(position, candle, bar_ms)
         mark = cash
         if position:
             liquidation = candle["close"] * (1 - sign * base_slip)

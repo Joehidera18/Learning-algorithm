@@ -199,6 +199,12 @@ class LearningProtocolTests(unittest.TestCase):
             rows[-1]["close"]=99.9
             b=learn_history(rows,"BTC-USD",dict(DEFAULTS))
         self.assertEqual(a["pre_holdout_model_sha256"],b["pre_holdout_model_sha256"])
+        self.assertEqual(a['exit_policy_comparison']['pre_holdout_model_sha256'],
+                         b['exit_policy_comparison']['pre_holdout_model_sha256'])
+        self.assertFalse(b['exit_policy_comparison']['eligible_for_trading'])
+        self.assertFalse(b['exit_policy_comparison']['qualification_uses_comparison'])
+        self.assertNotIn('model',b['exit_policy_comparison'])
+        self.assertEqual(b['model']['exit_policy'],'fixed')
         self.assertFalse(b["validated"])
         self.assertLess(b["holdout"]["net_pnl"],0)
         self.assertGreater(b["frozen_holdout"]["net_pnl"],0)
