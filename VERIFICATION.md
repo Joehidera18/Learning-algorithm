@@ -1,5 +1,33 @@
 # V11 verification
 
+## 16 September 2026: V11.6 fuller candle context and loss severity
+
+**234 Python tests passed in 71.381 seconds.** New tests verify that entry-time rejection/extension inputs distinguish outcomes the old vector could not, match full and compact candle features, use preceding resistance, and never include exit reviews or later candles. They also verify that a severe gap loss retains its actual size in recent economic moments and prediction-error penalties while weights remain finite and bounded. Invalid old vectors and numerically unusable labels cannot partly update a model. A worker completion test now has the same 30-second budget as the other full-practice test; its original five-second deadline failed only under concurrent replay load and passed alone in 2.141 seconds.
+
+Both actual dashboard checks passed, including the new entry-context explanation, supplied report 19 and finance account separation. Python compilation, JavaScript syntax and diff checks passed. No hosted/mobile visual test, real order or deployment was performed.
+
+Pinned V11.5 and revised V11.6 use identical DOT/AVAX snapshots, completed daily data, costs and reviewed-history boundaries. Independent development examples and diagnostics are unchanged. Ordinary-cost selected trades and final net results remain identical: DOT 0 trades/$0, AVAX 3 trades/-$5.610306. AVAX's higher-cost loss changes from -$5.989253 to -$4.329739, and its second earlier fold rises from $5.582693 to $7.826429; no other earlier ordinary-cost fold changes. Neither market qualifies. The account-feedback controls still fail profitability. There are no new downloaded candles or fresh confirmation prices in these comparisons.
+
+See [the declared design, sources and full results](CANDLE_CONTEXT_RESEARCH.md), [the compact comparison](research_baselines/candle-context-comparison.json) and `scripts/compare_candle_context.py`. The published update includes the earlier finance panel, monitoring repair and non-trading exit experiment. Models must be rebuilt under the new 27-input policy before qualification.
+
+## 15 September 2026: V11.5 causal exit learning and integrated finances
+
+**229 Python tests passed in 63.927 seconds** after integrating the main-screen finance changes. The new regressions check fee-covered zero-reward exits, prior-close/next-candle timing, same-bar and wick ambiguity, losses through gaps, unknown missing-price outcomes, short-side algebra, causal shadow feedback, additional trades after earlier exits, model/profile separation, and paper/Coinbase rejection of the research-only exit. Readiness tests cover unused timeframe gaps, required timeframe gaps, newly completed candles and separate Coinbase model selection. Checkpoints resume identically after interruption in both the original and experimental model, with no label overlap. Tests use synthetic fixtures and submit no exchange orders.
+
+Both dashboard JavaScript checks passed, including the new whole-account comparison, supplied report 19, separate financial accounts, complete ledger totals, old saved reports, stale updates and escaping. Both scripts passed syntax checks; Python compilation and diff checks passed. These are mocked-document checks, not a hosted/mobile browser verification.
+
+The exact supplied DOT and AVAX candle snapshots were run against V11.4 and the combined revision. With identical costs and reviewed-history boundaries, the current model's weights, observations, selected trades and reported account metrics match exactly. The independently trained exit model selects zero DOT trades for $0 and the same three AVAX trades for **−$5.610306**, or **−$5.989253** at higher costs. It creates more near-break-even development examples, but does not improve either final account result and passes no qualification. Its returned comparison contains no model that could be installed as a forward profile.
+
+See [the declared experiment and results](EXIT_LEARNING_RESEARCH.md), [the compact comparison](research_baselines/exit-learning-comparison.json), and `scripts/compare_exit_learning.py`. All report-19 market endpoints are registered as reviewed history. Requests for additional hosted-app/Coinbase data timed out; these are tests of the provided snapshots, not newly retrieved data. No deployment or real-money execution was performed.
+
+## 15 September 2026: main-screen trade finances
+
+**217 Python tests passed in 40.252 seconds.** Eight new regressions cover net-result reconciliation, exact zero versus tiny losses, complete paper/Coinbase journals beyond visible table limits, open/rejected-order exclusion, account separation, restart persistence, incomplete historical reports, cached recovery from existing saved reports, unchanged original exports and Coinbase authentication boundaries. No request placed an exchange order.
+
+Both dashboard JavaScript check scripts passed. The finance checks exercise account and market selection, after-cost totals, empty and locked states, escaping, stale refresh failures and the actual Coinbase status-event connection. Syntax and whitespace checks passed. Browser rendering and iPhone layout have not been visually verified in this environment.
+
+The supplied partial report 17 reconciles across its nine completed market simulations: 20 selected test trades, 6 wins, 14 losses, $37.059234 in positive net outcomes and $52.319662 in negative net outcomes, for -$15.260428 total. These are separate historical accounts, not one portfolio, current website balances or real-money profits. No strategy, qualification, model or risk setting changed in this display update; no new market-performance claim is made.
+
 ## 15 September 2026: V11.4 loss and break-even study
 
 **209 Python tests passed in 35.972 seconds.** New coverage checks actual after-cost outcome bands, review priority without duplicated evidence, fee-covered break-even calculations, next-candle activation, stop-first ambiguity, adverse gaps, future-data isolation, incomplete post-exit windows, bounded case selection, exact checkpoint resumption and persisted paper/Coinbase reviews. Paper positions predating quote-path tracking retain unknown excursions. Independent practice continues after loss streaks while account simulations keep their existing pauses. No test submitted an exchange order.

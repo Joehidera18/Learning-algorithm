@@ -1,0 +1,618 @@
+{
+  "declared_revision": "V11.6 fixed candle-context inputs and raw loss moments",
+  "baseline_commit": "6718a89164bd383c825594f6cb3551ece04b8014",
+  "source_code_sha256": "e4398e78b05109ee79469cc41c823917b628d3f473f6888bd817b542e795bf6f",
+  "selection_uses_comparison": false,
+  "qualification_uses_comparison": false,
+  "new_external_candles": false,
+  "markets": [
+    {
+      "symbol": "DOT-USD",
+      "snapshot": "report-19 DOT",
+      "bundle_sha256": "9b9c52813ea6c5e68fe83db973c1d593bc82dc560435fe0ec608adad0fd9ad82",
+      "reviewed_report_sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a",
+      "baseline_source_code_sha256": "3bb3cd43b777144427aa5bcceec736c1176171ddd895e2ec39840a84e85154c5",
+      "data_sha256": "90296a705d86bc4e568fa3e4554afa680b35ab26f3332054d482cc3860cb3e67",
+      "daily_data_sha256": "6c231b0bae998879aa986865569603618325a7abda968002f00146e55871a65b",
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "15m",
+        "training_start_ts": 1695117600000,
+        "training_end_ts": 1770479100000,
+        "test_start_ts": 1770565500000,
+        "test_end_ts": 1789509600000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "baseline": {
+        "engine_version": "market-structure-v11.5-exit-study",
+        "policy_version": "online-net-r-v8-exit-study",
+        "historical_examples": 10841,
+        "holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "return_pct": 0.0,
+          "profit_factor": null,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "return_pct": 0.0,
+          "profit_factor": null,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_trades": [],
+        "folds": [
+          {
+            "fold": 1,
+            "test_start_ts": 1728902700000,
+            "test_end_ts": 1742505300000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "return_pct": -0.2768822463028564,
+              "profit_factor": 0.8158507490472409,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.334052425761566,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "test_start_ts": 1742505300000,
+            "test_end_ts": 1756103400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "return_pct": 0.0,
+              "profit_factor": null,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "test_start_ts": 1756103400000,
+            "test_end_ts": 1770479100000,
+            "metrics": {
+              "trades": 1,
+              "net_pnl": -3.75,
+              "return_pct": -0.7499999999999951,
+              "profit_factor": 0.0,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "complete": true
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "ordinary": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "exit_experiment": {
+          "ordinary": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "eligible_for_trading": false
+        },
+        "evaluation": {
+          "reviewed_through_ts": 1789509600000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.6-candle-context",
+        "policy_version": "online-net-r-v9-candle-context",
+        "historical_examples": 10841,
+        "holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "return_pct": 0.0,
+          "profit_factor": null,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "return_pct": 0.0,
+          "profit_factor": null,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_trades": [],
+        "folds": [
+          {
+            "fold": 1,
+            "test_start_ts": 1728902700000,
+            "test_end_ts": 1742505300000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "return_pct": -0.2768822463028564,
+              "profit_factor": 0.8158507490472409,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.4941025004661945,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "test_start_ts": 1742505300000,
+            "test_end_ts": 1756103400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "return_pct": 0.0,
+              "profit_factor": null,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "test_start_ts": 1756103400000,
+            "test_end_ts": 1770479100000,
+            "metrics": {
+              "trades": 1,
+              "net_pnl": -3.75,
+              "return_pct": -0.7499999999999951,
+              "profit_factor": 0.0,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "complete": true
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "ordinary": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "exit_experiment": {
+          "ordinary": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "return_pct": 0.0,
+            "profit_factor": null,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "eligible_for_trading": false
+        },
+        "evaluation": {
+          "reviewed_through_ts": 1789509600000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      },
+      "net_pnl_difference": 0.0,
+      "stress_net_pnl_difference": 0.0
+    },
+    {
+      "symbol": "AVAX-USD",
+      "snapshot": "older report-17 AVAX",
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "reviewed_report_sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a",
+      "baseline_source_code_sha256": "3bb3cd43b777144427aa5bcceec736c1176171ddd895e2ec39840a84e85154c5",
+      "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "15m",
+        "training_start_ts": 1695069900000,
+        "training_end_ts": 1770432300000,
+        "test_start_ts": 1770518700000,
+        "test_end_ts": 1789461900000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "baseline": {
+        "engine_version": "market-structure-v11.5-exit-study",
+        "policy_version": "online-net-r-v8-exit-study",
+        "historical_examples": 11270,
+        "holdout": {
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "return_pct": -1.1220612123115203,
+          "profit_factor": 0.2519707458472496,
+          "win_rate": 33.33333333333333,
+          "max_drawdown_pct": 1.7035860956619113,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 3,
+          "net_pnl": -5.989253162019054,
+          "return_pct": -1.1978506324038074,
+          "profit_factor": 0.20083268866085469,
+          "win_rate": 33.33333333333333,
+          "max_drawdown_pct": 1.690461226351712,
+          "complete": true
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1772232300000,
+            "exit_ts": 1772491500000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": 1.889809783392972,
+            "r_multiple": 0.5039492755714592,
+            "reason": "TIME"
+          },
+          {
+            "entry_ts": 1772790300000,
+            "exit_ts": 1773007200000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7641735733754476,
+            "r_multiple": -1.0,
+            "reason": "STOP"
+          },
+          {
+            "entry_ts": 1773673200000,
+            "exit_ts": 1773843300000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7359422715751314,
+            "r_multiple": -1.0,
+            "reason": "STOP"
+          }
+        ],
+        "folds": [
+          {
+            "fold": 1,
+            "test_start_ts": 1728858600000,
+            "test_end_ts": 1742459400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "return_pct": 0.0,
+              "profit_factor": null,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "test_start_ts": 1742459400000,
+            "test_end_ts": 1756057500000,
+            "metrics": {
+              "trades": 6,
+              "net_pnl": 5.582693357821654,
+              "return_pct": 1.1165386715643377,
+              "profit_factor": 1.9800060038172254,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585672,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "test_start_ts": 1756057500000,
+            "test_end_ts": 1770432300000,
+            "metrics": {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "return_pct": 0.19235253477531966,
+              "profit_factor": 1.1131162481461465,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "ordinary": {
+            "trades": 4,
+            "net_pnl": -6.508937457856973,
+            "return_pct": -1.3017874915713934,
+            "profit_factor": 0.22501091283129454,
+            "win_rate": 25.0,
+            "max_drawdown_pct": 2.0526209234742177,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 4,
+            "net_pnl": -5.538449607563734,
+            "return_pct": -1.1076899215127445,
+            "profit_factor": 0.21368642242970345,
+            "win_rate": 25.0,
+            "max_drawdown_pct": 1.6876267686542796,
+            "complete": true
+          }
+        },
+        "exit_experiment": {
+          "ordinary": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "return_pct": -1.1220612123115203,
+            "profit_factor": 0.2519707458472496,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 3,
+            "net_pnl": -5.989253162019054,
+            "return_pct": -1.1978506324038074,
+            "profit_factor": 0.20083268866085469,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.690461226351712,
+            "complete": true
+          },
+          "eligible_for_trading": false
+        },
+        "evaluation": {
+          "reviewed_through_ts": 1789508700000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.6-candle-context",
+        "policy_version": "online-net-r-v9-candle-context",
+        "historical_examples": 11270,
+        "holdout": {
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "return_pct": -1.1220612123115203,
+          "profit_factor": 0.2519707458472496,
+          "win_rate": 33.33333333333333,
+          "max_drawdown_pct": 1.7035860956619113,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "return_pct": -0.8659477330872911,
+          "profit_factor": 0.4222675992391148,
+          "win_rate": 50.0,
+          "max_drawdown_pct": 1.9159817304433848,
+          "complete": true
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1772232300000,
+            "exit_ts": 1772491500000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": 1.889809783392972,
+            "r_multiple": 0.5039492755714592,
+            "reason": "TIME"
+          },
+          {
+            "entry_ts": 1772790300000,
+            "exit_ts": 1773007200000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7641735733754476,
+            "r_multiple": -1.0,
+            "reason": "STOP"
+          },
+          {
+            "entry_ts": 1773673200000,
+            "exit_ts": 1773843300000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7359422715751314,
+            "r_multiple": -1.0,
+            "reason": "STOP"
+          }
+        ],
+        "folds": [
+          {
+            "fold": 1,
+            "test_start_ts": 1728858600000,
+            "test_end_ts": 1742459400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "return_pct": 0.0,
+              "profit_factor": null,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "test_start_ts": 1742459400000,
+            "test_end_ts": 1756057500000,
+            "metrics": {
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "return_pct": 1.5652858396818514,
+              "profit_factor": 2.3678092075606223,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585663,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "test_start_ts": 1756057500000,
+            "test_end_ts": 1770432300000,
+            "metrics": {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "return_pct": 0.19235253477531966,
+              "profit_factor": 1.1131162481461465,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "ordinary": {
+            "trades": 4,
+            "net_pnl": -6.508937457856973,
+            "return_pct": -1.3017874915713934,
+            "profit_factor": 0.22501091283129454,
+            "win_rate": 25.0,
+            "max_drawdown_pct": 2.0526209234742177,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 5,
+            "net_pnl": -5.479983812331852,
+            "return_pct": -1.095996762466367,
+            "profit_factor": 0.3660810120446374,
+            "win_rate": 40.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          }
+        },
+        "exit_experiment": {
+          "ordinary": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "return_pct": -1.1220612123115203,
+            "profit_factor": 0.2519707458472496,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "return_pct": -0.8659477330872911,
+            "profit_factor": 0.4222675992391148,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          },
+          "eligible_for_trading": false
+        },
+        "evaluation": {
+          "reviewed_through_ts": 1789508700000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      },
+      "net_pnl_difference": 0.0,
+      "stress_net_pnl_difference": 1.6595144965825739
+    }
+  ]
+}

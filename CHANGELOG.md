@@ -1,3 +1,26 @@
+# Fuller candle context and loss severity — 16 September 2026 UTC
+
+- Expand adaptive inputs from 19 to 27 with closed-candle wicks, RSI change, preceding support/resistance, rolling VWAP-proxy distance, ATR regime and prior compression. Use fixed scales and identical features in historical, paper and Coinbase learning.
+- Retain full realized returns in recent economic memory and variance. Measure raw pre-update residuals for the model's ranking penalty; bound the optimizer update instead of hiding large losses in economic statistics.
+- Identify the learning inputs in reports and explain the richer context on the dashboard. Preserve entry candidates, costs, risk limits, chronological label release and qualification rules.
+- Add a declared comparison with pinned V11.5 on identical DOT and AVAX snapshots, with input/source hashes and no winner selection. All supplied dates remain reviewed history.
+- Versions: engine `market-structure-v11.6-candle-context`, policy `online-net-r-v9-candle-context`, report 11. New practice is required after deployment. Includes the earlier finance and exit-study work.
+
+# Causal exit learning and monitoring parity — 15 September 2026 UTC
+
+- Fix adaptive paper and Coinbase signal readiness to require the chosen decision timeframe. Unused higher-timeframe gaps no longer add a different filter from historical replay. Retain daily-context entry checks, legacy multi-timeframe readiness, quote timing, risk limits and activation controls.
+- Train a separate 22-candidate break-even-exit model on its own completed outcomes. Activate fee-covered protection only on the candle after a close at +1 net R; preserve targets, time limits, gap losses and original risk. Treat an algebraically zero exit as break-even without a floating-point win/loss reward.
+- Recompute the entire account path, online feedback, ordinary/higher costs, folds and account-feedback controls. Display the comparison under each market's loss study. This model cannot replace an approved profile, qualify a market or enter paper/Coinbase positions.
+- Keep independent checkpoint namespaces for both models; register all 13 markets in report 19 as reviewed history. Include a reproducible same-data comparison with V11.4. DOT and AVAX final account results are unchanged; no profit improvement is demonstrated.
+- Versions: engine `market-structure-v11.5-exit-study`, policy `online-net-r-v8-exit-study`, report 10. Fresh practice is required after deployment.
+
+# Main-screen trade finances — 15 September 2026 UTC
+
+- Add a finance panel above learning controls with completed trades, money won/lost, net result, wins, losses, exact break-even outcomes and win rate.
+- Keep historical tests, paper money and Coinbase bot results in separate selectable views. Identify incomplete historical coverage and forced test-window exits.
+- Total complete saved journals rather than the latest visible table rows. Recover historical totals from saved reports without retraining or altering the exported source reports.
+- Preserve Coinbase authentication, report refresh failures visibly and keep all trading behavior unchanged.
+
 # Loss and near-break-even study — 15 September 2026 UTC
 
 - Continue independent training at normal entry spacing after losses, without account loss-streak pauses. Preserve full costs, risk sizes, signals, missing-data rules and actual account controls.

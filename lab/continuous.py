@@ -443,6 +443,10 @@ class ContinuousLearner:
             self._manage_position_tick(pid, price, ts)
             self._check_daily_limit()
 
+    def _required_signal_intervals(self):
+        return ((self.settings["decision_interval"],) if self.settings.get("learning_enabled")
+                else tuple(INTERVAL_MS))
+
     def _latest_feature(self, pid, iv):
         with self.lock:
             bars = self.market.get(pid, {}).get("bars", {})
@@ -533,13 +537,17 @@ class ContinuousLearner:
             m = self.market[pid]
             decision_iv = self.settings["decision_interval"]
             rows = list(m["bars"][decision_iv])
-            ready = all(len(m["bars"][iv]) >= 241 for iv in INTERVAL_MS)
-            m["readiness"] = "Ready" if ready else "Warming up higher timeframes"
+            # Adaptive entry features use the decision interval plus as-of daily
+            # context, just like historical replay. Unused timeframes must not
+            # add a different entry filter to ongoing paper trading.
+            required = self._required_signal_intervals()
+            ready = all(len(m["bars"][iv]) >= 241 for iv in required)
+            m["readiness"] = "Ready" if ready else "Warming up " + ", ".join(required)
             if not ready:
-                m["last_decision"] = "Waiting for 241 completed candles in each timeframe"
+                m["last_decision"] = "Waiting for 241 completed candles in " + ", ".join(required)
                 return
             # Missing buckets are reported instead of inventing zero-volume market data.
-            for iv in INTERVAL_MS:
+            for iv in required:
                 recent = m["bars"][iv][-241:]
                 if any(b["ts"] - a["ts"] != INTERVAL_MS[iv] for a, b in zip(recent, recent[1:])):
                     m["last_decision"] = f"Waiting: missing {iv} candles"
@@ -568,8 +576,8 @@ class ContinuousLearner:
             if reason:
                 m["last_decision"] = reason
                 return
-            if now_ms() - (candle_ts + INTERVAL_MS[decision_iv]) > 60000:
-                m["last_decision"] = "Waiting for a new signal candle; the last close is over 60 seconds old"
+            if not 0 <= now_ms() - (candle_ts + INTERVAL_MS[decision_iv]) <= 60000:
+                m["last_decision"] = "Waiting for a newly completed signal candle"
                 return
             self._processed[pid] = candle_ts
             self.portfolio["cycles"] += 1
@@ -683,6 +691,9 @@ class ContinuousLearner:
                 self.market[pid]["last_decision"] = reason
                 return None
             tick, p = self._fresh_quote(pid), choice["params"]
+            if p.get("exit_policy", "fixed") != "fixed":
+                self.market[pid]["last_decision"] = "This exit policy is a historical research experiment"
+                return None
             direction = p["direction"]
             fee, slip = self.settings["fee_rate"], self.settings["slippage_rate"]
             entry = (tick["best_ask"] * (1 + slip) if direction == "LONG" else tick["best_bid"] * (1 - slip))
@@ -878,7 +889,8 @@ class ContinuousLearner:
             if not market:
                 raise ValueError("This market is not loaded in the signal runner")
             interval = self.settings["decision_interval"]
-            for iv, step in INTERVAL_MS.items():
+            for iv in self._required_signal_intervals():
+                step = INTERVAL_MS[iv]
                 rows = market["bars"][iv][-241:]
                 if len(rows) < 241 or any(b["ts"]-a["ts"]!=step for a,b in zip(rows,rows[1:])):
                     raise ValueError("Waiting for complete signal history")
@@ -958,6 +970,7 @@ class ContinuousLearner:
                     "validated_profiles": stored_profiles, "active_profiles": active_profiles}
 
     def analytics(self):
+        from .finances import closed_trade_totals
         con = db_connect(self.db_path)
         rows = [dict(r) for r in con.execute(
             "SELECT * FROM paper_trades WHERE status='CLOSED' ORDER BY closed_at,id")]
@@ -982,7 +995,8 @@ class ContinuousLearner:
             curve.append({"ts": r["closed_at"], "balance": balance})
         for group in families.values():
             group["expectancy_r"] = group["sum_r"] / group["trades"]
-        return {"closed_trades": len(rows), "win_rate": wins / len(rows) * 100 if rows else None,
+        return {"trade_finances":closed_trade_totals(r["pnl"] for r in rows),
+                "closed_trades": len(rows), "win_rate": wins / len(rows) * 100 if rows else None,
                 "net_pnl": profit - loss, "profit_factor": profit / loss if loss else None,
                 "profit_factor_note": "No losing trades yet" if rows and not loss else None,
                 "expectancy_r": sum(r["result_r"] for r in rows) / len(rows) if rows else None,

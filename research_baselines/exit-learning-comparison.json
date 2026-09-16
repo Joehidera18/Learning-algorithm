@@ -1,0 +1,557 @@
+{
+  "method": "One fixed exit hypothesis; separately trained models, identical snapshots and settings. No parameter search, alternative-policy promotion or fresh confirmation.",
+  "baseline_commit": "a20b076526c05943805dd04f64bba51e1503d839",
+  "source_code_sha256": "3bb3cd43b777144427aa5bcceec736c1176171ddd895e2ec39840a84e85154c5",
+  "markets": [
+    {
+      "bundle_sha256": "9b9c52813ea6c5e68fe83db973c1d593bc82dc560435fe0ec608adad0fd9ad82",
+      "reviewed_report_sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a",
+      "runtime_seconds": 66.298,
+      "symbol": "DOT-USD",
+      "baseline_source_code_sha256": "33203246baf39a5cb6c1c30c6a2c6f8f6a7a396b0f74512aa11e5a99a390019f",
+      "data_sha256": "90296a705d86bc4e568fa3e4554afa680b35ab26f3332054d482cc3860cb3e67",
+      "daily_data_sha256": "6c231b0bae998879aa986865569603618325a7abda968002f00146e55871a65b",
+      "dataset_end_ts": 1789509600000,
+      "reviewed_through_ts": 1789509600000,
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "primary_field_mismatches": [],
+      "primary_model_weights_and_observations_unchanged": true,
+      "current_model": {
+        "historical_examples": 10841,
+        "development_outcomes": {
+          "full_risk_loss": 7466,
+          "loss": 578,
+          "near_break_even": 291,
+          "profit": 2506
+        },
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "halted_utc_days": 0,
+          "stopped_at_ts": null
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "halted_utc_days": 0,
+          "stopped_at_ts": null
+        },
+        "profitable_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "ending_balance": 498.61558876848574,
+              "return_pct": -0.2768822463028564,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.8158507490472409,
+              "expectancy_r": -0.1173499240623106,
+              "max_drawdown_pct": 1.334052425761566,
+              "gross_pnl": -0.6157604944641499,
+              "fees_paid": 0.7686507370501509,
+              "slippage_notional": 0.19216226066430392,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "ending_balance": 500.0,
+              "return_pct": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_r": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "slippage_notional": 0,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 1,
+              "net_pnl": -3.75,
+              "ending_balance": 496.25,
+              "return_pct": -0.7499999999999951,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "expectancy_r": -1.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225,
+              "slippage_notional": 0.11950292122518558,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          }
+        ],
+        "validated": false
+      },
+      "exit_experiment": {
+        "historical_examples": 10872,
+        "development_outcomes": {
+          "full_risk_loss": 7463,
+          "loss": 571,
+          "near_break_even": 368,
+          "profit": 2470
+        },
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "stopped_at_ts": null
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "ending_balance": 500.0,
+          "return_pct": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "expectancy_r": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "slippage_notional": 0,
+          "stopped_at_ts": null
+        },
+        "profitable_folds": 0,
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -1.8375446206849801,
+              "ending_balance": 498.162455379315,
+              "return_pct": -0.36750892413699443,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.7554652463486791,
+              "expectancy_r": -0.1582394910102315,
+              "max_drawdown_pct": 1.416048763500889,
+              "gross_pnl": -1.09139031981133,
+              "fees_paid": 0.7461543008737027,
+              "slippage_notional": 0.1865376703657712,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "ending_balance": 500.0,
+              "return_pct": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_r": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "slippage_notional": 0,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 1,
+              "net_pnl": -3.75,
+              "ending_balance": 496.25,
+              "return_pct": -0.7499999999999951,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "expectancy_r": -1.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225,
+              "slippage_notional": 0.11950292122518558,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "return_pct": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "slippage_notional": 0,
+            "halted_utc_days": 0,
+            "stopped_at_ts": null
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "return_pct": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "slippage_notional": 0,
+            "halted_utc_days": 0,
+            "stopped_at_ts": null
+          }
+        },
+        "net_pnl_difference": 0.0,
+        "stress_net_pnl_difference": 0.0,
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "evaluation": {
+          "reviewed_through_ts": 1789509600000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      }
+    },
+    {
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "reviewed_report_sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a",
+      "runtime_seconds": 70.628,
+      "symbol": "AVAX-USD",
+      "baseline_source_code_sha256": "33203246baf39a5cb6c1c30c6a2c6f8f6a7a396b0f74512aa11e5a99a390019f",
+      "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "dataset_end_ts": 1789461900000,
+      "reviewed_through_ts": 1789508700000,
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "primary_field_mismatches": [],
+      "primary_model_weights_and_observations_unchanged": true,
+      "current_model": {
+        "historical_examples": 11270,
+        "development_outcomes": {
+          "full_risk_loss": 7505,
+          "loss": 520,
+          "profit": 3016,
+          "near_break_even": 229
+        },
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "ending_balance": 494.3896939384424,
+          "return_pct": -1.1220612123115203,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "expectancy_r": -0.4986835748095136,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318,
+          "slippage_notional": 0.34691647926210406,
+          "halted_utc_days": 0,
+          "stopped_at_ts": null
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.989253162019054,
+          "ending_balance": 494.01074683798095,
+          "return_pct": -1.1978506324038074,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.20083268866085469,
+          "expectancy_r": -0.5328787659041158,
+          "max_drawdown_pct": 1.690461226351712,
+          "gross_pnl": -4.042667913729074,
+          "fees_paid": 1.9465852482899573,
+          "slippage_notional": 0.4866383110058812,
+          "halted_utc_days": 0,
+          "stopped_at_ts": null
+        },
+        "profitable_folds": 2,
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "ending_balance": 500.0,
+              "return_pct": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_r": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "slippage_notional": 0,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 5.582693357821654,
+              "ending_balance": 505.58269335782165,
+              "return_pct": 1.1165386715643377,
+              "win_rate": 66.66666666666666,
+              "profit_factor": 1.9800060038172254,
+              "expectancy_r": 0.24925754425743263,
+              "max_drawdown_pct": 1.3828270162585672,
+              "gross_pnl": 7.955161840066076,
+              "fees_paid": 2.3724684822444297,
+              "slippage_notional": 0.5931256688485977,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "ending_balance": 500.96176267387665,
+              "return_pct": 0.19235253477531966,
+              "win_rate": 28.57142857142857,
+              "profit_factor": 1.1131162481461465,
+              "expectancy_r": 0.04059237502665266,
+              "max_drawdown_pct": 2.3321405931895005,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399,
+              "slippage_notional": 1.150585901729363,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          }
+        ],
+        "validated": false
+      },
+      "exit_experiment": {
+        "historical_examples": 11298,
+        "development_outcomes": {
+          "full_risk_loss": 7481,
+          "loss": 495,
+          "profit": 2956,
+          "near_break_even": 366
+        },
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "ending_balance": 494.3896939384424,
+          "return_pct": -1.1220612123115203,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "expectancy_r": -0.4986835748095136,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318,
+          "slippage_notional": 0.34691647926210406,
+          "stopped_at_ts": null
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.989253162019054,
+          "ending_balance": 494.01074683798095,
+          "return_pct": -1.1978506324038074,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.20083268866085469,
+          "expectancy_r": -0.5328787659041158,
+          "max_drawdown_pct": 1.690461226351712,
+          "gross_pnl": -4.042667913729074,
+          "fees_paid": 1.9465852482899573,
+          "slippage_notional": 0.4866383110058812,
+          "stopped_at_ts": null
+        },
+        "profitable_folds": 1,
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "ending_balance": 500.0,
+              "return_pct": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_r": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "slippage_notional": 0,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 5.582693357821654,
+              "ending_balance": 505.58269335782165,
+              "return_pct": 1.1165386715643377,
+              "win_rate": 66.66666666666666,
+              "profit_factor": 1.9800060038172254,
+              "expectancy_r": 0.24925754425743263,
+              "max_drawdown_pct": 1.3828270162585672,
+              "gross_pnl": 7.955161840066076,
+              "fees_paid": 2.3724684822444297,
+              "slippage_notional": 0.5931256688485977,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 9,
+              "net_pnl": -2.795450546177449,
+              "ending_balance": 497.20454945382255,
+              "return_pct": -0.5590901092354938,
+              "win_rate": 22.22222222222222,
+              "profit_factor": 0.7719223256099143,
+              "expectancy_r": -0.07953926386815903,
+              "max_drawdown_pct": 2.769756756179857,
+              "gross_pnl": 2.6236252180360555,
+              "fees_paid": 5.4190757642133995,
+              "slippage_notional": 1.354772919451416,
+              "halted_utc_days": 0,
+              "stopped_at_ts": null
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 4,
+            "net_pnl": -5.610306061557594,
+            "ending_balance": 494.3896939384424,
+            "return_pct": -1.1220612123115203,
+            "win_rate": 25.0,
+            "profit_factor": 0.2519707458472496,
+            "expectancy_r": -0.3740126811071352,
+            "max_drawdown_pct": 1.865218805356376,
+            "gross_pnl": -3.6723443219984118,
+            "fees_paid": 1.9379617395591955,
+            "slippage_notional": 0.48448724703270274,
+            "halted_utc_days": 0,
+            "stopped_at_ts": null
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 4,
+            "net_pnl": -5.538449607563734,
+            "ending_balance": 494.46155039243627,
+            "return_pct": -1.1076899215127445,
+            "win_rate": 25.0,
+            "profit_factor": 0.21368642242970345,
+            "expectancy_r": -0.3698006306230014,
+            "max_drawdown_pct": 1.6876267686542796,
+            "gross_pnl": -2.8069997643063185,
+            "fees_paid": 2.731449843257413,
+            "slippage_notional": 0.682857681494677,
+            "halted_utc_days": 0,
+            "stopped_at_ts": null
+          }
+        },
+        "net_pnl_difference": 0.0,
+        "stress_net_pnl_difference": 0.0,
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "evaluation": {
+          "reviewed_through_ts": 1789508700000,
+          "reuses_reviewed_history": true,
+          "basis": "reused_research",
+          "confirmation": null,
+          "note": "Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."
+        },
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ]
+      }
+    }
+  ]
+}

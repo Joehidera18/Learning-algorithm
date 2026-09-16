@@ -311,6 +311,8 @@ class CoinbaseAdapter:
 
 def entry_plan(signal, product, quote, snapshot, capital, settings, client_id):
     """Build a bounded FOK buy with attached exchange-held TP/SL."""
+    if signal["params"].get("exit_policy", "fixed") != "fixed":
+        raise BrokerError("This exit policy is a historical research experiment and cannot place orders")
     if signal["params"].get("direction") != "LONG":
         raise BrokerError("The Coinbase trader only opens long spot positions")
     fee = decimal(snapshot["taker_fee_rate"])

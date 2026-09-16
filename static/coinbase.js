@@ -45,8 +45,15 @@
   async function refresh() {
     if (busy) return;
     busy=true;
-    try { render(await request("status")); }
-    catch (e) { el("cbMessage").textContent=e.message; }
+    try {
+      const status=await request("status");
+      render(status);
+      window.dispatchEvent(new CustomEvent("coinbase-finances",{detail:{value:status,failed:false}}));
+    }
+    catch (e) {
+      el("cbMessage").textContent=e.message;
+      window.dispatchEvent(new CustomEvent("coinbase-finances",{detail:{failed:true}}));
+    }
     finally { busy=false; }
   }
   function button(id,fn) {

@@ -39,7 +39,9 @@ class HistoricalPracticeTests(unittest.TestCase):
             code, _, _ = s.handle("POST", "/api/learning/practice", body={"symbols":["BTC-USD"]},
                                  headers={"Content-Type":"application/json"})
             self.assertEqual(code, 202)
-            s.autolearn.worker.join(timeout=5)
+            # Exercise both complete learning passes. Completion is the contract;
+            # five seconds is not a promised training latency under CPU load.
+            s.autolearn.worker.join(timeout=30)
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.agent.settings, before)
         self.assertFalse(s.agent.runtime["running"])
@@ -75,9 +77,9 @@ class HistoricalPracticeTests(unittest.TestCase):
         with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
                 "lab.learning_research.build_feature_cache", side_effect=fixture_features):
             s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
-            # Independent practice now continues after repeated losses and stores
-            # detailed reviews; this is a completion gate, not a speed benchmark.
-            s.autolearn.worker.join(timeout=15)
+            # Both independent models collect/review examples. This is a
+            # completion gate, not a speed benchmark.
+            s.autolearn.worker.join(timeout=30)
         self.assertFalse(s.autolearn.worker.is_alive())
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
@@ -95,6 +97,8 @@ class HistoricalPracticeTests(unittest.TestCase):
         exported = json.loads(content)["results"][0]
         self.assertEqual(exported["training_diagnostics"], report["training_diagnostics"])
         self.assertEqual(exported["trade_reviews"],report["trade_reviews"])
+        self.assertEqual(exported['exit_policy_comparison'],report['exit_policy_comparison'])
+        self.assertFalse(exported['exit_policy_comparison']['eligible_for_trading'])
         self.assertEqual(report["trade_reviews"]["development"]["examples"],report["historical_examples"])
         self.assertGreater(exported["model"]["observations"], 0)
         self.assertEqual(exported["costs"]["fee_per_side"], .004)

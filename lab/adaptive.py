@@ -14,13 +14,21 @@ from .paper_store import db_connect, load_state
 from .trade_quality import signal_cost_check
 from .outcome_memory import (setup_context, empty_memory, update_memory, validate_detail,
     validate_memory, estimate as context_estimate, SHRINKAGE)
+from .exit_management import FIXED_EXIT, EXIT_POLICIES
 
-POLICY_VERSION = "online-net-r-v7-trade-review"
+POLICY_VERSION = "online-net-r-v9-candle-context"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
 REGIME_SHRINKAGE = 50
-DIMENSIONS = 19
+FEATURE_NAMES = (
+    "intercept", "rsi", "volume_z", "adx", "atr_pct", "momentum20", "momentum50",
+    "obv_slope", "signed_volume_pressure", "close_location", "bull_regime", "bear_regime",
+    "range_expansion", "daily_momentum7", "daily_ma_distance_atr", "daily_atr_pct",
+    "cost_r", "net_rr", "time_stop_hours", "upper_wick", "lower_wick", "rsi_change",
+    "distance_to_resistance_atr", "distance_to_support_atr", "vwap_distance_atr",
+    "atr_regime", "prior_compression")
+DIMENSIONS = len(FEATURE_NAMES)
 
 
 def bounded(value, lower=-1., upper=1.):
@@ -51,11 +59,22 @@ def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
         bounded(f.get("range_expansion", 1)/3, 0, 1),
         bounded(daily.get("momentum7", 0)/.2),
         bounded(daily.get("ma_distance_atr", 0)/3),
-        bounded(daily.get("atr_pct", 0)/.1, 0, 1)] + economics
+        bounded(daily.get("atr_pct", 0)/.1, 0, 1)] + economics + [
+        bounded(f.get("upper_wick", 0), 0, 1),
+        bounded(f.get("lower_wick", 0), 0, 1),
+        bounded((f.get("rsi", 50)-f.get("rsi_previous", f.get("rsi", 50)))/20),
+        bounded(f.get("distance_to_resistance_atr", 0)/3),
+        bounded(f.get("distance_to_support_atr", 0)/3),
+        bounded(f.get("vwap_distance_atr", 0)/3),
+        bounded((f.get("atr_regime", 1)-1)/1.5),
+        float(bool(f.get("prior_compression", False)))]
 
 
 def action_key(p):
-    return json.dumps([p["family"], p["stop_atr"], p["rr2"], p["volume_z_min"]], separators=(",", ":"))
+    key = [p["family"], p["stop_atr"], p["rr2"], p["volume_z_min"]]
+    if p.get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
+        key.append(p["exit_policy"])
+    return json.dumps(key, separators=(",", ":"))
 
 
 def vector_regime(vector):
@@ -75,16 +94,17 @@ def cost_context(vector):
 
 def update_model(model, vector, result_r):
     predicted = sum(w*x for w,x in zip(model["weights"],vector))
-    target = bounded(result_r, -3, 3)
     rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
-    error = bounded(target-predicted, -3, 3)
+    raw_error = result_r-predicted
+    error = bounded(raw_error, -3, 3)
+    # Bound the optimization step, not the economic loss or measured error.
     # Error measured BEFORE the outcome updates the weights. This is a ranking
     # penalty, not a calibrated confidence interval for dependent market samples.
-    model["squared_error"] = model.get("squared_error", 0.) + error*error
+    model["squared_error"] = model.get("squared_error", 0.) + raw_error*raw_error
     norm = 1 + sum(x*x for x in vector)
     model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
                         for w,x in zip(model["weights"],vector)]
-    model["recent_r"] += .03*(target-model["recent_r"])
+    model["recent_r"] += .03*(result_r-model["recent_r"])
     model["samples"] += 1
     model["wins"] += int(result_r > 0)
     model["sum_r"] += result_r
@@ -93,7 +113,12 @@ def update_model(model, vector, result_r):
 class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
-                 legacy_candidates_only=False, failure_adaptation=True):
+                 legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT):
+        if exit_policy not in EXIT_POLICIES:
+            raise ValueError("Unknown exit policy")
+        if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
+            raise ValueError("Learning models with different exit policies cannot be mixed")
+        self.exit_policy = exit_policy
         self.learn = learn
         self.legacy_candidates_only = legacy_candidates_only
         self.failure_adaptation = failure_adaptation
@@ -102,10 +127,13 @@ class AdaptivePolicy:
             raise ValueError("Invalid learning cost assumptions")
         self.regime_adaptation, self.cost_filter = regime_adaptation, cost_filter
         self.candidates = [dict(p, max_notional_fraction=max_notional_fraction) for p in profit_candidates()]
+        if exit_policy != FIXED_EXIT:
+            self.candidates = [dict(p, exit_policy=exit_policy) for p in self.candidates]
         if state is not None and state.get("version") != POLICY_VERSION:
             raise ValueError("This learning model needs to be retrained")
         self.state = copy.deepcopy(state) if state else {
-            "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0}
+            "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
+            "exit_policy":exit_policy}
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
@@ -183,7 +211,9 @@ class AdaptivePolicy:
         if len(vector) != DIMENSIONS or any(not math.isfinite(float(v)) for v in vector):
             raise ValueError("Invalid entry feature vector")
         result_r = float(result_r)
-        if not math.isfinite(result_r) or not math.isfinite(float(available_ts)):
+        # Reject numerically unusable records before mutating any of the four
+        # model components. No plausible trade approaches this arithmetic limit.
+        if not math.isfinite(result_r) or abs(result_r) > 1e100 or not math.isfinite(float(available_ts)):
             raise ValueError("Invalid resolved outcome")
         if available_ts < self.state["last_label_ts"]:
             raise ValueError("Outcomes must be learned in the order they become available")
@@ -294,6 +324,8 @@ def approved_profile(db_path, symbol, settings):
     if not 0 <= time.time()*1000-profile.get("data_end_ts", 0) <= 30*86400000:
         return None
     if profile.get("model", {}).get("version") != POLICY_VERSION:
+        return None
+    if profile.get("model", {}).get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
         return None
     return profile
 

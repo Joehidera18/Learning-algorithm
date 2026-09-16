@@ -12,7 +12,7 @@ from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
 
-ENGINE_VERSION="market-structure-v11.4-trade-review"
+ENGINE_VERSION="market-structure-v11.6-candle-context"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={
@@ -238,7 +238,8 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
         "lower_wick","adx","signed_volume_pressure","obv_slope","atr_regime",
         "range_expansion","atr_pct","momentum20","momentum50","range_position",
         "_atr","_close","_ts","_trend_long","_pullback_long",
-        "daily","rsi_previous","prior_compression","support_reclaim")
+        "daily","rsi_previous","prior_compression","support_reclaim",
+        "upper_wick","distance_to_resistance_atr","distance_to_support_atr","vwap_distance_atr")
     # Live inputs are completed candles; simulate() separately reserves its fill bar.
     for i in range(240,n):
         a=atr[i]

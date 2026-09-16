@@ -19,6 +19,7 @@ from .learning_research import LEARNING_REPORT_VERSION, learn_history
 from .paper_store import db_connect, load_state, save_state
 from .research import ResearchManager, cost_signature
 from .evaluation import reviewed_boundary
+from .finances import historical_trade_totals
 
 HISTORY_DAYS = 1095
 TRAINING_MARKETS = 5
@@ -35,6 +36,7 @@ class AutoLearner:
         self.db_path, self.agent, self.research_manager = db_path, agent, research_manager
         self.lock = threading.RLock()
         self.worker, self.stop_event = None, threading.Event()
+        self._finance_cache = {}
         self.state = load_state(db_path, "automatic_learning", {
             "results":[], "next_review_at":0, "tested_costs":None, "history_days":HISTORY_DAYS})
         self.state.update(enabled=False, phase="stopped", message="Ready to learn from history.")
@@ -57,12 +59,16 @@ class AutoLearner:
         reports = result.get("results", [])
         active, updates = [], 0
         for report in reports:
+            report["trade_finances"] = self._report_finances(report)
             profile = approved_profile(self.db_path, report["symbol"], settings)
             if profile:
                 active.append(report["symbol"])
                 saved = load_state(self.db_path, "adaptive_paper_"+report["symbol"], {})
                 if saved.get("fingerprint")==profile["fingerprint"]:
                     updates += saved.get("forward_trades", 0)
+        with self.lock:
+            active_fingerprints = {r.get("fingerprint") for r in reports}
+            self._finance_cache = {k:v for k,v in self._finance_cache.items() if k in active_fingerprints}
         result.update(active_markets=active, forward_learning_trades=updates,
             market_data_hours=sum(r.get("data_hours",0) for r in reports),
             historical_examples=sum(r.get("historical_examples",0) for r in reports),
@@ -73,6 +79,23 @@ class AutoLearner:
             current_policy_version=POLICY_VERSION,
             current_report_version=LEARNING_REPORT_VERSION)
         return result
+
+    def _report_finances(self, report):
+        # Status reports omit the full trade list. Read the saved report once per
+        # immutable fingerprint so already completed practice needs no rerun.
+        fingerprint = report.get("fingerprint")
+        if not fingerprint or "holdout_trades" in report:
+            return historical_trade_totals(report)
+        with self.lock:
+            cached = self._finance_cache.get(fingerprint)
+        if cached is not None:
+            return copy.deepcopy(cached)
+        full = load_state(self.db_path, "learning_result_"+fingerprint, report)
+        summary = historical_trade_totals(full)
+        if summary["status"] == "available":
+            with self.lock:
+                self._finance_cache[fingerprint] = copy.deepcopy(summary)
+        return summary
 
     def start(self, fee_settings=None):
         with self.lock:

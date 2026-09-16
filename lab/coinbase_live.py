@@ -114,12 +114,15 @@ class CoinbaseTrader:
                      json.dumps(trade,allow_nan=False,separators=(",",":"))))
         finally: con.close()
 
-    def _realized(self):
+    def _closed_pnls(self):
         con = db_connect(self.db_path)
         try:
-            return sum((decimal(json.loads(r[0])["pnl"],"P&L",minimum=Decimal("-1000000"))
-                        for r in con.execute("SELECT trade_json FROM coinbase_trades WHERE status='CLOSED'")),ZERO)
+            return [decimal(json.loads(r[0])["pnl"],"P&L",minimum=Decimal("-1000000"))
+                    for r in con.execute("SELECT trade_json FROM coinbase_trades WHERE status='CLOSED'")]
         finally: con.close()
+
+    def _realized(self):
+        return sum(self._closed_pnls(), ZERO)
 
     def _closed_market_trades(self, pid, limit=3):
         con = db_connect(self.db_path)
@@ -135,12 +138,15 @@ class CoinbaseTrader:
         finally: con.close()
 
     def status(self):
+        from .finances import closed_trade_totals
         with self.lock:
             result = copy.deepcopy(self.state)
             result.update(self.runtime, mode=self.mode, paused=self.paused,
                           configured=self.adapter.configured, live_orders_allowed=self.adapter.allow_live)
         result["trades"] = self.trades(25)
-        result["realized_pnl"] = number(self._realized())
+        pnls = self._closed_pnls()
+        result["realized_pnl"] = number(sum(pnls, ZERO))
+        result["trade_finances"] = closed_trade_totals(pnls)
         result["equity_stale"] = not result["equity_at"] or self.clock()-result["equity_at"]>45
         result["maximum_capital_usd"], result["maximum_positions"] = 500, 1
         return result

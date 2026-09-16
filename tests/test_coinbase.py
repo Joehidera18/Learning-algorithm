@@ -101,6 +101,12 @@ class TraderTests(unittest.TestCase):
         self.assertEqual(self.broker.submissions,[])
         self.assertEqual(self.broker.cancellations,[])
         self.assertIsNone(self.trader._active())
+
+    def test_research_exit_signal_cannot_submit_an_exchange_order(self):
+        self.agent.coinbase_signal=lambda pid:dict(SIGNAL,params=dict(SIGNAL['params'],exit_policy='fee_covered_break_even'))
+        self.trader.tick()
+        self.assertEqual(self.broker.submissions,[])
+        self.assertIsNone(self.trader._active())
     def test_intent_is_persisted_before_order_crosses_network(self):
         def before(payload):
             recovered=CoinbaseTrader(self.db,self.agent,self.broker,clock=lambda:NOW)

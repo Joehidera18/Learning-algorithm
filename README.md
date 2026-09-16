@@ -1,8 +1,10 @@
-# CryptO V11.4 — learning from losses and near-break-even trades
+# CryptO V11.6 — learning from fuller candle context
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.4 keeps independent practice running after repeated losses and adds detailed reviews of near-break-even outcomes, costs, lost gains and later price movement. Its fixed AVAX replay studies more examples but still loses money in the selected account. See [the research rules and measured results](TRADE_REVIEW_RESEARCH.md).
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.6 gives the learner eight additional entry-time inputs: candle rejection, RSI change, preceding support/resistance, price extension relative to the rolling VWAP proxy, volatility and prior compression. Large losses now retain their full size in recent-return and uncertainty estimates while training updates remain bounded. See [the declared change, sources and comparisons](CANDLE_CONTEXT_RESEARCH.md). Run historical practice again after deployment; older model vectors cannot be reused.
+
+The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 
 ## Start here
 
@@ -21,6 +23,22 @@ The first download can take time. Completed download chunks, candidate training 
 
 Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
 
+## Trade finances on the main screen
+
+The **Trade finances** panel above the learning controls shows completed trades,
+money won, money lost, net profit/loss, wins, losses, exact break-even results and
+win rate. Amounts use each trade's result after costs. Choose **Historical tests**,
+**Paper account**, or **Coinbase bot**; their totals stay separate. Historical tests
+can show one market or the sum of separate market simulations, with partial or
+unavailable reports clearly marked. Training examples and alternative test runs
+do not count as account trades. Test-window exits are identified separately.
+
+Paper and Coinbase totals use the entire saved closed-trade journal, including
+trades older than the visible table. Open or unfilled orders are excluded. Existing
+saved historical reports can populate the panel without retraining. Failed refreshes
+keep the last known numbers with a visible stale notice. Coinbase totals require
+the existing access-token protection. This display does not start any runner.
+
 ## What learns
 
 The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 22 stop/target variants within seven defined trade types: trend pullback, volume breakout, range reclaim, combined confirmations, daily trend/momentum, volatility expansion, and support with RSI recovery. The three new families use completed daily context and multi-day holding limits with the existing account-risk caps. See [the strategy research review](STRATEGY_RESEARCH.md) for sources, exact rules and limitations. Each variant combines an overall estimate with evidence for rising, falling, or sideways conditions when enough examples exist. The templates remain long-only, so bearish conditions can mean no eligible trades or training examples.
@@ -32,6 +50,10 @@ This is a small online machine-learning model. It learns entry preferences and s
 The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first five in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
 
 ## Learning from failed trades and fuller candle context
+
+V11.5 adds **Whole-account break-even experiment** inside the loss-study panel. Its separate model learns from its own actual simulated exits, including near-break-even rewards, and reruns later entries, cooldowns and learning after different exits. Both models pay full costs and use the same risk limits. The experiment is reported at ordinary and higher costs, with separate earlier periods and selected-trade-feedback controls; it cannot select or qualify a different trading model. Completed training checkpoints are kept separately for the two models, so practice performs more work but can resume either study. Old models require fresh practice. Reports 16, 17 and 19 are reviewed history and cannot provide fresh confirmation for a new revision.
+
+Adaptive paper monitoring and Coinbase signal export now require 241 continuous completed decision-timeframe candles, matching historical warmup. Each strategy retains its daily-data and other entry checks. The legacy non-adaptive workflow still requires all four timeframes. Newly completed signal timing, quote freshness, account controls and separate Coinbase activation remain in effect.
 
 V11.4 gives losses and near-break-even outcomes extra review attention. Under each market's learning results, open **Loss and break-even study** for outcome counts and priority examples. Near break-even is within 0.10R of zero after costs; these outcomes retain their actual positive or negative reward. Reviews show entry conditions, fee drag, net favorable/adverse marks and giveback. Fixed 1-, 4- and 24-hour after-exit windows remain pending or unknown when sufficient candles are unavailable. A report-only exit experiment tests a fee-covered break-even stop after a prior candle closes at +1 net R. It does not automatically change exits or relabel results.
 

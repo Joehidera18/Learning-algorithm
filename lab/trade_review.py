@@ -142,7 +142,7 @@ def _break_even_stop(rows, stamps, trade, step, end):
     sign = 1 if trade.get("direction", "LONG") == "LONG" else -1
     fee, slip = trade["fee_rate"], trade["slippage_rate"]
     be_price = trade["entry"]*(sign+fee)/(sign-fee)/(1-sign*slip)
-    stop, target, active = trade["stop"], trade["target2"], False
+    stop, target, active = trade.get("initial_stop", trade["stop"]), trade["target2"], False
     activated_ts = None
     raw, exit_ts, reason = None, None, None
     for i in range(a,b+1):

@@ -6,7 +6,7 @@ import json
 import time
 from bisect import bisect_left
 
-from .adaptive import AdaptivePolicy, POLICY_VERSION
+from .adaptive import AdaptivePolicy, POLICY_VERSION, FEATURE_NAMES
 from .engine import ENGINE_VERSION, build_feature_cache
 from .execution import simulate
 from .research import cost_signature, bootstrap_interval, daily_goal_report
@@ -16,8 +16,9 @@ from .shadow_learning import HistoricalFeedback
 from .evaluation import reviewed_boundary, attribution, dataset_digest
 from .outcome_memory import trade_feedback, summarize as summarize_outcomes
 from .trade_review import summarize_trades, merge_summaries, BREAK_EVEN_R, POST_EXIT_HOURS
+from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
 
-LEARNING_REPORT_VERSION = 9
+LEARNING_REPORT_VERSION = 11
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -35,7 +36,30 @@ def build_learning_features(rows, interval, segments, cancelled=None, daily_rows
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
-                  reviewed_through_ts=None, daily_rows=None):
+                  reviewed_through_ts=None, daily_rows=None, exit_comparison=True):
+    """Keep the approved model separate from one independently trained experiment."""
+    result = _learn_history(rows, symbol, settings, progress, cancelled, checkpoint,
+        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT)
+    if exit_comparison:
+        def experimental_progress(**state):
+            if progress:
+                state["message"] = "Break-even exit study: " + state.get("message", "")
+                progress(**state)
+        experiment_checkpoint = None
+        if checkpoint:
+            offset = result["candidate_count"]
+            experiment_checkpoint = {
+                "load":lambda index:checkpoint["load"](offset+index),
+                "save":lambda index,value:checkpoint["save"](offset+index,value)}
+        experiment = _learn_history(rows, symbol, settings, experimental_progress, cancelled,
+            experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT)
+        from .exit_research import comparison_report
+        result["exit_policy_comparison"] = comparison_report(result, experiment)
+    return result
+
+
+def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
+                   reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -54,7 +78,8 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         daily_rows = [r for r in daily_rows if r["ts"]+DAY_MS <= rows[-1]["ts"]+step]
     features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows)
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
-    candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"]).candidates
+    candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"],
+                                exit_policy=exit_policy).candidates
     examples = []
     training_candidates = []
     training_reviews = []
@@ -95,7 +120,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             else:
                 training_totals[key] += funnel.get(key, 0)
     examples.sort(key=lambda x:(x[0],x[1]))
-    seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"])
+    seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy)
     cursor = 0
 
     def train_until(cut_ts):
@@ -113,7 +138,8 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
-            legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline)
+            legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline,
+            exit_policy=exit_policy)
         feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
                     if learn and shadow else None)
         metrics, trades = simulate(rows, features, start, end, 500,
@@ -161,7 +187,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
     confirmation = None
     if reused and fresh_start < len(rows)-1:
         confirmation_seed = AdaptivePolicy(initial, settings["max_notional_fraction"],
-            fee_rate=fee, slippage_rate=slip)
+            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy)
         prefix = HistoricalFeedback(rows, features, holdout_start, fresh_start,
             settings, confirmation_seed, step, cancelled)
         prefix.advance(rows[fresh_start]["ts"])
@@ -230,6 +256,10 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             basis="Incomplete account test: listed closed trades cover only the observed prefix before an unresolved data gap.")
     return {"engine_version":ENGINE_VERSION, "policy_version":POLICY_VERSION,
         "learning_report_version":LEARNING_REPORT_VERSION,
+        "learning_inputs":{"dimensions":len(FEATURE_NAMES), "names":list(FEATURE_NAMES),
+            "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
+                "wicks, RSI change, VWAP distance, volatility and completed daily context. "
+                "Exit reviews and future candles are not entry inputs."},
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_selection":coverage,
         "replay":{"clock":"Historical candles processed without wall-clock waits",
