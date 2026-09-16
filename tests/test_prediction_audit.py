@@ -66,7 +66,8 @@ class EntryForecastTests(unittest.TestCase):
     def test_true_entry_error_can_raise_margin_without_a_second_reward(self):
         policy = AdaptivePolicy(trained_state()); p = policy.candidates[0]
         vector = feature_vector(F,p,0,0)
-        forecast = entry_snapshot(dict(policy.forecast(p,vector),estimated_net_r=3),100)
+        forecast = entry_snapshot(dict(policy.forecast(p,vector),estimated_net_r=3,
+            raw_estimated_net_r=3,trial_estimated_net_r=3,calibration_key='low/above_0.5R'),100)
         before = policy.state["observations"]
         for stamp in range(100,130):
             policy.observe(p,vector,-1.,stamp,outcome={"entry_forecast":forecast})

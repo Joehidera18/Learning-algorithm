@@ -1,0 +1,3345 @@
+{
+  "scope": "Paired V11.7 versus V11.8 research on identical supplied real-candle snapshots. Each test is a separate $500 account. All test periods are reviewed history, with no new confirmation trades. No tuning or qualification from this comparison.",
+  "baseline_github_commit": "c1cec2a0d7797974eb6ec85a13f7f28db0f09c49",
+  "baseline_git_tree": "e2208b6948fac5a553b1ca9ae706515e5d343622",
+  "selection_uses_comparison": false,
+  "qualification_uses_comparison": false,
+  "correction_decision": "Disabled in the default model after mixed forecast accuracy in the fixed initial experiment. The normal report evaluates the trial correction prospectively on identical entries; these error comparisons do not establish another policy return.",
+  "markets": [
+    {
+      "symbol": "DOT-USD",
+      "bundle_sha256": "fc6ee5e7c4fd3423e94a04dd865274dfdc17d8d70af2284dbd440894ab1b96bc",
+      "reviewed_report_sha256": "80f9ad9adea71d60761ba9ca278116b356614aeed438980ed406c4d4fcc8cbe9",
+      "source_code_sha256": "4a84f3cb24203d4daf02c3926223fac84fa56ba61cddcdd3b34a9b0b1ce20105",
+      "baseline_source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "baseline": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "learning_report_version": 12,
+        "data_sha256": "1ee9023a0aa5cd0b5c2162de57d3d1046838ef6d9bddd9a7705369503cfc327e",
+        "historical_examples": 10843,
+        "training_label_end_ts": 1770507000000,
+        "holdout_start_ts": 1770599700000,
+        "pre_holdout_model_sha256": "64086170e0c5b8c9a3360e1f0adcca429f97a092020c1284e75f945d84c3aba3",
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695151800000,
+          "training_end_ts": 1770513300000,
+          "test_start_ts": 1770599700000,
+          "test_end_ts": 1789543800000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "holdout_ready_candles": 18313,
+          "holdout_candles": 21010
+        },
+        "reviewed_through_ts": 1789543800000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 5048,
+            "training_label_end_ts": 1728781200000,
+            "test_start_ts": 1728936900000,
+            "test_end_ts": 1742539500000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "gross_pnl": -0.5344880314955955,
+              "fees_paid": 0.849923200018705,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.4941025004661945,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7005,
+            "training_label_end_ts": 1742447700000,
+            "test_start_ts": 1742539500000,
+            "test_end_ts": 1756137600000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9151,
+            "training_label_end_ts": 1756039500000,
+            "test_start_ts": 1756137600000,
+            "test_end_ts": 1770513300000,
+            "metrics": {
+              "trades": 1,
+              "net_pnl": -3.75,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "mae_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {}
+          },
+          "shadow": {
+            "samples": 1948,
+            "mean_predicted_net_r": -0.6079966187633546,
+            "mean_actual_net_r": -0.5830326573658612,
+            "optimism_bias_r": -0.024963961397493562,
+            "mae_r": 0.595270328929026,
+            "rmse_r": 0.7368555498582607,
+            "zero_forecast_rmse_r": 0.9370050896101046,
+            "positive_forecasts": 3,
+            "positive_forecasts_that_lost": 2,
+            "near_break_even": 53,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 1945,
+                "mean_predicted_net_r": -0.6094589893201486,
+                "mean_actual_net_r": -0.5834608507518875,
+                "optimism_bias_r": -0.02599813856826123,
+                "mae_r": 0.5942611313889551,
+                "rmse_r": 0.7357189024148193,
+                "zero_forecast_rmse_r": 0.9368567760234909,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 53
+              },
+              "above_0.5R": {
+                "samples": 1,
+                "mean_predicted_net_r": 0.5289258187997361,
+                "mean_actual_net_r": -1.0,
+                "optimism_bias_r": 1.528925818799736,
+                "mae_r": 1.528925818799736,
+                "rmse_r": 1.528925818799736,
+                "zero_forecast_rmse_r": 1.0,
+                "positive_forecasts": 1,
+                "positive_forecasts_that_lost": 1,
+                "near_break_even": 0
+              },
+              "0_to_0.5R": {
+                "samples": 2,
+                "mean_predicted_net_r": 0.2456975289372324,
+                "mean_actual_net_r": 0.04186908186179461,
+                "optimism_bias_r": 0.2038284470754378,
+                "mae_r": 1.1098871917127062,
+                "rmse_r": 1.1284483214419267,
+                "zero_forecast_rmse_r": 1.0427100286059823,
+                "positive_forecasts": 2,
+                "positive_forecasts_that_lost": 1,
+                "near_break_even": 0
+              }
+            }
+          }
+        },
+        "development_prediction_audit": null,
+        "forecast_calibration": null,
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 3,
+              "net_pnl": -1.8375446206849801,
+              "gross_pnl": -1.09139031981133,
+              "fees_paid": 0.7461543008737027,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.416048763500889,
+              "complete": true
+            },
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 1,
+              "net_pnl": -3.75,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 6,
+              "net_pnl": 0.46560447805001104,
+              "gross_pnl": 2.604572066187458,
+              "fees_paid": 2.1389675881375347,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.75387005199816,
+              "complete": true
+            },
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 3,
+              "net_pnl": -11.165835937499992,
+              "gross_pnl": -9.027908314782389,
+              "fees_paid": 2.1379276227176116,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 2.2790609353595075,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": []
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.8-calibration",
+        "policy_version": "online-net-r-v11-calibration",
+        "learning_report_version": 13,
+        "data_sha256": "1ee9023a0aa5cd0b5c2162de57d3d1046838ef6d9bddd9a7705369503cfc327e",
+        "historical_examples": 10843,
+        "training_label_end_ts": 1770507000000,
+        "holdout_start_ts": 1770599700000,
+        "pre_holdout_model_sha256": "cc8262c93370a1ef083f96d91ab5ee795e445b630e2973015188104e98498e3d",
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695151800000,
+          "training_end_ts": 1770513300000,
+          "test_start_ts": 1770599700000,
+          "test_end_ts": 1789543800000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "holdout_ready_candles": 18313,
+          "holdout_candles": 21010
+        },
+        "reviewed_through_ts": 1789543800000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 5048,
+            "training_label_end_ts": 1728781200000,
+            "test_start_ts": 1728936900000,
+            "test_end_ts": 1742539500000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "gross_pnl": -0.5344880314955955,
+              "fees_paid": 0.849923200018705,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.4941025004661945,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7005,
+            "training_label_end_ts": 1742447700000,
+            "test_start_ts": 1742539500000,
+            "test_end_ts": 1756137600000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9151,
+            "training_label_end_ts": 1756039500000,
+            "test_start_ts": 1756137600000,
+            "test_end_ts": 1770513300000,
+            "metrics": {
+              "trades": 1,
+              "net_pnl": -3.75,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "mae_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {},
+            "calibration": {
+              "paired_samples": 0,
+              "adjusted_forecasts": 0,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 0,
+                "mean_predicted_net_r": null,
+                "mean_actual_net_r": null,
+                "optimism_bias_r": null,
+                "mae_r": null,
+                "rmse_r": null,
+                "zero_forecast_rmse_r": null,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 0
+              },
+              "corrected": {
+                "samples": 0,
+                "mean_predicted_net_r": null,
+                "mean_actual_net_r": null,
+                "optimism_bias_r": null,
+                "mae_r": null,
+                "rmse_r": null,
+                "zero_forecast_rmse_r": null,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 0
+              },
+              "by_raw_forecast_band": {},
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          },
+          "shadow": {
+            "samples": 1948,
+            "mean_predicted_net_r": -0.6079966187633546,
+            "mean_actual_net_r": -0.5830326573658612,
+            "optimism_bias_r": -0.024963961397493562,
+            "mae_r": 0.595270328929026,
+            "rmse_r": 0.7368555498582607,
+            "zero_forecast_rmse_r": 0.9370050896101046,
+            "positive_forecasts": 3,
+            "positive_forecasts_that_lost": 2,
+            "near_break_even": 53,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 1945,
+                "mean_predicted_net_r": -0.6094589893201486,
+                "mean_actual_net_r": -0.5834608507518875,
+                "optimism_bias_r": -0.02599813856826123,
+                "mae_r": 0.5942611313889551,
+                "rmse_r": 0.7357189024148193,
+                "zero_forecast_rmse_r": 0.9368567760234909,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 53
+              },
+              "above_0.5R": {
+                "samples": 1,
+                "mean_predicted_net_r": 0.5289258187997361,
+                "mean_actual_net_r": -1.0,
+                "optimism_bias_r": 1.528925818799736,
+                "mae_r": 1.528925818799736,
+                "rmse_r": 1.528925818799736,
+                "zero_forecast_rmse_r": 1.0,
+                "positive_forecasts": 1,
+                "positive_forecasts_that_lost": 1,
+                "near_break_even": 0
+              },
+              "0_to_0.5R": {
+                "samples": 2,
+                "mean_predicted_net_r": 0.2456975289372324,
+                "mean_actual_net_r": 0.04186908186179461,
+                "optimism_bias_r": 0.2038284470754378,
+                "mae_r": 1.1098871917127062,
+                "rmse_r": 1.1284483214419267,
+                "zero_forecast_rmse_r": 1.0427100286059823,
+                "positive_forecasts": 2,
+                "positive_forecasts_that_lost": 1,
+                "near_break_even": 0
+              }
+            },
+            "calibration": {
+              "paired_samples": 1948,
+              "adjusted_forecasts": 1870,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 1948,
+                "mean_predicted_net_r": -0.6079966187633546,
+                "mean_actual_net_r": -0.5830326573658612,
+                "optimism_bias_r": -0.024963961397493562,
+                "mae_r": 0.595270328929026,
+                "rmse_r": 0.7368555498582607,
+                "zero_forecast_rmse_r": 0.9370050896101046,
+                "positive_forecasts": 3,
+                "positive_forecasts_that_lost": 2,
+                "near_break_even": 53
+              },
+              "corrected": {
+                "samples": 1948,
+                "mean_predicted_net_r": -0.6291121990173643,
+                "mean_actual_net_r": -0.5830326573658612,
+                "optimism_bias_r": -0.04607954165150221,
+                "mae_r": 0.5839289912180279,
+                "rmse_r": 0.7381096692788731,
+                "zero_forecast_rmse_r": 0.9370050896101046,
+                "positive_forecasts": 4,
+                "positive_forecasts_that_lost": 3,
+                "near_break_even": 53
+              },
+              "by_raw_forecast_band": {
+                "nonpositive": {
+                  "raw": {
+                    "samples": 1945,
+                    "mean_predicted_net_r": -0.6094589893201486,
+                    "mean_actual_net_r": -0.5834608507518875,
+                    "optimism_bias_r": -0.02599813856826123,
+                    "mae_r": 0.5942611313889551,
+                    "rmse_r": 0.7357189024148193,
+                    "zero_forecast_rmse_r": 0.9368567760234909,
+                    "positive_forecasts": 0,
+                    "positive_forecasts_that_lost": 0,
+                    "near_break_even": 53
+                  },
+                  "corrected": {
+                    "samples": 1945,
+                    "mean_predicted_net_r": -0.630607138592545,
+                    "mean_actual_net_r": -0.5834608507518875,
+                    "optimism_bias_r": -0.04714628784065651,
+                    "mae_r": 0.5829023006120787,
+                    "rmse_r": 0.7369768917893665,
+                    "zero_forecast_rmse_r": 0.9368567760234909,
+                    "positive_forecasts": 1,
+                    "positive_forecasts_that_lost": 1,
+                    "near_break_even": 53
+                  }
+                },
+                "above_0.5R": {
+                  "raw": {
+                    "samples": 1,
+                    "mean_predicted_net_r": 0.5289258187997361,
+                    "mean_actual_net_r": -1.0,
+                    "optimism_bias_r": 1.528925818799736,
+                    "mae_r": 1.528925818799736,
+                    "rmse_r": 1.528925818799736,
+                    "zero_forecast_rmse_r": 1.0,
+                    "positive_forecasts": 1,
+                    "positive_forecasts_that_lost": 1,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 1,
+                    "mean_predicted_net_r": 0.5289258187997361,
+                    "mean_actual_net_r": -1.0,
+                    "optimism_bias_r": 1.528925818799736,
+                    "mae_r": 1.528925818799736,
+                    "rmse_r": 1.528925818799736,
+                    "zero_forecast_rmse_r": 1.0,
+                    "positive_forecasts": 1,
+                    "positive_forecasts_that_lost": 1,
+                    "near_break_even": 0
+                  }
+                },
+                "0_to_0.5R": {
+                  "raw": {
+                    "samples": 2,
+                    "mean_predicted_net_r": 0.2456975289372324,
+                    "mean_actual_net_r": 0.04186908186179461,
+                    "optimism_bias_r": 0.2038284470754378,
+                    "mae_r": 1.1098871917127062,
+                    "rmse_r": 1.1284483214419267,
+                    "zero_forecast_rmse_r": 1.0427100286059823,
+                    "positive_forecasts": 2,
+                    "positive_forecasts_that_lost": 1,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 2,
+                    "mean_predicted_net_r": 0.2456975289372324,
+                    "mean_actual_net_r": 0.04186908186179461,
+                    "optimism_bias_r": 0.2038284470754378,
+                    "mae_r": 1.1098871917127062,
+                    "rmse_r": 1.1284483214419267,
+                    "zero_forecast_rmse_r": 1.0427100286059823,
+                    "positive_forecasts": 2,
+                    "positive_forecasts_that_lost": 1,
+                    "near_break_even": 0
+                  }
+                }
+              },
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          }
+        },
+        "development_prediction_audit": {
+          "samples": 10183,
+          "mean_predicted_net_r": -0.537001639609041,
+          "mean_actual_net_r": -0.5441448704320966,
+          "optimism_bias_r": 0.007143230823051665,
+          "mae_r": 0.63921505779139,
+          "rmse_r": 0.7590284032250996,
+          "zero_forecast_rmse_r": 0.9285186863214272,
+          "positive_forecasts": 82,
+          "positive_forecasts_that_lost": 64,
+          "near_break_even": 274,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 660,
+          "excluded_end_marks": 0,
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 10101,
+              "mean_predicted_net_r": -0.5425435464393662,
+              "mean_actual_net_r": -0.545805375699026,
+              "optimism_bias_r": 0.003261829259655488,
+              "mae_r": 0.6342255009907225,
+              "rmse_r": 0.7528536651249548,
+              "zero_forecast_rmse_r": 0.9252224244385212,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 273
+            },
+            "0_to_0.5R": {
+              "samples": 82,
+              "mean_predicted_net_r": 0.14566666396552547,
+              "mean_actual_net_r": -0.33959897163636094,
+              "optimism_bias_r": 0.4852656356018861,
+              "mae_r": 1.2538432680785632,
+              "rmse_r": 1.3138094803156346,
+              "zero_forecast_rmse_r": 1.270765870684216,
+              "positive_forecasts": 82,
+              "positive_forecasts_that_lost": 64,
+              "near_break_even": 1
+            }
+          },
+          "calibration": {
+            "paired_samples": 10183,
+            "adjusted_forecasts": 9056,
+            "applied_forecasts": 0,
+            "raw": {
+              "samples": 10183,
+              "mean_predicted_net_r": -0.537001639609041,
+              "mean_actual_net_r": -0.5441448704320966,
+              "optimism_bias_r": 0.007143230823051665,
+              "mae_r": 0.63921505779139,
+              "rmse_r": 0.7590284032250996,
+              "zero_forecast_rmse_r": 0.9285186863214272,
+              "positive_forecasts": 82,
+              "positive_forecasts_that_lost": 64,
+              "near_break_even": 274
+            },
+            "corrected": {
+              "samples": 10183,
+              "mean_predicted_net_r": -0.538540721650289,
+              "mean_actual_net_r": -0.5441448704320966,
+              "optimism_bias_r": 0.005604148781805311,
+              "mae_r": 0.6391496993124058,
+              "rmse_r": 0.7612477891379879,
+              "zero_forecast_rmse_r": 0.9285186863214272,
+              "positive_forecasts": 103,
+              "positive_forecasts_that_lost": 81,
+              "near_break_even": 274
+            },
+            "by_raw_forecast_band": {
+              "nonpositive": {
+                "raw": {
+                  "samples": 10101,
+                  "mean_predicted_net_r": -0.5425435464393662,
+                  "mean_actual_net_r": -0.545805375699026,
+                  "optimism_bias_r": 0.003261829259655488,
+                  "mae_r": 0.6342255009907225,
+                  "rmse_r": 0.7528536651249548,
+                  "zero_forecast_rmse_r": 0.9252224244385212,
+                  "positive_forecasts": 0,
+                  "positive_forecasts_that_lost": 0,
+                  "near_break_even": 273
+                },
+                "corrected": {
+                  "samples": 10101,
+                  "mean_predicted_net_r": -0.5440951227611194,
+                  "mean_actual_net_r": -0.545805375699026,
+                  "optimism_bias_r": 0.0017102529379040222,
+                  "mae_r": 0.634159611931075,
+                  "rmse_r": 0.7551093374223417,
+                  "zero_forecast_rmse_r": 0.9252224244385212,
+                  "positive_forecasts": 21,
+                  "positive_forecasts_that_lost": 17,
+                  "near_break_even": 273
+                }
+              },
+              "0_to_0.5R": {
+                "raw": {
+                  "samples": 82,
+                  "mean_predicted_net_r": 0.14566666396552547,
+                  "mean_actual_net_r": -0.33959897163636094,
+                  "optimism_bias_r": 0.4852656356018861,
+                  "mae_r": 1.2538432680785632,
+                  "rmse_r": 1.3138094803156346,
+                  "zero_forecast_rmse_r": 1.270765870684216,
+                  "positive_forecasts": 82,
+                  "positive_forecasts_that_lost": 64,
+                  "near_break_even": 1
+                },
+                "corrected": {
+                  "samples": 82,
+                  "mean_predicted_net_r": 0.14566666396552547,
+                  "mean_actual_net_r": -0.33959897163636094,
+                  "optimism_bias_r": 0.4852656356018861,
+                  "mae_r": 1.2538432680785632,
+                  "rmse_r": 1.3138094803156346,
+                  "zero_forecast_rmse_r": 1.270765870684216,
+                  "positive_forecasts": 82,
+                  "positive_forecasts_that_lost": 64,
+                  "near_break_even": 1
+                }
+              }
+            },
+            "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+          }
+        },
+        "forecast_calibration": {
+          "scored_outcomes": 12131,
+          "buckets": 76,
+          "ready_buckets": 27,
+          "minimum_samples": 30,
+          "half_life_observations": 50,
+          "shrinkage": 50,
+          "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+          "enabled_for_selection": false,
+          "scope": "Residual correction is an experiment, disabled in the default trading model. Chronological development forecast errors do affect the default error margin. Experimental models cannot qualify or load for trading."
+        },
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 3,
+              "net_pnl": -1.8375446206849801,
+              "gross_pnl": -1.09139031981133,
+              "fees_paid": 0.7461543008737027,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.416048763500889,
+              "complete": true
+            },
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 7,
+              "net_pnl": -4.176236607721933,
+              "gross_pnl": -0.34010227710632845,
+              "fees_paid": 3.836134330615625,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.1426361001863983,
+              "complete": true
+            },
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 3,
+              "net_pnl": -11.165835937499992,
+              "gross_pnl": -9.027908314782389,
+              "fees_paid": 2.1379276227176116,
+              "win_rate": 0.0,
+              "max_drawdown_pct": 2.2790609353595075,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": []
+      }
+    },
+    {
+      "symbol": "XRP-USD",
+      "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "reviewed_report_sha256": "80f9ad9adea71d60761ba9ca278116b356614aeed438980ed406c4d4fcc8cbe9",
+      "source_code_sha256": "4a84f3cb24203d4daf02c3926223fac84fa56ba61cddcdd3b34a9b0b1ce20105",
+      "baseline_source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "baseline": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "learning_report_version": 12,
+        "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+        "historical_examples": 11113,
+        "training_label_end_ts": 1770506100000,
+        "holdout_start_ts": 1770600600000,
+        "pre_holdout_model_sha256": "eac4cfa2e994bf9d8f9fba482382d8c72bb8dbaf449e67425b085809b3c3bdf2",
+        "validated": false,
+        "rejection_reasons": [
+          "A later test period stopped at a data gap while holding a position; its return is unknown.",
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695142800000,
+          "training_end_ts": 1770514200000,
+          "test_start_ts": 1770600600000,
+          "test_end_ts": 1789534800000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "holdout_ready_candles": 20773,
+          "holdout_candles": 21013
+        },
+        "reviewed_through_ts": 1789541100000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 5,
+          "net_pnl": -6.033706267503987,
+          "gross_pnl": -2.0882782756070357,
+          "fees_paid": 3.945427991896906,
+          "win_rate": 20.0,
+          "max_drawdown_pct": 2.852880808872927,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 3,
+          "net_pnl": 8.3292711419316,
+          "gross_pnl": 10.865555320588141,
+          "fees_paid": 2.5362841786565222,
+          "win_rate": 66.66666666666666,
+          "max_drawdown_pct": 1.0930624484919462,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 4850,
+            "training_label_end_ts": 1728782100000,
+            "test_start_ts": 1728931500000,
+            "test_end_ts": 1742536800000,
+            "metrics": {
+              "trades": 9,
+              "net_pnl": null,
+              "gross_pnl": 23.740568558605947,
+              "fees_paid": 3.131502801426532,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7139,
+            "training_label_end_ts": 1742446800000,
+            "test_start_ts": 1742536800000,
+            "test_end_ts": 1756136700000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -0.8308210569763332,
+              "gross_pnl": 1.0657842738502223,
+              "fees_paid": 1.8966053308265236,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.5200968324697548,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9307,
+            "training_label_end_ts": 1756017900000,
+            "test_start_ts": 1756136700000,
+            "test_end_ts": 1770514200000,
+            "metrics": {
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872,
+              "win_rate": 40.0,
+              "max_drawdown_pct": 1.683854177922359,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 5,
+            "mean_predicted_net_r": 0.32292972800498954,
+            "mean_actual_net_r": -0.3192949753782982,
+            "optimism_bias_r": 0.6422247033832877,
+            "mae_r": 1.201059388490307,
+            "rmse_r": 1.2381093542137107,
+            "zero_forecast_rmse_r": 1.0913908563047008,
+            "positive_forecasts": 5,
+            "positive_forecasts_that_lost": 4,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "0_to_0.5R": {
+                "samples": 5,
+                "mean_predicted_net_r": 0.32292972800498954,
+                "mean_actual_net_r": -0.3192949753782982,
+                "optimism_bias_r": 0.6422247033832877,
+                "mae_r": 1.201059388490307,
+                "rmse_r": 1.2381093542137107,
+                "zero_forecast_rmse_r": 1.0913908563047008,
+                "positive_forecasts": 5,
+                "positive_forecasts_that_lost": 4,
+                "near_break_even": 0
+              }
+            }
+          },
+          "shadow": {
+            "samples": 2494,
+            "mean_predicted_net_r": -0.5925762959839153,
+            "mean_actual_net_r": -0.6019503642387578,
+            "optimism_bias_r": 0.009374068254843269,
+            "mae_r": 0.5501759185367648,
+            "rmse_r": 0.6693793391164092,
+            "zero_forecast_rmse_r": 0.903876017507036,
+            "positive_forecasts": 14,
+            "positive_forecasts_that_lost": 9,
+            "near_break_even": 91,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 2480,
+                "mean_predicted_net_r": -0.5967718604420506,
+                "mean_actual_net_r": -0.6050451246929183,
+                "optimism_bias_r": 0.008273264250868335,
+                "mae_r": 0.5469929233259361,
+                "rmse_r": 0.6655396130138633,
+                "zero_forecast_rmse_r": 0.9022681753524008,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 91
+              },
+              "0_to_0.5R": {
+                "samples": 14,
+                "mean_predicted_net_r": 0.15063797945722107,
+                "mean_actual_net_r": -0.05373565521604438,
+                "optimism_bias_r": 0.20437363467326544,
+                "mae_r": 1.1140207844550487,
+                "rmse_r": 1.164497291758851,
+                "zero_forecast_rmse_r": 1.153869050551864,
+                "positive_forecasts": 14,
+                "positive_forecasts_that_lost": 9,
+                "near_break_even": 0
+              }
+            }
+          }
+        },
+        "development_prediction_audit": null,
+        "forecast_calibration": null,
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.9144486584609615,
+            "fees_paid": 1.557426341539038,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.649352439921423,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 1,
+            "net_pnl": -3.75,
+            "gross_pnl": -2.960583499529136,
+            "fees_paid": 0.789416500470864,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 0.9487317231878081,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 5,
+            "net_pnl": 11.45125833149956,
+            "gross_pnl": 15.360165596076577,
+            "fees_paid": 3.9089072645770275,
+            "win_rate": 60.0,
+            "max_drawdown_pct": 1.0931304889497018,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.929873463754288,
+            "fees_paid": 1.5420015362457118,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.4943750000000022,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 4,
+            "net_pnl": 15.316129301259025,
+            "gross_pnl": 18.54014625027803,
+            "fees_paid": 3.2240169490190396,
+            "win_rate": 75.0,
+            "max_drawdown_pct": 0.7923795998002713,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.929873463754288,
+            "fees_paid": 1.5420015362457118,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.4943750000000022,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 10,
+              "net_pnl": null,
+              "gross_pnl": 7.320807859732081,
+              "fees_paid": 3.8043626003653186,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            },
+            {
+              "trades": 6,
+              "net_pnl": 12.194008922610124,
+              "gross_pnl": 16.33414585695051,
+              "fees_paid": 4.140136934340307,
+              "win_rate": 50.0,
+              "max_drawdown_pct": 1.531264611543385,
+              "complete": true
+            },
+            {
+              "trades": 5,
+              "net_pnl": -3.5060007733133602,
+              "gross_pnl": 0.7037651979016377,
+              "fees_paid": 4.209765971214963,
+              "win_rate": 20.0,
+              "max_drawdown_pct": 2.046889202961416,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 5,
+            "net_pnl": -6.033706267503987,
+            "gross_pnl": -2.0882782756070357,
+            "fees_paid": 3.945427991896906,
+            "win_rate": 20.0,
+            "max_drawdown_pct": 2.852880808872927,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 15,
+              "net_pnl": null,
+              "gross_pnl": 27.0026275864356,
+              "fees_paid": 5.867635391117951,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            },
+            {
+              "trades": 5,
+              "net_pnl": -8.290280474806025,
+              "gross_pnl": -5.162969168872436,
+              "fees_paid": 3.127311305933673,
+              "win_rate": 20.0,
+              "max_drawdown_pct": 2.749706762017722,
+              "complete": true
+            },
+            {
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872,
+              "win_rate": 40.0,
+              "max_drawdown_pct": 1.683854177922359,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1773702000000,
+            "exit_ts": 1773727200000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.75,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.75,
+            "gross_pnl": -2.97043150391118,
+            "fees_paid": 0.7795684960888203,
+            "entry_forecast": {
+              "estimated_net_r": 0.3541257861788851,
+              "error_penalty_r": 0.20850180834544987,
+              "conservative_net_r": 0.14562397783343525,
+              "samples": 54,
+              "ready": true,
+              "model_last_label_ts": 1773702000000,
+              "signal_close_ts": 1773702000000
+            }
+          },
+          {
+            "entry_ts": 1773869400000,
+            "exit_ts": 1773939600000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.721875,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.721875,
+            "gross_pnl": -3.0327132500558593,
+            "fees_paid": 0.6891617499441405,
+            "entry_forecast": {
+              "estimated_net_r": 0.32668468857939703,
+              "error_penalty_r": 0.17425897548392744,
+              "conservative_net_r": 0.1524257130954696,
+              "samples": 54,
+              "ready": true,
+              "model_last_label_ts": 1773832500000,
+              "signal_close_ts": 1773869400000
+            }
+          },
+          {
+            "entry_ts": 1776331800000,
+            "exit_ts": 1776936600000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -1.074545976771961,
+            "r_multiple": -0.2908926204019885,
+            "reason": "TIME",
+            "risk_dollars": 3.6939609375,
+            "gross_pnl": -0.23851745700486465,
+            "fees_paid": 0.8360285197670962,
+            "entry_forecast": {
+              "estimated_net_r": 0.31118676081072294,
+              "error_penalty_r": 0.20850180834544987,
+              "conservative_net_r": 0.10268495246527307,
+              "samples": 56,
+              "ready": true,
+              "model_last_label_ts": 1776321000000,
+              "signal_close_ts": 1776331800000
+            }
+          },
+          {
+            "entry_ts": 1777251600000,
+            "exit_ts": 1777296600000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.6859018426742103,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.6859018426742103,
+            "gross_pnl": -2.8219180193254596,
+            "fees_paid": 0.8639838233487507,
+            "entry_forecast": {
+              "estimated_net_r": 0.3253203737129935,
+              "error_penalty_r": 0.2065554962355083,
+              "conservative_net_r": 0.11876487747748518,
+              "samples": 58,
+              "ready": true,
+              "model_last_label_ts": 1777239900000,
+              "signal_close_ts": 1777251600000
+            }
+          },
+          {
+            "entry_ts": 1787366700000,
+            "exit_ts": 1787373000000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": 6.198616551942229,
+            "r_multiple": 1.6944177435104972,
+            "reason": "TARGET2",
+            "risk_dollars": 3.6582575788541534,
+            "gross_pnl": 6.975301954690328,
+            "fees_paid": 0.7766854027480983,
+            "entry_forecast": {
+              "estimated_net_r": 0.297331030742949,
+              "error_penalty_r": 0.19547753762348943,
+              "conservative_net_r": 0.10185349311945954,
+              "samples": 66,
+              "ready": true,
+              "model_last_label_ts": 1787365800000,
+              "signal_close_ts": 1787366700000
+            }
+          }
+        ]
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.8-calibration",
+        "policy_version": "online-net-r-v11-calibration",
+        "learning_report_version": 13,
+        "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+        "historical_examples": 11113,
+        "training_label_end_ts": 1770506100000,
+        "holdout_start_ts": 1770600600000,
+        "pre_holdout_model_sha256": "a785e49529c814fc3dec26deaaa4c266f2836106a27beb8d020a06ecc77961b1",
+        "validated": false,
+        "rejection_reasons": [
+          "A later test period stopped at a data gap while holding a position; its return is unknown.",
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695142800000,
+          "training_end_ts": 1770514200000,
+          "test_start_ts": 1770600600000,
+          "test_end_ts": 1789534800000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "holdout_ready_candles": 20773,
+          "holdout_candles": 21013
+        },
+        "reviewed_through_ts": 1789541100000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 4,
+          "net_pnl": -4.976138523505199,
+          "gross_pnl": -1.967430275676279,
+          "fees_paid": 3.0087082478289067,
+          "win_rate": 25.0,
+          "max_drawdown_pct": 2.825854172130569,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 0,
+          "net_pnl": 0.0,
+          "gross_pnl": 0,
+          "fees_paid": 0,
+          "win_rate": null,
+          "max_drawdown_pct": 0,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 3,
+          "net_pnl": 8.3292711419316,
+          "gross_pnl": 10.865555320588141,
+          "fees_paid": 2.5362841786565222,
+          "win_rate": 66.66666666666666,
+          "max_drawdown_pct": 1.0930624484919462,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 4850,
+            "training_label_end_ts": 1728782100000,
+            "test_start_ts": 1728931500000,
+            "test_end_ts": 1742536800000,
+            "metrics": {
+              "trades": 9,
+              "net_pnl": null,
+              "gross_pnl": 23.740568558605947,
+              "fees_paid": 3.131502801426532,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7139,
+            "training_label_end_ts": 1742446800000,
+            "test_start_ts": 1742536800000,
+            "test_end_ts": 1756136700000,
+            "metrics": {
+              "trades": 3,
+              "net_pnl": -0.8308210569763332,
+              "gross_pnl": 1.0657842738502223,
+              "fees_paid": 1.8966053308265236,
+              "win_rate": 33.33333333333333,
+              "max_drawdown_pct": 1.5200968324697548,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9307,
+            "training_label_end_ts": 1756017900000,
+            "test_start_ts": 1756136700000,
+            "test_end_ts": 1770514200000,
+            "metrics": {
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872,
+              "win_rate": 40.0,
+              "max_drawdown_pct": 1.683854177922359,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 4,
+            "mean_predicted_net_r": 0.33365090319372537,
+            "mean_actual_net_r": -0.3279279307761702,
+            "optimism_bias_r": 0.6615788339698954,
+            "mae_r": 1.3538976037180142,
+            "rmse_r": 1.3540545156522572,
+            "zero_forecast_rmse_r": 1.2093714592611906,
+            "positive_forecasts": 4,
+            "positive_forecasts_that_lost": 3,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "0_to_0.5R": {
+                "samples": 4,
+                "mean_predicted_net_r": 0.33365090319372537,
+                "mean_actual_net_r": -0.3279279307761702,
+                "optimism_bias_r": 0.6615788339698954,
+                "mae_r": 1.3538976037180142,
+                "rmse_r": 1.3540545156522572,
+                "zero_forecast_rmse_r": 1.2093714592611906,
+                "positive_forecasts": 4,
+                "positive_forecasts_that_lost": 3,
+                "near_break_even": 0
+              }
+            },
+            "calibration": {
+              "paired_samples": 4,
+              "adjusted_forecasts": 0,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 4,
+                "mean_predicted_net_r": 0.33365090319372537,
+                "mean_actual_net_r": -0.3279279307761702,
+                "optimism_bias_r": 0.6615788339698954,
+                "mae_r": 1.3538976037180142,
+                "rmse_r": 1.3540545156522572,
+                "zero_forecast_rmse_r": 1.2093714592611906,
+                "positive_forecasts": 4,
+                "positive_forecasts_that_lost": 3,
+                "near_break_even": 0
+              },
+              "corrected": {
+                "samples": 4,
+                "mean_predicted_net_r": 0.33365090319372537,
+                "mean_actual_net_r": -0.3279279307761702,
+                "optimism_bias_r": 0.6615788339698954,
+                "mae_r": 1.3538976037180142,
+                "rmse_r": 1.3540545156522572,
+                "zero_forecast_rmse_r": 1.2093714592611906,
+                "positive_forecasts": 4,
+                "positive_forecasts_that_lost": 3,
+                "near_break_even": 0
+              },
+              "by_raw_forecast_band": {
+                "0_to_0.5R": {
+                  "raw": {
+                    "samples": 4,
+                    "mean_predicted_net_r": 0.33365090319372537,
+                    "mean_actual_net_r": -0.3279279307761702,
+                    "optimism_bias_r": 0.6615788339698954,
+                    "mae_r": 1.3538976037180142,
+                    "rmse_r": 1.3540545156522572,
+                    "zero_forecast_rmse_r": 1.2093714592611906,
+                    "positive_forecasts": 4,
+                    "positive_forecasts_that_lost": 3,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 4,
+                    "mean_predicted_net_r": 0.33365090319372537,
+                    "mean_actual_net_r": -0.3279279307761702,
+                    "optimism_bias_r": 0.6615788339698954,
+                    "mae_r": 1.3538976037180142,
+                    "rmse_r": 1.3540545156522572,
+                    "zero_forecast_rmse_r": 1.2093714592611906,
+                    "positive_forecasts": 4,
+                    "positive_forecasts_that_lost": 3,
+                    "near_break_even": 0
+                  }
+                }
+              },
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          },
+          "shadow": {
+            "samples": 2494,
+            "mean_predicted_net_r": -0.5925762959839153,
+            "mean_actual_net_r": -0.6019503642387578,
+            "optimism_bias_r": 0.009374068254843269,
+            "mae_r": 0.5501759185367648,
+            "rmse_r": 0.6693793391164092,
+            "zero_forecast_rmse_r": 0.903876017507036,
+            "positive_forecasts": 14,
+            "positive_forecasts_that_lost": 9,
+            "near_break_even": 91,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 2480,
+                "mean_predicted_net_r": -0.5967718604420506,
+                "mean_actual_net_r": -0.6050451246929183,
+                "optimism_bias_r": 0.008273264250868335,
+                "mae_r": 0.5469929233259361,
+                "rmse_r": 0.6655396130138633,
+                "zero_forecast_rmse_r": 0.9022681753524008,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 91
+              },
+              "0_to_0.5R": {
+                "samples": 14,
+                "mean_predicted_net_r": 0.15063797945722107,
+                "mean_actual_net_r": -0.05373565521604438,
+                "optimism_bias_r": 0.20437363467326544,
+                "mae_r": 1.1140207844550487,
+                "rmse_r": 1.164497291758851,
+                "zero_forecast_rmse_r": 1.153869050551864,
+                "positive_forecasts": 14,
+                "positive_forecasts_that_lost": 9,
+                "near_break_even": 0
+              }
+            },
+            "calibration": {
+              "paired_samples": 2494,
+              "adjusted_forecasts": 2391,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 2494,
+                "mean_predicted_net_r": -0.5925762959839153,
+                "mean_actual_net_r": -0.6019503642387578,
+                "optimism_bias_r": 0.009374068254843269,
+                "mae_r": 0.5501759185367648,
+                "rmse_r": 0.6693793391164092,
+                "zero_forecast_rmse_r": 0.903876017507036,
+                "positive_forecasts": 14,
+                "positive_forecasts_that_lost": 9,
+                "near_break_even": 91
+              },
+              "corrected": {
+                "samples": 2494,
+                "mean_predicted_net_r": -0.6015373873838955,
+                "mean_actual_net_r": -0.6019503642387578,
+                "optimism_bias_r": 0.00041297685486192133,
+                "mae_r": 0.546228041149172,
+                "rmse_r": 0.6708184353400842,
+                "zero_forecast_rmse_r": 0.903876017507036,
+                "positive_forecasts": 14,
+                "positive_forecasts_that_lost": 9,
+                "near_break_even": 91
+              },
+              "by_raw_forecast_band": {
+                "nonpositive": {
+                  "raw": {
+                    "samples": 2480,
+                    "mean_predicted_net_r": -0.5967718604420506,
+                    "mean_actual_net_r": -0.6050451246929183,
+                    "optimism_bias_r": 0.008273264250868335,
+                    "mae_r": 0.5469929233259361,
+                    "rmse_r": 0.6655396130138633,
+                    "zero_forecast_rmse_r": 0.9022681753524008,
+                    "positive_forecasts": 0,
+                    "positive_forecasts_that_lost": 0,
+                    "near_break_even": 91
+                  },
+                  "corrected": {
+                    "samples": 2480,
+                    "mean_predicted_net_r": -0.6057835386483211,
+                    "mean_actual_net_r": -0.6050451246929183,
+                    "optimism_bias_r": -0.0007384139554032504,
+                    "mae_r": 0.5430227595337357,
+                    "rmse_r": 0.6669951556946587,
+                    "zero_forecast_rmse_r": 0.9022681753524008,
+                    "positive_forecasts": 0,
+                    "positive_forecasts_that_lost": 0,
+                    "near_break_even": 91
+                  }
+                },
+                "0_to_0.5R": {
+                  "raw": {
+                    "samples": 14,
+                    "mean_predicted_net_r": 0.15063797945722107,
+                    "mean_actual_net_r": -0.05373565521604438,
+                    "optimism_bias_r": 0.20437363467326544,
+                    "mae_r": 1.1140207844550487,
+                    "rmse_r": 1.164497291758851,
+                    "zero_forecast_rmse_r": 1.153869050551864,
+                    "positive_forecasts": 14,
+                    "positive_forecasts_that_lost": 9,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 14,
+                    "mean_predicted_net_r": 0.15063797945722107,
+                    "mean_actual_net_r": -0.05373565521604438,
+                    "optimism_bias_r": 0.20437363467326544,
+                    "mae_r": 1.1140207844550487,
+                    "rmse_r": 1.164497291758851,
+                    "zero_forecast_rmse_r": 1.153869050551864,
+                    "positive_forecasts": 14,
+                    "positive_forecasts_that_lost": 9,
+                    "near_break_even": 0
+                  }
+                }
+              },
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          }
+        },
+        "development_prediction_audit": {
+          "samples": 10453,
+          "mean_predicted_net_r": -0.5616063890024614,
+          "mean_actual_net_r": -0.5555386496089004,
+          "optimism_bias_r": -0.0060677393935616945,
+          "mae_r": 0.6008520079949085,
+          "rmse_r": 0.7345747376248031,
+          "zero_forecast_rmse_r": 0.924038556634347,
+          "positive_forecasts": 235,
+          "positive_forecasts_that_lost": 149,
+          "near_break_even": 355,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 660,
+          "excluded_end_marks": 0,
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 10218,
+              "mean_predicted_net_r": -0.5793180571723943,
+              "mean_actual_net_r": -0.5671252841602052,
+              "optimism_bias_r": -0.012192773012190095,
+              "mae_r": 0.5870643419750293,
+              "rmse_r": 0.716364295522579,
+              "zero_forecast_rmse_r": 0.9152508346065295,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 346
+            },
+            "0_to_0.5R": {
+              "samples": 217,
+              "mean_predicted_net_r": 0.17231633419306258,
+              "mean_actual_net_r": -0.053556596187145714,
+              "optimism_bias_r": 0.22587293038020828,
+              "mae_r": 1.1587509454021252,
+              "rmse_r": 1.258347641742819,
+              "zero_forecast_rmse_r": 1.2202789862766148,
+              "positive_forecasts": 217,
+              "positive_forecasts_that_lost": 136,
+              "near_break_even": 9
+            },
+            "above_0.5R": {
+              "samples": 18,
+              "mean_predicted_net_r": 0.6448710791613561,
+              "mean_actual_net_r": -0.029864968902708858,
+              "optimism_bias_r": 0.6747360480640651,
+              "mae_r": 1.7018687843151605,
+              "rmse_r": 1.7188861847879942,
+              "zero_forecast_rmse_r": 1.5398192336242085,
+              "positive_forecasts": 18,
+              "positive_forecasts_that_lost": 13,
+              "near_break_even": 0
+            }
+          },
+          "calibration": {
+            "paired_samples": 10453,
+            "adjusted_forecasts": 9196,
+            "applied_forecasts": 0,
+            "raw": {
+              "samples": 10453,
+              "mean_predicted_net_r": -0.5616063890024614,
+              "mean_actual_net_r": -0.5555386496089004,
+              "optimism_bias_r": -0.0060677393935616945,
+              "mae_r": 0.6008520079949085,
+              "rmse_r": 0.7345747376248031,
+              "zero_forecast_rmse_r": 0.924038556634347,
+              "positive_forecasts": 235,
+              "positive_forecasts_that_lost": 149,
+              "near_break_even": 355
+            },
+            "corrected": {
+              "samples": 10453,
+              "mean_predicted_net_r": -0.5562754157687767,
+              "mean_actual_net_r": -0.5555386496089004,
+              "optimism_bias_r": -0.0007367661598782338,
+              "mae_r": 0.6032850784640371,
+              "rmse_r": 0.7365248260029109,
+              "zero_forecast_rmse_r": 0.924038556634347,
+              "positive_forecasts": 249,
+              "positive_forecasts_that_lost": 157,
+              "near_break_even": 355
+            },
+            "by_raw_forecast_band": {
+              "nonpositive": {
+                "raw": {
+                  "samples": 10218,
+                  "mean_predicted_net_r": -0.5793180571723943,
+                  "mean_actual_net_r": -0.5671252841602052,
+                  "optimism_bias_r": -0.012192773012190095,
+                  "mae_r": 0.5870643419750293,
+                  "rmse_r": 0.716364295522579,
+                  "zero_forecast_rmse_r": 0.9152508346065295,
+                  "positive_forecasts": 0,
+                  "positive_forecasts_that_lost": 0,
+                  "near_break_even": 346
+                },
+                "corrected": {
+                  "samples": 10218,
+                  "mean_predicted_net_r": -0.573864478858467,
+                  "mean_actual_net_r": -0.5671252841602052,
+                  "optimism_bias_r": -0.006739194698264441,
+                  "mae_r": 0.5895533697313221,
+                  "rmse_r": 0.7184097409812589,
+                  "zero_forecast_rmse_r": 0.9152508346065295,
+                  "positive_forecasts": 14,
+                  "positive_forecasts_that_lost": 8,
+                  "near_break_even": 346
+                }
+              },
+              "0_to_0.5R": {
+                "raw": {
+                  "samples": 217,
+                  "mean_predicted_net_r": 0.17231633419306258,
+                  "mean_actual_net_r": -0.053556596187145714,
+                  "optimism_bias_r": 0.22587293038020828,
+                  "mae_r": 1.1587509454021252,
+                  "rmse_r": 1.258347641742819,
+                  "zero_forecast_rmse_r": 1.2202789862766148,
+                  "positive_forecasts": 217,
+                  "positive_forecasts_that_lost": 136,
+                  "near_break_even": 9
+                },
+                "corrected": {
+                  "samples": 217,
+                  "mean_predicted_net_r": 0.17231633419306258,
+                  "mean_actual_net_r": -0.053556596187145714,
+                  "optimism_bias_r": 0.22587293038020828,
+                  "mae_r": 1.1587509454021252,
+                  "rmse_r": 1.258347641742819,
+                  "zero_forecast_rmse_r": 1.2202789862766148,
+                  "positive_forecasts": 217,
+                  "positive_forecasts_that_lost": 136,
+                  "near_break_even": 9
+                }
+              },
+              "above_0.5R": {
+                "raw": {
+                  "samples": 18,
+                  "mean_predicted_net_r": 0.6448710791613561,
+                  "mean_actual_net_r": -0.029864968902708858,
+                  "optimism_bias_r": 0.6747360480640651,
+                  "mae_r": 1.7018687843151605,
+                  "rmse_r": 1.7188861847879942,
+                  "zero_forecast_rmse_r": 1.5398192336242085,
+                  "positive_forecasts": 18,
+                  "positive_forecasts_that_lost": 13,
+                  "near_break_even": 0
+                },
+                "corrected": {
+                  "samples": 18,
+                  "mean_predicted_net_r": 0.6448710791613561,
+                  "mean_actual_net_r": -0.029864968902708858,
+                  "optimism_bias_r": 0.6747360480640651,
+                  "mae_r": 1.7018687843151605,
+                  "rmse_r": 1.7188861847879942,
+                  "zero_forecast_rmse_r": 1.5398192336242085,
+                  "positive_forecasts": 18,
+                  "positive_forecasts_that_lost": 13,
+                  "near_break_even": 0
+                }
+              }
+            },
+            "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+          }
+        },
+        "forecast_calibration": {
+          "scored_outcomes": 12947,
+          "buckets": 107,
+          "ready_buckets": 25,
+          "minimum_samples": 30,
+          "half_life_observations": 50,
+          "shrinkage": 50,
+          "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+          "enabled_for_selection": false,
+          "scope": "Residual correction is an experiment, disabled in the default trading model. Chronological development forecast errors do affect the default error margin. Experimental models cannot qualify or load for trading."
+        },
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.9144486584609615,
+            "fees_paid": 1.557426341539038,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.649352439921423,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 1,
+            "net_pnl": -3.75,
+            "gross_pnl": -2.960583499529136,
+            "fees_paid": 0.789416500470864,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 0.9487317231878081,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 5,
+            "net_pnl": 4.2407931010707784,
+            "gross_pnl": 8.213805106475723,
+            "fees_paid": 3.973012005404928,
+            "win_rate": 40.0,
+            "max_drawdown_pct": 2.031875043497805,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.929873463754288,
+            "fees_paid": 1.5420015362457118,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.4943750000000022,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 4,
+            "net_pnl": 15.316129301259025,
+            "gross_pnl": 18.54014625027803,
+            "fees_paid": 3.2240169490190396,
+            "win_rate": 75.0,
+            "max_drawdown_pct": 0.7923795998002713,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "gross_pnl": -5.929873463754288,
+            "fees_paid": 1.5420015362457118,
+            "win_rate": 0.0,
+            "max_drawdown_pct": 1.4943750000000022,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 10,
+              "net_pnl": null,
+              "gross_pnl": 7.320807859732081,
+              "fees_paid": 3.8043626003653186,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            },
+            {
+              "trades": 6,
+              "net_pnl": 12.194008922610124,
+              "gross_pnl": 16.33414585695051,
+              "fees_paid": 4.140136934340307,
+              "win_rate": 50.0,
+              "max_drawdown_pct": 1.531264611543385,
+              "complete": true
+            },
+            {
+              "trades": 5,
+              "net_pnl": -3.5060007733133602,
+              "gross_pnl": 0.7037651979016377,
+              "fees_paid": 4.209765971214963,
+              "win_rate": 20.0,
+              "max_drawdown_pct": 2.046889202961416,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 4,
+            "net_pnl": -4.976138523505199,
+            "gross_pnl": -1.967430275676279,
+            "fees_paid": 3.0087082478289067,
+            "win_rate": 25.0,
+            "max_drawdown_pct": 2.825854172130569,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 0,
+            "net_pnl": 0.0,
+            "gross_pnl": 0,
+            "fees_paid": 0,
+            "win_rate": null,
+            "max_drawdown_pct": 0,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 15,
+              "net_pnl": null,
+              "gross_pnl": 27.0026275864356,
+              "fees_paid": 5.867635391117951,
+              "win_rate": null,
+              "max_drawdown_pct": null,
+              "complete": false
+            },
+            {
+              "trades": 5,
+              "net_pnl": -8.290280474806025,
+              "gross_pnl": -5.162969168872436,
+              "fees_paid": 3.127311305933673,
+              "win_rate": 20.0,
+              "max_drawdown_pct": 2.749706762017722,
+              "complete": true
+            },
+            {
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872,
+              "win_rate": 40.0,
+              "max_drawdown_pct": 1.683854177922359,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1773702000000,
+            "exit_ts": 1773727200000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.75,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.75,
+            "gross_pnl": -2.97043150391118,
+            "fees_paid": 0.7795684960888203,
+            "entry_forecast": {
+              "estimated_net_r": 0.3541257861788851,
+              "raw_estimated_net_r": 0.3541257861788851,
+              "trial_estimated_net_r": 0.3541257861788851,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "moderate/0_to_0.5R",
+              "calibration_samples": 12,
+              "calibration_effective_samples": 11.972594016688019,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1773702000000,
+              "error_penalty_r": 0.20850180834544987,
+              "conservative_net_r": 0.14562397783343525,
+              "samples": 54,
+              "ready": true,
+              "model_last_label_ts": 1773702000000,
+              "signal_close_ts": 1773702000000
+            }
+          },
+          {
+            "entry_ts": 1773869400000,
+            "exit_ts": 1773939600000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.721875,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.721875,
+            "gross_pnl": -3.0327132500558593,
+            "fees_paid": 0.6891617499441405,
+            "entry_forecast": {
+              "estimated_net_r": 0.32668468857939703,
+              "raw_estimated_net_r": 0.32668468857939703,
+              "trial_estimated_net_r": 0.32668468857939703,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "moderate/0_to_0.5R",
+              "calibration_samples": 12,
+              "calibration_effective_samples": 11.972594016688019,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1773702000000,
+              "error_penalty_r": 0.17425897548392744,
+              "conservative_net_r": 0.1524257130954696,
+              "samples": 54,
+              "ready": true,
+              "model_last_label_ts": 1773832500000,
+              "signal_close_ts": 1773869400000
+            }
+          },
+          {
+            "entry_ts": 1776761100000,
+            "exit_ts": 1777297500000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": -3.693960937499999,
+            "r_multiple": -0.9999999999999999,
+            "reason": "STOP",
+            "risk_dollars": 3.6939609374999995,
+            "gross_pnl": -2.9380089766181596,
+            "fees_paid": 0.7559519608818396,
+            "entry_forecast": {
+              "estimated_net_r": 0.35014240061753754,
+              "raw_estimated_net_r": 0.35014240061753754,
+              "trial_estimated_net_r": 0.35014240061753754,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "moderate/0_to_0.5R",
+              "calibration_samples": 16,
+              "calibration_effective_samples": 15.934978476017857,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1776637800000,
+              "error_penalty_r": 0.22901757212359777,
+              "conservative_net_r": 0.12112482849393977,
+              "samples": 58,
+              "ready": true,
+              "model_last_label_ts": 1776757500000,
+              "signal_close_ts": 1776761100000
+            }
+          },
+          {
+            "entry_ts": 1787367600000,
+            "exit_ts": 1787373900000,
+            "strategy_family": "daily_trend_momentum_simple",
+            "pnl": 6.189697413994814,
+            "r_multiple": 1.6882882768953191,
+            "reason": "TARGET2",
+            "risk_dollars": 3.66625623046875,
+            "gross_pnl": 6.97372345490892,
+            "fees_paid": 0.7840260409141064,
+            "entry_forecast": {
+              "estimated_net_r": 0.30365073739908177,
+              "raw_estimated_net_r": 0.30365073739908177,
+              "trial_estimated_net_r": 0.30365073739908177,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "moderate/0_to_0.5R",
+              "calibration_samples": 21,
+              "calibration_effective_samples": 20.85326443203867,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1787365800000,
+              "error_penalty_r": 0.20057265167077037,
+              "conservative_net_r": 0.1030780857283114,
+              "samples": 66,
+              "ready": true,
+              "model_last_label_ts": 1787365800000,
+              "signal_close_ts": 1787367600000
+            }
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "AVAX-USD",
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "reviewed_report_sha256": "80f9ad9adea71d60761ba9ca278116b356614aeed438980ed406c4d4fcc8cbe9",
+      "source_code_sha256": "4a84f3cb24203d4daf02c3926223fac84fa56ba61cddcdd3b34a9b0b1ce20105",
+      "baseline_source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "baseline": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "learning_report_version": 12,
+        "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+        "historical_examples": 11270,
+        "training_label_end_ts": 1770425100000,
+        "holdout_start_ts": 1770518700000,
+        "pre_holdout_model_sha256": "c97e7038834bcc988b48726de5ecbb8fa2b4f2ce4b88f547e1a29f786df93ab5",
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695069900000,
+          "training_end_ts": 1770432300000,
+          "test_start_ts": 1770518700000,
+          "test_end_ts": 1789461900000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+          "start_ts": 1692230400000,
+          "end_ts": 1789344000000,
+          "holdout_ready_candles": 19079,
+          "holdout_candles": 21009
+        },
+        "reviewed_through_ts": 1789542900000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318,
+          "win_rate": 33.33333333333333,
+          "max_drawdown_pct": 1.7035860956619113,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "gross_pnl": -1.7627223471257234,
+          "fees_paid": 2.5670163183107153,
+          "win_rate": 50.0,
+          "max_drawdown_pct": 1.9159817304433848,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 13,
+          "net_pnl": -17.71246100146368,
+          "gross_pnl": -11.321864779389132,
+          "fees_paid": 6.3905962220746595,
+          "win_rate": 30.76923076923077,
+          "max_drawdown_pct": 4.304836567152473,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 5340,
+            "training_label_end_ts": 1728770400000,
+            "test_start_ts": 1728858600000,
+            "test_end_ts": 1742459400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7257,
+            "training_label_end_ts": 1742370300000,
+            "test_start_ts": 1742459400000,
+            "test_end_ts": 1756057500000,
+            "metrics": {
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585663,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9510,
+            "training_label_end_ts": 1755964800000,
+            "test_start_ts": 1756057500000,
+            "test_end_ts": 1770432300000,
+            "metrics": {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 3,
+            "mean_predicted_net_r": 0.42228497774483015,
+            "mean_actual_net_r": -0.4986835748095136,
+            "optimism_bias_r": 0.9209685525543438,
+            "mae_r": 0.9352356817048953,
+            "rmse_r": 1.1379869180317288,
+            "zero_forecast_rmse_r": 0.8667881079689157,
+            "positive_forecasts": 3,
+            "positive_forecasts_that_lost": 2,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "0_to_0.5R": {
+                "samples": 3,
+                "mean_predicted_net_r": 0.42228497774483015,
+                "mean_actual_net_r": -0.4986835748095136,
+                "optimism_bias_r": 0.9209685525543438,
+                "mae_r": 0.9352356817048953,
+                "rmse_r": 1.1379869180317288,
+                "zero_forecast_rmse_r": 0.8667881079689157,
+                "positive_forecasts": 3,
+                "positive_forecasts_that_lost": 2,
+                "near_break_even": 0
+              }
+            }
+          },
+          "shadow": {
+            "samples": 2280,
+            "mean_predicted_net_r": -0.5977690565805495,
+            "mean_actual_net_r": -0.6424794025475917,
+            "optimism_bias_r": 0.04471034596704139,
+            "mae_r": 0.5427658427477831,
+            "rmse_r": 0.6510091002281558,
+            "zero_forecast_rmse_r": 0.9125669224564281,
+            "positive_forecasts": 22,
+            "positive_forecasts_that_lost": 15,
+            "near_break_even": 82,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 2258,
+                "mean_predicted_net_r": -0.6049695463329734,
+                "mean_actual_net_r": -0.6454425148541266,
+                "optimism_bias_r": 0.040472968521152806,
+                "mae_r": 0.5411382256446533,
+                "rmse_r": 0.649058717626298,
+                "zero_forecast_rmse_r": 0.9141071269721273,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 82
+              },
+              "0_to_0.5R": {
+                "samples": 22,
+                "mean_predicted_net_r": 0.1412630280091303,
+                "mean_actual_net_r": -0.3383563303586563,
+                "optimism_bias_r": 0.47961935836778663,
+                "mae_r": 0.7098185436053576,
+                "rmse_r": 0.827079594543757,
+                "zero_forecast_rmse_r": 0.7375743653726512,
+                "positive_forecasts": 22,
+                "positive_forecasts_that_lost": 15,
+                "near_break_even": 0
+              }
+            }
+          }
+        },
+        "development_prediction_audit": null,
+        "forecast_calibration": null,
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 4,
+            "net_pnl": -6.508937457856973,
+            "gross_pnl": -4.574584679728722,
+            "fees_paid": 1.9343527781282743,
+            "win_rate": 25.0,
+            "max_drawdown_pct": 2.0526209234742177,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 5,
+            "net_pnl": -5.479983812331852,
+            "gross_pnl": -2.152499307336887,
+            "fees_paid": 3.3274845049949358,
+            "win_rate": 40.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.222624641676475,
+            "fees_paid": 1.3876814198811318,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7627223471257234,
+            "fees_paid": 2.5670163183107153,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.222624641676475,
+            "fees_paid": 1.3876814198811318,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7627223471257234,
+            "fees_paid": 2.5670163183107153,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585663,
+              "complete": true
+            },
+            {
+              "trades": 8,
+              "net_pnl": -2.795450546177449,
+              "gross_pnl": 2.2043788995814504,
+              "fees_paid": 4.999829445758795,
+              "win_rate": 25.0,
+              "max_drawdown_pct": 2.3908860542690236,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.222624641676475,
+            "fees_paid": 1.3876814198811318,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7627223471257234,
+            "fees_paid": 2.5670163183107153,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 7,
+              "net_pnl": 15.106928615683046,
+              "gross_pnl": 18.660202795524185,
+              "fees_paid": 3.5532741798410807,
+              "win_rate": 71.42857142857143,
+              "max_drawdown_pct": 1.3828270162585339,
+              "complete": true
+            },
+            {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1772232300000,
+            "exit_ts": 1772491500000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": 1.889809783392972,
+            "r_multiple": 0.5039492755714592,
+            "reason": "TIME",
+            "risk_dollars": 3.75,
+            "gross_pnl": 2.3482777097458647,
+            "fees_paid": 0.458467926352893,
+            "entry_forecast": {
+              "estimated_net_r": 0.4825485818456317,
+              "error_penalty_r": 0.15771577856967622,
+              "conservative_net_r": 0.3248328032759555,
+              "samples": 57,
+              "ready": true,
+              "model_last_label_ts": 1772211600000,
+              "signal_close_ts": 1772232300000
+            }
+          },
+          {
+            "entry_ts": 1772790300000,
+            "exit_ts": 1773007200000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7641735733754476,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.7641735733754476,
+            "gross_pnl": -3.3627898418101614,
+            "fees_paid": 0.401383731565286,
+            "entry_forecast": {
+              "estimated_net_r": 0.4569750776641429,
+              "error_penalty_r": 0.15500960793034535,
+              "conservative_net_r": 0.30196546973379756,
+              "samples": 58,
+              "ready": true,
+              "model_last_label_ts": 1772788500000,
+              "signal_close_ts": 1772790300000
+            }
+          },
+          {
+            "entry_ts": 1773673200000,
+            "exit_ts": 1773843300000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7359422715751314,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.7359422715751314,
+            "gross_pnl": -3.2081125096121785,
+            "fees_paid": 0.5278297619629528,
+            "entry_forecast": {
+              "estimated_net_r": 0.3273312737247157,
+              "error_penalty_r": 0.1520632872150448,
+              "conservative_net_r": 0.1752679865096709,
+              "samples": 60,
+              "ready": true,
+              "model_last_label_ts": 1773657900000,
+              "signal_close_ts": 1773673200000
+            }
+          }
+        ]
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.8-calibration",
+        "policy_version": "online-net-r-v11-calibration",
+        "learning_report_version": 13,
+        "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+        "historical_examples": 11270,
+        "training_label_end_ts": 1770425100000,
+        "holdout_start_ts": 1770518700000,
+        "pre_holdout_model_sha256": "e6a96bc7d7bf107e777f43f904f62db8604864448487d56d767a79fe5e5afdae",
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695069900000,
+          "training_end_ts": 1770432300000,
+          "test_start_ts": 1770518700000,
+          "test_end_ts": 1789461900000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "daily_data": {
+          "source": "independent_daily_candles",
+          "rows": 1125,
+          "data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+          "start_ts": 1692230400000,
+          "end_ts": 1789344000000,
+          "holdout_ready_candles": 19079,
+          "holdout_candles": 21009
+        },
+        "reviewed_through_ts": 1789542900000,
+        "confirmation": null,
+        "holdout": {
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "gross_pnl": -4.21908461685187,
+          "fees_paid": 1.3912214447057367,
+          "win_rate": 33.33333333333333,
+          "max_drawdown_pct": 1.7035860956619113,
+          "complete": true
+        },
+        "holdout_stressed": {
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "gross_pnl": -1.7581699977379008,
+          "fees_paid": 2.571568667698538,
+          "win_rate": 50.0,
+          "max_drawdown_pct": 1.9159817304433848,
+          "complete": true
+        },
+        "frozen_holdout": {
+          "trades": 13,
+          "net_pnl": -17.71246100146368,
+          "gross_pnl": -11.321864779389132,
+          "fees_paid": 6.3905962220746595,
+          "win_rate": 30.76923076923077,
+          "max_drawdown_pct": 4.304836567152473,
+          "complete": true
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "training_labels": 5340,
+            "training_label_end_ts": 1728770400000,
+            "test_start_ts": 1728858600000,
+            "test_end_ts": 1742459400000,
+            "metrics": {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            }
+          },
+          {
+            "fold": 2,
+            "training_labels": 7257,
+            "training_label_end_ts": 1742370300000,
+            "test_start_ts": 1742459400000,
+            "test_end_ts": 1756057500000,
+            "metrics": {
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585663,
+              "complete": true
+            }
+          },
+          {
+            "fold": 3,
+            "training_labels": 9510,
+            "training_label_end_ts": 1755964800000,
+            "test_start_ts": 1756057500000,
+            "test_end_ts": 1770432300000,
+            "metrics": {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          }
+        ],
+        "prediction_audit": {
+          "selected": {
+            "samples": 3,
+            "mean_predicted_net_r": 0.4319502011524801,
+            "mean_actual_net_r": -0.49868357480951353,
+            "optimism_bias_r": 0.9306337759619936,
+            "mae_r": 0.9449009051125454,
+            "rmse_r": 1.1493269255677132,
+            "zero_forecast_rmse_r": 0.8667881079689157,
+            "positive_forecasts": 3,
+            "positive_forecasts_that_lost": 2,
+            "near_break_even": 0,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "0_to_0.5R": {
+                "samples": 3,
+                "mean_predicted_net_r": 0.4319502011524801,
+                "mean_actual_net_r": -0.49868357480951353,
+                "optimism_bias_r": 0.9306337759619936,
+                "mae_r": 0.9449009051125454,
+                "rmse_r": 1.1493269255677132,
+                "zero_forecast_rmse_r": 0.8667881079689157,
+                "positive_forecasts": 3,
+                "positive_forecasts_that_lost": 2,
+                "near_break_even": 0
+              }
+            },
+            "calibration": {
+              "paired_samples": 3,
+              "adjusted_forecasts": 0,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 3,
+                "mean_predicted_net_r": 0.4319502011524801,
+                "mean_actual_net_r": -0.49868357480951353,
+                "optimism_bias_r": 0.9306337759619936,
+                "mae_r": 0.9449009051125454,
+                "rmse_r": 1.1493269255677132,
+                "zero_forecast_rmse_r": 0.8667881079689157,
+                "positive_forecasts": 3,
+                "positive_forecasts_that_lost": 2,
+                "near_break_even": 0
+              },
+              "corrected": {
+                "samples": 3,
+                "mean_predicted_net_r": 0.4319502011524801,
+                "mean_actual_net_r": -0.49868357480951353,
+                "optimism_bias_r": 0.9306337759619936,
+                "mae_r": 0.9449009051125454,
+                "rmse_r": 1.1493269255677132,
+                "zero_forecast_rmse_r": 0.8667881079689157,
+                "positive_forecasts": 3,
+                "positive_forecasts_that_lost": 2,
+                "near_break_even": 0
+              },
+              "by_raw_forecast_band": {
+                "0_to_0.5R": {
+                  "raw": {
+                    "samples": 3,
+                    "mean_predicted_net_r": 0.4319502011524801,
+                    "mean_actual_net_r": -0.49868357480951353,
+                    "optimism_bias_r": 0.9306337759619936,
+                    "mae_r": 0.9449009051125454,
+                    "rmse_r": 1.1493269255677132,
+                    "zero_forecast_rmse_r": 0.8667881079689157,
+                    "positive_forecasts": 3,
+                    "positive_forecasts_that_lost": 2,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 3,
+                    "mean_predicted_net_r": 0.4319502011524801,
+                    "mean_actual_net_r": -0.49868357480951353,
+                    "optimism_bias_r": 0.9306337759619936,
+                    "mae_r": 0.9449009051125454,
+                    "rmse_r": 1.1493269255677132,
+                    "zero_forecast_rmse_r": 0.8667881079689157,
+                    "positive_forecasts": 3,
+                    "positive_forecasts_that_lost": 2,
+                    "near_break_even": 0
+                  }
+                }
+              },
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          },
+          "shadow": {
+            "samples": 2280,
+            "mean_predicted_net_r": -0.5977690565805495,
+            "mean_actual_net_r": -0.6424794025475917,
+            "optimism_bias_r": 0.04471034596704139,
+            "mae_r": 0.5427658427477831,
+            "rmse_r": 0.6510091002281558,
+            "zero_forecast_rmse_r": 0.9125669224564281,
+            "positive_forecasts": 22,
+            "positive_forecasts_that_lost": 15,
+            "near_break_even": 82,
+            "missing_forecasts": 0,
+            "untrained_forecasts": 0,
+            "excluded_end_marks": 0,
+            "by_forecast_band": {
+              "nonpositive": {
+                "samples": 2258,
+                "mean_predicted_net_r": -0.6049695463329734,
+                "mean_actual_net_r": -0.6454425148541266,
+                "optimism_bias_r": 0.040472968521152806,
+                "mae_r": 0.5411382256446533,
+                "rmse_r": 0.649058717626298,
+                "zero_forecast_rmse_r": 0.9141071269721273,
+                "positive_forecasts": 0,
+                "positive_forecasts_that_lost": 0,
+                "near_break_even": 82
+              },
+              "0_to_0.5R": {
+                "samples": 22,
+                "mean_predicted_net_r": 0.1412630280091303,
+                "mean_actual_net_r": -0.3383563303586563,
+                "optimism_bias_r": 0.47961935836778663,
+                "mae_r": 0.7098185436053576,
+                "rmse_r": 0.827079594543757,
+                "zero_forecast_rmse_r": 0.7375743653726512,
+                "positive_forecasts": 22,
+                "positive_forecasts_that_lost": 15,
+                "near_break_even": 0
+              }
+            },
+            "calibration": {
+              "paired_samples": 2280,
+              "adjusted_forecasts": 2229,
+              "applied_forecasts": 0,
+              "raw": {
+                "samples": 2280,
+                "mean_predicted_net_r": -0.5977690565805495,
+                "mean_actual_net_r": -0.6424794025475917,
+                "optimism_bias_r": 0.04471034596704139,
+                "mae_r": 0.5427658427477831,
+                "rmse_r": 0.6510091002281558,
+                "zero_forecast_rmse_r": 0.9125669224564281,
+                "positive_forecasts": 22,
+                "positive_forecasts_that_lost": 15,
+                "near_break_even": 82
+              },
+              "corrected": {
+                "samples": 2280,
+                "mean_predicted_net_r": -0.6464412193861239,
+                "mean_actual_net_r": -0.6424794025475917,
+                "optimism_bias_r": -0.00396181683853155,
+                "mae_r": 0.5169479415539087,
+                "rmse_r": 0.6502313492612865,
+                "zero_forecast_rmse_r": 0.9125669224564281,
+                "positive_forecasts": 22,
+                "positive_forecasts_that_lost": 15,
+                "near_break_even": 82
+              },
+              "by_raw_forecast_band": {
+                "nonpositive": {
+                  "raw": {
+                    "samples": 2258,
+                    "mean_predicted_net_r": -0.6049695463329734,
+                    "mean_actual_net_r": -0.6454425148541266,
+                    "optimism_bias_r": 0.040472968521152806,
+                    "mae_r": 0.5411382256446533,
+                    "rmse_r": 0.649058717626298,
+                    "zero_forecast_rmse_r": 0.9141071269721273,
+                    "positive_forecasts": 0,
+                    "positive_forecasts_that_lost": 0,
+                    "near_break_even": 82
+                  },
+                  "corrected": {
+                    "samples": 2258,
+                    "mean_predicted_net_r": -0.6541159286167241,
+                    "mean_actual_net_r": -0.6454425148541266,
+                    "optimism_bias_r": -0.008673413762596635,
+                    "mae_r": 0.5150687771406526,
+                    "rmse_r": 0.6482710216076212,
+                    "zero_forecast_rmse_r": 0.9141071269721273,
+                    "positive_forecasts": 0,
+                    "positive_forecasts_that_lost": 0,
+                    "near_break_even": 82
+                  }
+                },
+                "0_to_0.5R": {
+                  "raw": {
+                    "samples": 22,
+                    "mean_predicted_net_r": 0.1412630280091303,
+                    "mean_actual_net_r": -0.3383563303586563,
+                    "optimism_bias_r": 0.47961935836778663,
+                    "mae_r": 0.7098185436053576,
+                    "rmse_r": 0.827079594543757,
+                    "zero_forecast_rmse_r": 0.7375743653726512,
+                    "positive_forecasts": 22,
+                    "positive_forecasts_that_lost": 15,
+                    "near_break_even": 0
+                  },
+                  "corrected": {
+                    "samples": 22,
+                    "mean_predicted_net_r": 0.1412630280091303,
+                    "mean_actual_net_r": -0.3383563303586563,
+                    "optimism_bias_r": 0.47961935836778663,
+                    "mae_r": 0.7098185436053576,
+                    "rmse_r": 0.827079594543757,
+                    "zero_forecast_rmse_r": 0.7375743653726512,
+                    "positive_forecasts": 22,
+                    "positive_forecasts_that_lost": 15,
+                    "near_break_even": 0
+                  }
+                }
+              },
+              "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+            }
+          }
+        },
+        "development_prediction_audit": {
+          "samples": 10610,
+          "mean_predicted_net_r": -0.4553049543933369,
+          "mean_actual_net_r": -0.47248503285284005,
+          "optimism_bias_r": 0.017180078459499603,
+          "mae_r": 0.720814951051151,
+          "rmse_r": 0.8360050911496915,
+          "zero_forecast_rmse_r": 0.95497507036325,
+          "positive_forecasts": 228,
+          "positive_forecasts_that_lost": 163,
+          "near_break_even": 205,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 660,
+          "excluded_end_marks": 0,
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 10382,
+              "mean_predicted_net_r": -0.4683688417130241,
+              "mean_actual_net_r": -0.4766833681315668,
+              "optimism_bias_r": 0.008314526418539745,
+              "mae_r": 0.7135849142712599,
+              "rmse_r": 0.8283132913495023,
+              "zero_forecast_rmse_r": 0.9518040157066806,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 195
+            },
+            "0_to_0.5R": {
+              "samples": 218,
+              "mean_predicted_net_r": 0.11811131154975082,
+              "mean_actual_net_r": -0.2809516687202228,
+              "optimism_bias_r": 0.39906298026997383,
+              "mae_r": 1.034594391793573,
+              "rmse_r": 1.1147469184679115,
+              "zero_forecast_rmse_r": 1.0869952027068197,
+              "positive_forecasts": 218,
+              "positive_forecasts_that_lost": 156,
+              "near_break_even": 10
+            },
+            "above_0.5R": {
+              "samples": 10,
+              "mean_predicted_net_r": 0.6071482633464658,
+              "mean_actual_net_r": -0.2892006845692112,
+              "optimism_bias_r": 0.896348947915677,
+              "mae_r": 1.386647327748103,
+              "rmse_r": 1.4613845694619692,
+              "zero_forecast_rmse_r": 1.1456808297210928,
+              "positive_forecasts": 10,
+              "positive_forecasts_that_lost": 7,
+              "near_break_even": 0
+            }
+          },
+          "calibration": {
+            "paired_samples": 10610,
+            "adjusted_forecasts": 9284,
+            "applied_forecasts": 0,
+            "raw": {
+              "samples": 10610,
+              "mean_predicted_net_r": -0.4553049543933369,
+              "mean_actual_net_r": -0.47248503285284005,
+              "optimism_bias_r": 0.017180078459499603,
+              "mae_r": 0.720814951051151,
+              "rmse_r": 0.8360050911496915,
+              "zero_forecast_rmse_r": 0.95497507036325,
+              "positive_forecasts": 228,
+              "positive_forecasts_that_lost": 163,
+              "near_break_even": 205
+            },
+            "corrected": {
+              "samples": 10610,
+              "mean_predicted_net_r": -0.4586217921505787,
+              "mean_actual_net_r": -0.47248503285284005,
+              "optimism_bias_r": 0.013863240702260832,
+              "mae_r": 0.7194695297072006,
+              "rmse_r": 0.8384032622830991,
+              "zero_forecast_rmse_r": 0.95497507036325,
+              "positive_forecasts": 295,
+              "positive_forecasts_that_lost": 210,
+              "near_break_even": 205
+            },
+            "by_raw_forecast_band": {
+              "nonpositive": {
+                "raw": {
+                  "samples": 10382,
+                  "mean_predicted_net_r": -0.4683688417130241,
+                  "mean_actual_net_r": -0.4766833681315668,
+                  "optimism_bias_r": 0.008314526418539745,
+                  "mae_r": 0.7135849142712599,
+                  "rmse_r": 0.8283132913495023,
+                  "zero_forecast_rmse_r": 0.9518040157066806,
+                  "positive_forecasts": 0,
+                  "positive_forecasts_that_lost": 0,
+                  "near_break_even": 195
+                },
+                "corrected": {
+                  "samples": 10382,
+                  "mean_predicted_net_r": -0.47175852083114517,
+                  "mean_actual_net_r": -0.4766833681315668,
+                  "optimism_bias_r": 0.004924847300421538,
+                  "mae_r": 0.7122099460128014,
+                  "rmse_r": 0.830786742514738,
+                  "zero_forecast_rmse_r": 0.9518040157066806,
+                  "positive_forecasts": 67,
+                  "positive_forecasts_that_lost": 47,
+                  "near_break_even": 195
+                }
+              },
+              "0_to_0.5R": {
+                "raw": {
+                  "samples": 218,
+                  "mean_predicted_net_r": 0.11811131154975082,
+                  "mean_actual_net_r": -0.2809516687202228,
+                  "optimism_bias_r": 0.39906298026997383,
+                  "mae_r": 1.034594391793573,
+                  "rmse_r": 1.1147469184679115,
+                  "zero_forecast_rmse_r": 1.0869952027068197,
+                  "positive_forecasts": 218,
+                  "positive_forecasts_that_lost": 156,
+                  "near_break_even": 10
+                },
+                "corrected": {
+                  "samples": 218,
+                  "mean_predicted_net_r": 0.11811131154975082,
+                  "mean_actual_net_r": -0.2809516687202228,
+                  "optimism_bias_r": 0.39906298026997383,
+                  "mae_r": 1.034594391793573,
+                  "rmse_r": 1.1147469184679115,
+                  "zero_forecast_rmse_r": 1.0869952027068197,
+                  "positive_forecasts": 218,
+                  "positive_forecasts_that_lost": 156,
+                  "near_break_even": 10
+                }
+              },
+              "above_0.5R": {
+                "raw": {
+                  "samples": 10,
+                  "mean_predicted_net_r": 0.6071482633464658,
+                  "mean_actual_net_r": -0.2892006845692112,
+                  "optimism_bias_r": 0.896348947915677,
+                  "mae_r": 1.386647327748103,
+                  "rmse_r": 1.4613845694619692,
+                  "zero_forecast_rmse_r": 1.1456808297210928,
+                  "positive_forecasts": 10,
+                  "positive_forecasts_that_lost": 7,
+                  "near_break_even": 0
+                },
+                "corrected": {
+                  "samples": 10,
+                  "mean_predicted_net_r": 0.6071482633464658,
+                  "mean_actual_net_r": -0.2892006845692112,
+                  "optimism_bias_r": 0.896348947915677,
+                  "mae_r": 1.386647327748103,
+                  "rmse_r": 1.4613845694619692,
+                  "zero_forecast_rmse_r": 1.1456808297210928,
+                  "positive_forecasts": 10,
+                  "positive_forecasts_that_lost": 7,
+                  "near_break_even": 0
+                }
+              }
+            },
+            "scope": "Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies these corrections. This measures forecast error, not profit from another trading policy."
+          }
+        },
+        "forecast_calibration": {
+          "scored_outcomes": 12890,
+          "buckets": 91,
+          "ready_buckets": 30,
+          "minimum_samples": 30,
+          "half_life_observations": 50,
+          "shrinkage": 50,
+          "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+          "enabled_for_selection": false,
+          "scope": "Residual correction is an experiment, disabled in the default trading model. Chronological development forecast errors do affect the default error margin. Experimental models cannot qualify or load for trading."
+        },
+        "account_feedback_comparison": {
+          "baseline": {
+            "trades": 3,
+            "net_pnl": -2.779785851745089,
+            "gross_pnl": -1.369131817759256,
+            "fees_paid": 1.410654033985829,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.3124644065231437,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 4,
+            "net_pnl": -1.7430567378657997,
+            "gross_pnl": 0.8616817022690333,
+            "fees_paid": 2.6047384401348506,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.1747926755096967,
+            "complete": true
+          }
+        },
+        "outcome_memory_comparison": {
+          "baseline": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.21908461685187,
+            "fees_paid": 1.3912214447057367,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "baseline_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7581699977379008,
+            "fees_paid": 2.571568667698538,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          }
+        },
+        "exit_policy_comparison": {
+          "holdout": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.21908461685187,
+            "fees_paid": 1.3912214447057367,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7581699977379008,
+            "fees_paid": 2.571568667698538,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878,
+              "win_rate": 66.66666666666666,
+              "max_drawdown_pct": 1.3828270162585663,
+              "complete": true
+            },
+            {
+              "trades": 8,
+              "net_pnl": -2.795450546177449,
+              "gross_pnl": 2.2043788995814504,
+              "fees_paid": 4.999829445758795,
+              "win_rate": 25.0,
+              "max_drawdown_pct": 2.3908860542690236,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "selection_policy_comparison": {
+          "holdout": {
+            "trades": 3,
+            "net_pnl": -5.610306061557594,
+            "gross_pnl": -4.21908461685187,
+            "fees_paid": 1.3912214447057367,
+            "win_rate": 33.33333333333333,
+            "max_drawdown_pct": 1.7035860956619113,
+            "complete": true
+          },
+          "holdout_stressed": {
+            "trades": 4,
+            "net_pnl": -4.32973866543648,
+            "gross_pnl": -1.7581699977379008,
+            "fees_paid": 2.571568667698538,
+            "win_rate": 50.0,
+            "max_drawdown_pct": 1.9159817304433848,
+            "complete": true
+          },
+          "folds": [
+            {
+              "trades": 0,
+              "net_pnl": 0.0,
+              "gross_pnl": 0,
+              "fees_paid": 0,
+              "win_rate": null,
+              "max_drawdown_pct": 0,
+              "complete": true
+            },
+            {
+              "trades": 7,
+              "net_pnl": 15.106928615683046,
+              "gross_pnl": 18.660202795524185,
+              "fees_paid": 3.5532741798410807,
+              "win_rate": 71.42857142857143,
+              "max_drawdown_pct": 1.3828270162585339,
+              "complete": true
+            },
+            {
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399,
+              "win_rate": 28.57142857142857,
+              "max_drawdown_pct": 2.3321405931895005,
+              "complete": true
+            }
+          ],
+          "eligible_for_trading": false
+        },
+        "holdout_trades": [
+          {
+            "entry_ts": 1772232300000,
+            "exit_ts": 1772491500000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": 1.889809783392972,
+            "r_multiple": 0.5039492755714592,
+            "reason": "TIME",
+            "risk_dollars": 3.75,
+            "gross_pnl": 2.3482777097458647,
+            "fees_paid": 0.458467926352893,
+            "entry_forecast": {
+              "estimated_net_r": 0.4825485818456317,
+              "raw_estimated_net_r": 0.4825485818456317,
+              "trial_estimated_net_r": 0.4825485818456317,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "low/0_to_0.5R",
+              "calibration_samples": 16,
+              "calibration_effective_samples": 15.934978476017857,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1768231800000,
+              "error_penalty_r": 0.15771577856967622,
+              "conservative_net_r": 0.3248328032759555,
+              "samples": 57,
+              "ready": true,
+              "model_last_label_ts": 1772211600000,
+              "signal_close_ts": 1772232300000
+            }
+          },
+          {
+            "entry_ts": 1772790300000,
+            "exit_ts": 1773007200000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7641735733754476,
+            "r_multiple": -1.0,
+            "reason": "STOP",
+            "risk_dollars": 3.7641735733754476,
+            "gross_pnl": -3.3627898418101614,
+            "fees_paid": 0.401383731565286,
+            "entry_forecast": {
+              "estimated_net_r": 0.4569750776641429,
+              "raw_estimated_net_r": 0.4569750776641429,
+              "trial_estimated_net_r": 0.4569750776641429,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "low/0_to_0.5R",
+              "calibration_samples": 17,
+              "calibration_effective_samples": 16.922023375603345,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1772492400000,
+              "error_penalty_r": 0.15500960793034535,
+              "conservative_net_r": 0.30196546973379756,
+              "samples": 58,
+              "ready": true,
+              "model_last_label_ts": 1772788500000,
+              "signal_close_ts": 1772790300000
+            }
+          },
+          {
+            "entry_ts": 1773751500000,
+            "exit_ts": 1773837000000,
+            "strategy_family": "support_rsi_reclaim_simple",
+            "pnl": -3.7359422715751305,
+            "r_multiple": -0.9999999999999998,
+            "reason": "STOP",
+            "risk_dollars": 3.7359422715751314,
+            "gross_pnl": -3.204572484787573,
+            "fees_paid": 0.5313697867875578,
+            "entry_forecast": {
+              "estimated_net_r": 0.3563269439476658,
+              "raw_estimated_net_r": 0.3563269439476658,
+              "trial_estimated_net_r": 0.3563269439476658,
+              "calibration_applied": false,
+              "calibration_adjustment_r": 0.0,
+              "calibration_key": "low/0_to_0.5R",
+              "calibration_samples": 19,
+              "calibration_effective_samples": 18.891211746019316,
+              "calibration_ready": false,
+              "calibration_last_label_ts": 1773644400000,
+              "error_penalty_r": 0.2364430208283644,
+              "conservative_net_r": 0.11988392311930138,
+              "samples": 60,
+              "ready": true,
+              "model_last_label_ts": 1773751500000,
+              "signal_close_ts": 1773751500000
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

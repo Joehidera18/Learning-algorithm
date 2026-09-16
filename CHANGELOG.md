@@ -1,3 +1,11 @@
+# Chronological forecast correction — 16 September 2026 UTC
+
+- Replay development entries and closures in chronological order; retain the entry forecast and learn each resolved reward once. Preserve deterministic checkpoint reconstruction and future-label isolation.
+- Study shrunk residual corrections by strategy parameters, cost burden and raw forecast band. Reuse fixed 30-sample minima and the existing 50-observation half-life/shrinkage. The initial trial had mixed forecast accuracy, so correction remains disabled for trading; experimental models cannot qualify or load through approved profiles.
+- Retain full losses and actual break-even returns. Keep costs, risk sizing, error margins, loss limits and qualification requirements.
+- Show original and experimental errors on identical completed examples, with separate training, selected-account and candidate-practice results. Add raw-forecast-band comparisons and counts of actual correction use to exports.
+- Register completed V11.7 history as reviewed and require fresh practice under engine `market-structure-v11.8-calibration`, policy `online-net-r-v11-calibration`, report 13.
+
 # Entry prediction accountability — 16 September 2026 UTC
 
 - Save entry forecasts before outcomes are known, including independent candidate practice. Score only normally resolved trades; mark cold models, missing forecasts, final end marks and unresolved gaps separately.

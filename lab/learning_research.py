@@ -18,8 +18,10 @@ from .outcome_memory import trade_feedback, summarize as summarize_outcomes
 from .trade_review import summarize_trades, merge_summaries, BREAK_EVEN_R, POST_EXIT_HOURS
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
 from .prediction_audit import summarize_predictions
+from .chronological_learning import ChronologicalTrainer
+from .forecast_calibration import summarize as summarize_calibration
 
-LEARNING_REPORT_VERSION = 12
+LEARNING_REPORT_VERSION = 13
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -38,10 +40,10 @@ def build_learning_features(rows, interval, segments, cancelled=None, daily_rows
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                   reviewed_through_ts=None, daily_rows=None, exit_comparison=True,
-                  selection_comparison=True):
+                  selection_comparison=True, forecast_correction=False):
     """Keep the approved model separate from one independently trained experiment."""
     result = _learn_history(rows, symbol, settings, progress, cancelled, checkpoint,
-        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT)
+        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT, forecast_correction=forecast_correction)
     if exit_comparison:
         def experimental_progress(**state):
             if progress:
@@ -54,7 +56,8 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                 "load":lambda index:checkpoint["load"](offset+index),
                 "save":lambda index,value:checkpoint["save"](offset+index,value)}
         experiment = _learn_history(rows, symbol, settings, experimental_progress, cancelled,
-            experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT)
+            experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT,
+            forecast_correction=forecast_correction)
         from .exit_research import comparison_report
         result["exit_policy_comparison"] = comparison_report(result, experiment)
     if selection_comparison:
@@ -65,7 +68,8 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         # Both selection rules use identical fixed-exit development labels.
         # Existing checkpoints can be reused without another candidate namespace.
         experiment = _learn_history(rows, symbol, settings, conditional_progress, cancelled,
-            checkpoint, reviewed_through_ts, daily_rows, recent_return_veto=False)
+            checkpoint, reviewed_through_ts, daily_rows, recent_return_veto=False,
+            forecast_correction=forecast_correction)
         from .selection_research import comparison_report
         result["selection_policy_comparison"] = comparison_report(result, experiment)
     return result
@@ -73,7 +77,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
 
 def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                    reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT,
-                   recent_return_veto=True):
+                   recent_return_veto=True, forecast_correction=False):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -93,7 +97,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows)
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"],
-                                exit_policy=exit_policy, recent_return_veto=recent_return_veto).candidates
+                                exit_policy=exit_policy, recent_return_veto=recent_return_veto,
+                                forecast_correction=forecast_correction).candidates
     examples = []
     training_candidates = []
     training_reviews = []
@@ -114,7 +119,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                 cancelled=cancelled, training_examples=True, bar_interval_ms=step)
             labels = [(trade["exit_ts"]+step, index,
                        trade["training_vector"],
-                       trade["r_multiple"], trade_feedback(trade))
+                       trade["r_multiple"], trade_feedback(trade), trade["entry_ts"])
                       for trade in trades if trade["reason"] != "END"]
             saved = {"labels":labels, "diagnostics":{"params":dict(params),
                 "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})},
@@ -135,18 +140,12 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                 training_totals[key] += funnel.get(key, 0)
     examples.sort(key=lambda x:(x[0],x[1]))
     seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy,
-                          recent_return_veto=recent_return_veto)
-    cursor = 0
+                          recent_return_veto=recent_return_veto, fee_rate=fee, slippage_rate=slip,
+                          forecast_correction=forecast_correction)
+    trainer = ChronologicalTrainer(seed,candidates,examples,cancelled)
 
     def train_until(cut_ts):
-        nonlocal cursor
-        while cursor < len(examples) and examples[cursor][0] <= cut_ts:
-            if cursor % 500 == 0 and cancelled():
-                raise InterruptedError("Learning cancelled")
-            stamp, index, vector, reward, outcome = examples[cursor]
-            seed.observe(candidates[index], vector, reward, stamp, outcome=outcome)
-            cursor += 1
-        return seed.export()
+        return trainer.advance(cut_ts)
 
     def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True,
              failure_adaptation=True):
@@ -154,7 +153,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
             legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline,
-            exit_policy=exit_policy, recent_return_veto=recent_return_veto)
+            exit_policy=exit_policy, recent_return_veto=recent_return_veto,
+            forecast_correction=forecast_correction)
         feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
                     if learn and shadow else None)
         metrics, trades = simulate(rows, features, start, end, 500,
@@ -177,7 +177,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         metrics, _, _ = test(initial,start,end)
         folds.append({"fold":index, "training_labels":initial["observations"],
             "training_label_end_ts":initial["last_label_ts"], "test_start_ts":rows[start]["ts"],
-            "test_end_ts":rows[end-1]["ts"]+step, "metrics":metrics})
+            "test_end_ts":rows[end-1]["ts"]+step,
+            "development_prediction_audit":trainer.predictions.summary(), "metrics":metrics})
 
     initial = train_until(rows[development]["ts"])
     progress(phase="testing", message=f"{symbol}: checking the later period and higher costs")
@@ -203,7 +204,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     confirmation = None
     if reused and fresh_start < len(rows)-1:
         confirmation_seed = AdaptivePolicy(initial, settings["max_notional_fraction"],
-            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy, recent_return_veto=recent_return_veto)
+            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy, recent_return_veto=recent_return_veto,
+            forecast_correction=forecast_correction)
         prefix = HistoricalFeedback(rows, features, holdout_start, fresh_start,
             settings, confirmation_seed, step, cancelled)
         prefix.advance(rows[fresh_start]["ts"])
@@ -225,6 +227,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     positive = sum(f["metrics"].get("complete", True) and f["metrics"]["net_pnl"]>0 for f in folds)
     uncertainty = bootstrap_interval([t["r_multiple"] for t in trades])
     reasons = []
+    if forecast_correction:
+        reasons.append("Experimental forecast correction cannot qualify or control trading.")
     if not examples:
         reasons.append("No completed training examples survived the signal and execution checks; see training diagnostics.")
     if any(not f["metrics"].get("complete", True) for f in folds):
@@ -276,7 +280,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
                 "wicks, RSI change, VWAP distance, volatility and completed daily context. "
                 "Exit reviews and future candles are not entry inputs."},
-        "entry_error_rule":"Save the forecast at entry. After at least 30 resolved forecasts in a model component, "
+        "entry_error_rule":"Save the forecast at entry in chronological development training as well as later tests. "
+            "After at least 30 resolved forecasts in a model component, "
             "its entry-time RMSE can raise the ranking error margin; it cannot reduce the existing margin. "
             "Each realized reward still trains once. Diagnostic summaries cannot select a policy.",
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
@@ -309,6 +314,12 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                    "Policy tests and trading retain their cost and qualification checks.",
             "count_basis":"Candidate evaluations can overlap on the same candles. Counts are not independent opportunities or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
+        "development_prediction_audit":trainer.predictions.summary(),
+        "forecast_calibration":{**summarize_calibration(trained["models"]),
+            "enabled_for_selection":forecast_correction,
+            "scope":"Residual correction is an experiment, disabled in the default trading model. "
+                "Chronological development forecast errors do affect the default error margin. "
+                "Experimental models cannot qualify or load for trading."},
         "pre_holdout_model_sha256":hashlib.sha256(json.dumps(initial,sort_keys=True).encode()).hexdigest(),
         "holdout_start_ts":rows[holdout_start]["ts"],
         "folds":folds, "profitable_folds":positive, "holdout":holdout,

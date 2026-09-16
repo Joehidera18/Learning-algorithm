@@ -15,8 +15,10 @@ from .trade_quality import signal_cost_check
 from .outcome_memory import (setup_context, empty_memory, update_memory, validate_detail,
     validate_memory, estimate as context_estimate, SHRINKAGE)
 from .exit_management import FIXED_EXIT, EXIT_POLICIES
+from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, correction,
+    validate_buckets)
 
-POLICY_VERSION = "online-net-r-v10-entry-audit"
+POLICY_VERSION = "online-net-r-v11-calibration"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -117,12 +119,15 @@ class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
                  legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT,
-                 recent_return_veto=True):
+                 recent_return_veto=True, forecast_correction=False):
         if exit_policy not in EXIT_POLICIES:
             raise ValueError("Unknown exit policy")
         if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
             raise ValueError("Learning models with different exit policies cannot be mixed")
         self.exit_policy = exit_policy
+        self.forecast_correction = bool(forecast_correction)
+        if state is not None and state.get("forecast_correction",False) != self.forecast_correction:
+            raise ValueError("Experimental forecast corrections cannot be mixed with the trading model")
         self.selection_rule = "recent_return_veto" if recent_return_veto else "conditional_net_return"
         if state is not None and state.get("selection_rule") != self.selection_rule:
             raise ValueError("Learning models with different selection rules cannot be mixed")
@@ -141,12 +146,15 @@ class AdaptivePolicy:
             raise ValueError("This learning model needs to be retrained")
         self.state = copy.deepcopy(state) if state else {
             "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
-            "exit_policy":exit_policy, "selection_rule":self.selection_rule}
+            "exit_policy":exit_policy, "selection_rule":self.selection_rule,
+            "forecast_correction":self.forecast_correction}
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
         for model in self.state["models"].values():
+            validate_buckets(model.get("forecast_bands",{}), model["entry_error_samples"],
+                             self.state["last_label_ts"])
             if "outcomes" in model:
                 validate_memory(model["outcomes"])
             for key, memory in model.get("setup_contexts", {}).items():
@@ -181,7 +189,7 @@ class AdaptivePolicy:
     def export(self):
         return copy.deepcopy(self.state)
 
-    def predict(self, params, vector):
+    def raw_predict(self, params, vector):
         model = self.evidence(params, vector)
         if not model:
             return 0.
@@ -197,6 +205,24 @@ class AdaptivePolicy:
             weight = context["effective_samples"]/(context["effective_samples"]+SHRINKAGE)
             pooled = (1-weight)*pooled+weight*context["recent_net_r"]
         return bounded(pooled, -3, 3)
+
+    def calibrated_estimate(self, params, vector):
+        raw = self.raw_predict(params, vector)
+        key = bucket_key(cost_context(vector), raw)
+        model = self.state["models"].get(action_key(params), {})
+        adjustment = correction(model.get("forecast_bands",{}).get(key))
+        trial = bounded(raw+adjustment["adjustment_r"],-3,3)
+        return {"estimated_net_r":trial if self.forecast_correction else raw,
+            "raw_estimated_net_r":raw, "trial_estimated_net_r":trial,
+            "calibration_applied":self.forecast_correction,
+            "calibration_adjustment_r":trial-raw, "calibration_key":key,
+            "calibration_samples":adjustment["samples"],
+            "calibration_effective_samples":adjustment["effective_samples"],
+            "calibration_ready":adjustment["ready"],
+            "calibration_last_label_ts":adjustment["last_label_ts"]}
+
+    def predict(self, params, vector):
+        return self.calibrated_estimate(params,vector)["estimated_net_r"]
 
     def context_evidence(self, params, vector):
         if not self.failure_adaptation:
@@ -228,13 +254,13 @@ class AdaptivePolicy:
         """Read-only estimate, also available for independently simulated entries."""
         model = self.evidence(params, vector)
         context = self.context_evidence(params, vector)
-        estimate = self.predict(params, vector)
+        estimate = self.calibrated_estimate(params, vector)
         penalty = self.error_penalty(model) if model else 0.
         if context:
             penalty = max(penalty, context["penalty_r"])
         samples = model["samples"] if model else 0
-        return {"estimated_net_r":estimate, "error_penalty_r":penalty,
-            "conservative_net_r":estimate-penalty, "samples":samples,
+        return {**estimate, "error_penalty_r":penalty,
+            "conservative_net_r":estimate["estimated_net_r"]-penalty, "samples":samples,
             "ready":samples >= MIN_SAMPLES, "model_last_label_ts":self.state["last_label_ts"]}
 
     def observe(self, params, vector, result_r, available_ts, outcome=None):
@@ -257,6 +283,11 @@ class AdaptivePolicy:
         forecast = detail.get("entry_forecast")
         if forecast and forecast.get("forecast_ts", forecast["signal_close_ts"]) > available_ts:
             raise ValueError("Entry forecast follows the resolved outcome")
+        if (forecast and "raw_estimated_net_r" in forecast
+                and forecast["calibration_key"] != bucket_key(cost_context(vector),forecast["raw_estimated_net_r"])):
+            raise ValueError("Entry calibration does not match its cost and forecast context")
+        if (forecast and forecast.get("calibration_applied",False) != self.forecast_correction):
+            raise ValueError("Entry forecast belongs to a different correction policy")
         model = self.state["models"].setdefault(key, empty_model())
         update_memory(model.setdefault("outcomes", empty_memory()), result_r, available_ts, detail)
         memory = model.setdefault("setup_contexts", {}).setdefault(setup_context(vector), empty_memory())
@@ -268,6 +299,9 @@ class AdaptivePolicy:
         contextual_regime = context.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
         update_model(context, vector, result_r, forecast)
         update_model(contextual_regime, vector, result_r, forecast)
+        if forecast and forecast["ready"] and "raw_estimated_net_r" in forecast:
+            bucket = model.setdefault("forecast_bands",{}).setdefault(forecast["calibration_key"],empty_bucket())
+            update_bucket(bucket,forecast["raw_estimated_net_r"],result_r,available_ts)
         # Multiple estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1
         self.state["last_label_ts"] = int(available_ts)
@@ -306,14 +340,13 @@ class AdaptivePolicy:
             if self.recent_return_veto and not context and recent["recent_r"] <= 0:
                 reject("nonpositive_recent_return")
                 continue
-            estimate = self.predict(p, vector)
+            forecast = self.forecast(p,vector)
+            estimate = forecast["estimated_net_r"]
             if estimate < MIN_ESTIMATED_R:
                 reject("low_estimated_return")
                 continue
-            penalty = self.error_penalty(model)
-            if context:
-                penalty = max(penalty, context["penalty_r"])
-            conservative = estimate-penalty
+            penalty = forecast["error_penalty_r"]
+            conservative = forecast["conservative_net_r"]
             if conservative < MIN_ESTIMATED_R:
                 reject("prediction_error_too_large")
                 continue
@@ -325,9 +358,7 @@ class AdaptivePolicy:
                     "regime_samples":local["samples"] if local else 0},
                 "outcome_context":{"key":setup_context(vector), **(context or {})},
                 "learning":{"version":POLICY_VERSION, "vector":list(vector),
-                    "forecast":{"estimated_net_r":estimate, "error_penalty_r":penalty,
-                        "conservative_net_r":conservative, "samples":model["samples"],
-                        "ready":True, "model_last_label_ts":self.state["last_label_ts"]}}})
+                    "forecast":forecast}})
         self.last_diagnostics["eligible_candidates"] = len(result)
         return sorted(result, key=lambda x:x["conservative_net_r"], reverse=True)
 
@@ -366,6 +397,8 @@ def approved_profile(db_path, symbol, settings):
     if profile.get("model", {}).get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
         return None
     if profile.get("model", {}).get("selection_rule") != "recent_return_veto":
+        return None
+    if profile.get("model", {}).get("forecast_correction") is not False:
         return None
     return profile
 

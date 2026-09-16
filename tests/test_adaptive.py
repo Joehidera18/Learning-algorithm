@@ -262,6 +262,10 @@ class LearningPersistenceTests(unittest.TestCase):
         self.assertEqual(learned['entry_error_samples'],1)
         self.assertAlmostEqual(learned['entry_squared_error'],
             (self.learning['forecast']['estimated_net_r']-saved['forward_net_r'])**2)
+        bucket=learned['forecast_bands'][self.learning['forecast']['calibration_key']]
+        self.assertEqual(bucket['samples'],1)
+        self.assertAlmostEqual(bucket['weighted_residual'],
+            saved['forward_net_r']-self.learning['forecast']['raw_estimated_net_r'])
         con=db_connect(self.db)
         try:
             decision=json.loads(con.execute("SELECT decision_json FROM paper_trades WHERE id=?",(position["trade_id"],)).fetchone()[0])
