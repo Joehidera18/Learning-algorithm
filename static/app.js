@@ -325,13 +325,21 @@
   function renderPredictionAudit(r) {
     let html='';
     if (r.prediction_audit) {
-      const audits=[['Selected account trades',r.prediction_audit.selected],['Independent practice',r.prediction_audit.shadow]];
+      const audits=[['Earlier training practice',r.development_prediction_audit],
+        ['Selected account trades',r.prediction_audit.selected],['Independent practice',r.prediction_audit.shadow]];
       html+='<details><summary>Entry predictions and later outcomes</summary><div class="table-wrap"><table><thead><tr><th>Source</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Overprediction</th><th>Forecast RMSE</th><th>Zero forecast RMSE</th></tr></thead><tbody>'+
         audits.filter(a=>a[1]).map(function (a) {const v=a[1];return '<tr><td>'+a[0]+'</td><td>'+num(v.samples,0)+
           '</td><td>'+num(v.mean_predicted_net_r,3)+'R</td><td>'+num(v.mean_actual_net_r,3)+'R</td><td>'+num(v.optimism_bias_r,3)+
           'R</td><td>'+num(v.rmse_r,3)+'R</td><td>'+num(v.zero_forecast_rmse_r,3)+'R</td></tr>';}).join('')+
         '</tbody></table></div><p class="footnote">Predictions were saved before entry and checked after closure. Positive overprediction means the model expected too much. R is net profit divided by initial dollar risk. Lower RMSE means smaller forecast errors; the zero forecast is a prediction benchmark. Practice examples overlap and are not account profits. Missing, warm-up, unfinished and gap-censored records are not scored.</p>'+
-        '<p class="footnote">'+escape(r.entry_error_rule || '')+'</p></details>';
+        '<p class="footnote">'+escape(r.entry_error_rule || '')+'</p>';
+      const paired=audits.filter(a=>a[1] && a[1].calibration && a[1].calibration.paired_samples>0);
+      if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Trial adjustments</th><th>Original forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
+        paired.map(function(a) {const c=a[1].calibration;return '<tr><td>'+a[0]+'</td><td>'+num(c.paired_samples,0)+
+          '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
+        '</tbody></table></div><p class="footnote">Both errors use the same completed examples. Trial corrections study whether earlier estimates were too high or too low. They are disabled for trading because the measured results were mixed. Lower error is better; it does not establish profitable trading.</p>';
+      if (r.forecast_calibration) html+='<p class="footnote">'+escape(r.forecast_calibration.rule)+' '+escape(r.forecast_calibration.scope || '')+'</p>';
+      html+='</details>';
     }
     const study=r.selection_policy_comparison;
     if (study) html+='<details><summary>Conditional selection experiment</summary><p>'+escape(study.rule)+'</p><p>Final test: '+

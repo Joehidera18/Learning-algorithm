@@ -1,8 +1,10 @@
-# CryptO V11.7 — checking predictions against completed trades
+# CryptO V11.8 — learning from forecast mistakes
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.7 saves each entry forecast and learns its actual error after the trade closes. Once a model component has 30 scored entry forecasts, those errors can raise its ranking margin; later model updates cannot hide earlier overprediction. Reports show expected versus realized net returns. A separate experiment tests removing the broad recent-loss veto while keeping the other checks; it cannot control trading. See [the design, research and measured results](ENTRY_LEARNING_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.8 records forecasts during earlier training as well as later tests, always before the outcome becomes known. Those earlier prediction errors now inform the existing entry error margin. Losses and break-even outcomes retain their actual net returns. The dashboard also compares original forecasts with an experimental bias correction on the same examples; that correction is disabled for trading because its measured results were mixed. See [the design, research and measured results](FORECAST_CALIBRATION_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
+
+V11.7 entry-error margins and the separate conditional-selection experiment remain included. That experiment cannot control trading. [Its earlier paired replays](ENTRY_LEARNING_RESEARCH.md) showed no final-period profit improvement.
 
 The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 

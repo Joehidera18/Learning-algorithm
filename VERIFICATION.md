@@ -1,3 +1,17 @@
+# 16 September 2026 chronological forecast-learning verification
+
+**254 Python tests passed in 83.871 seconds** on the final V11.8 source. Both actual JavaScript mocked-DOM checks passed; the learning renderer was exercised with the completed V11.7 upload and the new correction fixtures. Python parse/compilation, JavaScript syntax and diff whitespace checks passed. No hosted/mobile visual verification, deployment or real orders were performed.
+
+New checks cover development entry/closure ordering, future-outcome isolation, identical bulk/incremental/reconstructed training, raw-residual correction without an extra reward, actual break-even and tail losses, sparse-context fallback, strategy/cost/forecast-band separation, invalid-state rejection before updates, and default-versus-experimental model isolation. Experimental reports always carry a disqualifying reason; approved-profile loading rejects their models. The existing paper journal transaction test now verifies one-time correction-memory updates and retains restart and Coinbase-account separation checks. Existing checkpoint resume and future-price mutation checks pass with the new development event replay.
+
+The full suite ran after real-data replays finished. No production limits or test deadlines were relaxed in this revision. Initial new fixture assertions assumed the helper contained 100 observations; it actually contains 80. Those assertions were corrected before the final successful suite. An intermediate targeted command named a nonexistent test class; the actual persistence class and the final discovery run both passed.
+
+Paired final-source replays on identical supplied DOT, XRP and AVAX candles preserve cost settings, label counts, training diagnostics and test boundaries. Default-model final nets are $0.00, -$4.98 and -$5.61, versus $0.00, -$6.03 and -$5.61 for V11.7. Higher-cost primary results and earlier primary folds are unchanged. The XRP account path changes, so the $1.0576 improvement is not simply one deleted trade. All three remain unqualified, with no unseen confirmation prices.
+
+The initially enabled residual correction had mixed forecast accuracy. It is now a measured experiment, disabled in the default policy and blocked from qualification/approved model loading. Final-source exports compare the raw and trial estimates on identical completed candidate examples and verify zero corrections applied to default decisions. Those comparisons do not represent another account's P&L. Selected forecast optimism remains unresolved; this is a more complete error-learning process with a small reused-history loss reduction, not proven profitability.
+
+All three final replays match the current lab-source SHA-256 `4a84f3cb24203d4daf02c3926223fac84fa56ba61cddcdd3b34a9b0b1ce20105`. Input hashes, chosen trades, negative diagnostic results and ordinary/stressed comparisons are recorded in [the comparison data](research_baselines/forecast-calibration-comparison.json). See [the design, sources, limits and reproduction commands](FORECAST_CALIBRATION_RESEARCH.md).
+
 # 16 September 2026 entry-forecast learning verification
 
 **241 Python tests passed in 145.957 seconds** on the final implementation. The two actual JavaScript mocked-DOM checks passed against the completed V11.6 upload and the new forecast/selection fixtures. Python compilation, JavaScript syntax and diff whitespace checks passed. No hosted/mobile visual verification, deployment or real orders were performed.
