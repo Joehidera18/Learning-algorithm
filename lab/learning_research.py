@@ -17,8 +17,9 @@ from .evaluation import reviewed_boundary, attribution, dataset_digest
 from .outcome_memory import trade_feedback, summarize as summarize_outcomes
 from .trade_review import summarize_trades, merge_summaries, BREAK_EVEN_R, POST_EXIT_HOURS
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
+from .prediction_audit import summarize_predictions
 
-LEARNING_REPORT_VERSION = 11
+LEARNING_REPORT_VERSION = 12
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -36,7 +37,8 @@ def build_learning_features(rows, interval, segments, cancelled=None, daily_rows
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
-                  reviewed_through_ts=None, daily_rows=None, exit_comparison=True):
+                  reviewed_through_ts=None, daily_rows=None, exit_comparison=True,
+                  selection_comparison=True):
     """Keep the approved model separate from one independently trained experiment."""
     result = _learn_history(rows, symbol, settings, progress, cancelled, checkpoint,
         reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT)
@@ -55,11 +57,23 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT)
         from .exit_research import comparison_report
         result["exit_policy_comparison"] = comparison_report(result, experiment)
+    if selection_comparison:
+        def conditional_progress(**state):
+            if progress:
+                state["message"] = "Conditional selection study: " + state.get("message", "")
+                progress(**state)
+        # Both selection rules use identical fixed-exit development labels.
+        # Existing checkpoints can be reused without another candidate namespace.
+        experiment = _learn_history(rows, symbol, settings, conditional_progress, cancelled,
+            checkpoint, reviewed_through_ts, daily_rows, recent_return_veto=False)
+        from .selection_research import comparison_report
+        result["selection_policy_comparison"] = comparison_report(result, experiment)
     return result
 
 
 def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
-                   reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT):
+                   reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT,
+                   recent_return_veto=True):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -79,7 +93,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows)
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"],
-                                exit_policy=exit_policy).candidates
+                                exit_policy=exit_policy, recent_return_veto=recent_return_veto).candidates
     examples = []
     training_candidates = []
     training_reviews = []
@@ -120,7 +134,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             else:
                 training_totals[key] += funnel.get(key, 0)
     examples.sort(key=lambda x:(x[0],x[1]))
-    seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy)
+    seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy,
+                          recent_return_veto=recent_return_veto)
     cursor = 0
 
     def train_until(cut_ts):
@@ -139,7 +154,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
             legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline,
-            exit_policy=exit_policy)
+            exit_policy=exit_policy, recent_return_veto=recent_return_veto)
         feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
                     if learn and shadow else None)
         metrics, trades = simulate(rows, features, start, end, 500,
@@ -150,6 +165,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         metrics["feedback"] = feedback.summary() if feedback else {
             "mode":"selected_account_trades" if learn else "frozen",
             "resolved_examples":policy.state["observations"]-initial["observations"]}
+        metrics["prediction_audit"] = summarize_predictions(trades)
         return metrics, trades, policy.export()
 
     starts = [int(development*f) for f in (.45,.63,.81)]
@@ -187,7 +203,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     confirmation = None
     if reused and fresh_start < len(rows)-1:
         confirmation_seed = AdaptivePolicy(initial, settings["max_notional_fraction"],
-            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy)
+            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy, recent_return_veto=recent_return_veto)
         prefix = HistoricalFeedback(rows, features, holdout_start, fresh_start,
             settings, confirmation_seed, step, cancelled)
         prefix.advance(rows[fresh_start]["ts"])
@@ -260,6 +276,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
                 "wicks, RSI change, VWAP distance, volatility and completed daily context. "
                 "Exit reviews and future candles are not entry inputs."},
+        "entry_error_rule":"Save the forecast at entry. After at least 30 resolved forecasts in a model component, "
+            "its entry-time RMSE can raise the ranking error margin; it cannot reduce the existing margin. "
+            "Each realized reward still trains once. Diagnostic summaries cannot select a policy.",
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_selection":coverage,
         "replay":{"clock":"Historical candles processed without wall-clock waits",
@@ -332,6 +351,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "selection_uses_comparison":False,
             "label":"Same version, data, candidates, seed and costs with the new outcome-memory selection adjustment disabled."},
         "holdout_expectancy_interval":uncertainty, "validated":not reasons,
+        "prediction_audit":{"selected":holdout["prediction_audit"],
+            "shadow":(holdout.get("feedback") or {}).get("prediction_audit"),
+            "scope":"Entry forecasts evaluated after closure. Account trades and overlapping candidate practice are reported separately."},
         "rejection_reasons":reasons, "cost_signature":cost_signature(settings),
         "costs":{"fee_per_side":fee, "slippage_per_fill":settings["slippage_rate"],
                  "assumed_half_spread":.0005, "stress_multiplier":1.5},
@@ -339,4 +361,5 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "model":trained,
         "scope":"One-market $500 policy tests. Historical shadow feedback keeps studying unselected candidates; account profits count only selected trades. Training examples overlap and are not independent evidence. Forward journal updates learn only completed account trades between historical reviews. Model estimates are not calibrated probabilities.",
         "warning":"Repeated runs can reuse test periods. The frozen comparison cannot change qualification. Portfolio execution, latency, live fills, and future profit remain unvalidated.",
-        "holdout_trades":[{k:t[k] for k in ("entry_ts","exit_ts","strategy_family","pnl","r_multiple","reason")} for t in trades]}
+        "holdout_trades":[{k:t[k] for k in ("entry_ts","exit_ts","strategy_family","pnl","r_multiple","reason",
+            "risk_dollars","gross_pnl","fees_paid","entry_forecast") if k in t} for t in trades]}

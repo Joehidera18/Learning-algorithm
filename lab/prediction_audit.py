@@ -1,0 +1,114 @@
+"""Measure saved entry forecasts against later net outcomes, without training twice.
+
+An optimizer's residual at closure is not the forecast made at entry: other
+outcomes can update the model while a trade is open. These records preserve the
+earlier forecast. R means realized net dollars divided by initial dollar risk.
+"""
+import copy
+import math
+
+
+def entry_snapshot(forecast, signal_close_ts, decision_ts=None):
+    if not forecast:
+        return None
+    result = dict(forecast, signal_close_ts=int(signal_close_ts))
+    if decision_ts is not None:
+        result["forecast_ts"] = int(decision_ts)
+    asof = result.get("forecast_ts", signal_close_ts)
+    for key in ("estimated_net_r", "error_penalty_r", "conservative_net_r"):
+        if not isinstance(result[key], (int, float)) or not math.isfinite(result[key]):
+            raise ValueError("Non-finite entry forecast")
+    if (not -3 <= result["estimated_net_r"] <= 3 or result["error_penalty_r"] < 0
+            or not isinstance(result["samples"], int) or result["samples"] < 0
+            or not isinstance(result["ready"], bool)
+            or result["ready"] != (result["samples"] >= 30)
+            or not math.isfinite(result["model_last_label_ts"])
+            or not math.isfinite(signal_close_ts) or signal_close_ts < 0
+            or not math.isfinite(asof) or asof < signal_close_ts
+            or result["model_last_label_ts"] < 0):
+        raise ValueError("Invalid entry forecast state")
+    if result["model_last_label_ts"] > asof:
+        raise ValueError("Entry forecast includes a future outcome")
+    return result
+
+
+def empty_totals():
+    return {"samples":0, "sum_predicted_r":0., "sum_actual_r":0.,
+            "sum_error_r":0., "sum_absolute_error_r":0., "sum_squared_error_r":0.,
+            "sum_zero_squared_error_r":0., "positive_forecasts":0,
+            "positive_forecasts_that_lost":0, "near_break_even":0}
+
+
+def add(totals, predicted, actual):
+    from .trade_review import BREAK_EVEN_R
+    error = predicted-actual
+    totals["samples"] += 1
+    totals["sum_predicted_r"] += predicted
+    totals["sum_actual_r"] += actual
+    totals["sum_error_r"] += error
+    totals["sum_absolute_error_r"] += abs(error)
+    totals["sum_squared_error_r"] += error*error
+    totals["sum_zero_squared_error_r"] += actual*actual
+    totals["positive_forecasts"] += int(predicted > 0)
+    totals["positive_forecasts_that_lost"] += int(predicted > 0 and actual < 0)
+    totals["near_break_even"] += int(abs(actual) <= BREAK_EVEN_R+1e-12)
+
+
+def metrics(totals):
+    n = totals["samples"]
+    return {"samples":n,
+        "mean_predicted_net_r":totals["sum_predicted_r"]/n if n else None,
+        "mean_actual_net_r":totals["sum_actual_r"]/n if n else None,
+        "optimism_bias_r":totals["sum_error_r"]/n if n else None,
+        "mae_r":totals["sum_absolute_error_r"]/n if n else None,
+        "rmse_r":math.sqrt(totals["sum_squared_error_r"]/n) if n else None,
+        "zero_forecast_rmse_r":math.sqrt(totals["sum_zero_squared_error_r"]/n) if n else None,
+        **{k:totals[k] for k in ("positive_forecasts", "positive_forecasts_that_lost", "near_break_even")}}
+
+
+class PredictionAudit:
+    def __init__(self):
+        self.totals = empty_totals()
+        self.families, self.bands = {}, {}
+        self.missing = self.untrained = self.end_marks = 0
+
+    def observe(self, trade, actual=None):
+        if trade.get("reason") == "END":
+            self.end_marks += 1
+            return
+        forecast = trade.get("entry_forecast")
+        if not forecast:
+            self.missing += 1
+            return
+        if not forecast["ready"]:
+            self.untrained += 1
+            return
+        predicted = forecast["estimated_net_r"]
+        if actual is None:
+            actual = trade["pnl"]/trade["risk_dollars"]
+        if not math.isfinite(predicted) or not math.isfinite(actual):
+            raise ValueError("Non-finite prediction audit outcome")
+        family = trade["strategy_family"]
+        band = "nonpositive" if predicted <= 0 else "0_to_0.5R" if predicted <= .5 else "above_0.5R"
+        for totals in (self.totals, self.families.setdefault(family, empty_totals()),
+                       self.bands.setdefault(band, empty_totals())):
+            add(totals, predicted, actual)
+
+    def summary(self):
+        return copy.deepcopy({**metrics(self.totals),
+            "missing_forecasts":self.missing, "untrained_forecasts":self.untrained,
+            "excluded_end_marks":self.end_marks,
+            "by_family":{k:metrics(v) for k,v in self.families.items()},
+            "by_forecast_band":{k:metrics(v) for k,v in self.bands.items()},
+            "selection_uses_summary":False,
+            "scope":"Forecasts saved before entry, scored after normal exits with full net returns. "
+                "Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. "
+                "Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. "
+                "Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."})
+
+
+def summarize_predictions(trades):
+    audit = PredictionAudit()
+    for trade in trades:
+        audit.observe(trade)
+    return audit.summary()

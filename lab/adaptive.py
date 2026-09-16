@@ -16,7 +16,7 @@ from .outcome_memory import (setup_context, empty_memory, update_memory, validat
     validate_memory, estimate as context_estimate, SHRINKAGE)
 from .exit_management import FIXED_EXIT, EXIT_POLICIES
 
-POLICY_VERSION = "online-net-r-v9-candle-context"
+POLICY_VERSION = "online-net-r-v10-entry-audit"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -83,7 +83,7 @@ def vector_regime(vector):
 
 def empty_model():
     return {"weights":[0.]*DIMENSIONS, "samples":0, "wins":0, "sum_r":0.,
-            "recent_r":0., "squared_error":0.}
+            "recent_r":0., "squared_error":0., "entry_error_samples":0, "entry_squared_error":0.}
 
 
 def cost_context(vector):
@@ -92,7 +92,7 @@ def cost_context(vector):
     return "low" if cost_r <= .25 else ("moderate" if cost_r <= .5 else "high")
 
 
-def update_model(model, vector, result_r):
+def update_model(model, vector, result_r, forecast=None):
     predicted = sum(w*x for w,x in zip(model["weights"],vector))
     rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
     raw_error = result_r-predicted
@@ -101,6 +101,9 @@ def update_model(model, vector, result_r):
     # Error measured BEFORE the outcome updates the weights. This is a ranking
     # penalty, not a calibrated confidence interval for dependent market samples.
     model["squared_error"] = model.get("squared_error", 0.) + raw_error*raw_error
+    if forecast and forecast["ready"]:
+        model["entry_error_samples"] += 1
+        model["entry_squared_error"] += (result_r-forecast["estimated_net_r"])**2
     norm = 1 + sum(x*x for x in vector)
     model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
                         for w,x in zip(model["weights"],vector)]
@@ -113,15 +116,20 @@ def update_model(model, vector, result_r):
 class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
-                 legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT):
+                 legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT,
+                 recent_return_veto=True):
         if exit_policy not in EXIT_POLICIES:
             raise ValueError("Unknown exit policy")
         if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
             raise ValueError("Learning models with different exit policies cannot be mixed")
         self.exit_policy = exit_policy
+        self.selection_rule = "recent_return_veto" if recent_return_veto else "conditional_net_return"
+        if state is not None and state.get("selection_rule") != self.selection_rule:
+            raise ValueError("Learning models with different selection rules cannot be mixed")
         self.learn = learn
         self.legacy_candidates_only = legacy_candidates_only
         self.failure_adaptation = failure_adaptation
+        self.recent_return_veto = recent_return_veto
         self.fee_rate, self.slippage_rate = float(fee_rate), float(slippage_rate)
         if not (0 <= self.fee_rate <= .05 and 0 <= self.slippage_rate <= .05):
             raise ValueError("Invalid learning cost assumptions")
@@ -133,7 +141,7 @@ class AdaptivePolicy:
             raise ValueError("This learning model needs to be retrained")
         self.state = copy.deepcopy(state) if state else {
             "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
-            "exit_policy":exit_policy}
+            "exit_policy":exit_policy, "selection_rule":self.selection_rule}
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
@@ -162,7 +170,12 @@ class AdaptivePolicy:
                     raise ValueError("Invalid learning model state")
                 if component.get("squared_error", 0) < 0:
                     raise ValueError("Invalid learning error state")
-                for value in component["weights"] + [component["recent_r"], component["sum_r"], component.get("squared_error", 0)]:
+                if (not isinstance(component["entry_error_samples"], int)
+                        or not 0 <= component["entry_error_samples"] <= component["samples"]
+                        or component["entry_squared_error"] < 0):
+                    raise ValueError("Invalid entry forecast error state")
+                for value in component["weights"] + [component["recent_r"], component["sum_r"],
+                        component.get("squared_error", 0), component["entry_squared_error"]]:
                     bounded(value, -1e12, 1e12)
 
     def export(self):
@@ -203,7 +216,26 @@ class AdaptivePolicy:
         n = model["samples"]
         # Cap the effective sample count; overlapping history is not unlimited
         # independent evidence. Fixed before the new replay is examined.
-        return math.sqrt(model.get("squared_error", 0)/max(1, n))/math.sqrt(max(1, min(n, 100)))
+        penalty = math.sqrt(model.get("squared_error", 0)/max(1, n))/math.sqrt(max(1, min(n, 100)))
+        scored = model["entry_error_samples"]
+        if scored >= MIN_SAMPLES:
+            # A later, better-fitted model cannot erase the error actually made
+            # before entry. Same minimum and effective-count cap as other evidence.
+            penalty = max(penalty, math.sqrt(model["entry_squared_error"]/scored)/math.sqrt(min(scored,100)))
+        return penalty
+
+    def forecast(self, params, vector):
+        """Read-only estimate, also available for independently simulated entries."""
+        model = self.evidence(params, vector)
+        context = self.context_evidence(params, vector)
+        estimate = self.predict(params, vector)
+        penalty = self.error_penalty(model) if model else 0.
+        if context:
+            penalty = max(penalty, context["penalty_r"])
+        samples = model["samples"] if model else 0
+        return {"estimated_net_r":estimate, "error_penalty_r":penalty,
+            "conservative_net_r":estimate-penalty, "samples":samples,
+            "ready":samples >= MIN_SAMPLES, "model_last_label_ts":self.state["last_label_ts"]}
 
     def observe(self, params, vector, result_r, available_ts, outcome=None):
         if not self.learn:
@@ -222,17 +254,20 @@ class AdaptivePolicy:
             raise ValueError("Unknown learning candidate")
         detail = outcome if outcome is not None else {}
         detail = validate_detail(result_r, detail)
+        forecast = detail.get("entry_forecast")
+        if forecast and forecast.get("forecast_ts", forecast["signal_close_ts"]) > available_ts:
+            raise ValueError("Entry forecast follows the resolved outcome")
         model = self.state["models"].setdefault(key, empty_model())
         update_memory(model.setdefault("outcomes", empty_memory()), result_r, available_ts, detail)
         memory = model.setdefault("setup_contexts", {}).setdefault(setup_context(vector), empty_memory())
         update_memory(memory, result_r, available_ts, detail)
         local = model.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
-        update_model(model, vector, result_r)
-        update_model(local, vector, result_r)
+        update_model(model, vector, result_r, forecast)
+        update_model(local, vector, result_r, forecast)
         context = model.setdefault("cost_contexts", {}).setdefault(cost_context(vector), empty_model())
         contextual_regime = context.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
-        update_model(context, vector, result_r)
-        update_model(contextual_regime, vector, result_r)
+        update_model(context, vector, result_r, forecast)
+        update_model(contextual_regime, vector, result_r, forecast)
         # Multiple estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1
         self.state["last_label_ts"] = int(available_ts)
@@ -265,10 +300,10 @@ class AdaptivePolicy:
             local = model.get("regimes", {}).get(vector_regime(vector)) if self.regime_adaptation else None
             recent = local if local and local["samples"] >= MIN_REGIME_SAMPLES else model
             context = self.context_evidence(p, vector)
-            if context and context["recent_net_r"] <= 0:
+            if self.recent_return_veto and context and context["recent_net_r"] <= 0:
                 reject("recent_context_losses")
                 continue
-            if not context and recent["recent_r"] <= 0:
+            if self.recent_return_veto and not context and recent["recent_r"] <= 0:
                 reject("nonpositive_recent_return")
                 continue
             estimate = self.predict(p, vector)
@@ -289,7 +324,10 @@ class AdaptivePolicy:
                     "cost_context":cost_context(vector), "regime":vector_regime(vector),
                     "regime_samples":local["samples"] if local else 0},
                 "outcome_context":{"key":setup_context(vector), **(context or {})},
-                "learning":{"version":POLICY_VERSION, "vector":list(vector)}})
+                "learning":{"version":POLICY_VERSION, "vector":list(vector),
+                    "forecast":{"estimated_net_r":estimate, "error_penalty_r":penalty,
+                        "conservative_net_r":conservative, "samples":model["samples"],
+                        "ready":True, "model_last_label_ts":self.state["last_label_ts"]}}})
         self.last_diagnostics["eligible_candidates"] = len(result)
         return sorted(result, key=lambda x:x["conservative_net_r"], reverse=True)
 
@@ -326,6 +364,8 @@ def approved_profile(db_path, symbol, settings):
     if profile.get("model", {}).get("version") != POLICY_VERSION:
         return None
     if profile.get("model", {}).get("exit_policy", FIXED_EXIT) != FIXED_EXIT:
+        return None
+    if profile.get("model", {}).get("selection_rule") != "recent_return_veto":
         return None
     return profile
 
@@ -365,6 +405,9 @@ def record_outcome(con, symbol, channel, params, learning, result_r, closed_ms, 
     policy = AdaptivePolicy(saved["model"], profile["cost_signature"]["max_notional_fraction"])
     # A late reconciliation is new information at reconciliation time.
     available = max(int(closed_ms), policy.state["last_label_ts"])
+    forecast = learning.get("forecast")
+    if forecast and "signal_close_ts" in forecast:
+        outcome = dict(outcome or {}, entry_forecast=forecast)
     policy.observe(params, learning["vector"], result_r, available, outcome=outcome)
     saved.update(model=policy.export(), forward_trades=saved["forward_trades"]+1,
                  forward_net_r=saved["forward_net_r"]+float(result_r))

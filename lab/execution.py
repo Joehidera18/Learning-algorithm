@@ -23,7 +23,7 @@ def simulate(*args, **kwargs):
 def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
-             feedback=None, on_resolved=None):
+             feedback=None, on_resolved=None, on_entry=None):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
@@ -222,6 +222,12 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "features": {k: v for k, v in f.items() if not k.startswith("_")},
                                 "edge_probability": detail.get("probability"), "score": score,
                                 "mfe_price": raw, "mae_price": raw}
+                            from .prediction_audit import entry_snapshot
+                            position["entry_forecast"] = entry_snapshot(
+                                (choice.get("learning") or {}).get("forecast") if choice else None,
+                                signal["ts"]+bar_ms)
+                            if on_entry:
+                                on_entry(position)
                             funnel["entries_opened"] += 1
                             if training_examples and cost_reason:
                                 funnel["exploratory_entries"] += 1

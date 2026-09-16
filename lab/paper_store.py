@@ -77,7 +77,13 @@ def recent_trades(path,limit=100):
     result=[]
     for row in rows:
         item=dict(row)
-        item['trade_review']=review_from_decision(item.pop('decision_json'))
+        raw = item.pop('decision_json')
+        item['trade_review']=review_from_decision(raw)
+        try:
+            forecast = (json.loads(raw or '{}').get('learning') or {}).get('forecast')
+            item['entry_forecast'] = forecast if isinstance(forecast,dict) else None
+        except (ValueError,TypeError,AttributeError):
+            item['entry_forecast'] = None
         result.append(item)
     return result
 

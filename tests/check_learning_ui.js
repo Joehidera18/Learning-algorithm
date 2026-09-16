@@ -35,6 +35,10 @@ const current={...original,current_policy_version:"fixture",current_report_versi
     learning_inputs:{dimensions:27},
     failure_learning:{by_family:{trend_pullback_simple:{causes:{stopped_out:7,fee_erased_gain:8,stalled_trade:9,other_loss:10}}}},
     outcome_memory_comparison:{net_pnl_difference:0,stress_net_pnl_difference:-1.23},
+    prediction_audit:{selected:{samples:3,mean_predicted_net_r:.4,mean_actual_net_r:-.5,optimism_bias_r:.9,
+      rmse_r:1.2,zero_forecast_rmse_r:1.0},shadow:{samples:40,mean_predicted_net_r:-.2,mean_actual_net_r:-.3}},
+    selection_policy_comparison:{rule:'<img src=x onerror="bad()">',holdout:{net_pnl:-3.75,trades:1},
+      holdout_stressed:{net_pnl:0},net_pnl_difference:-3.13,rejection_reasons:['Needs later data']},
     exit_policy_comparison:{historical_examples:90,holdout:{net_pnl:2.25,trades:7},
       holdout_stressed:{net_pnl:-4.5,trades:4},net_pnl_difference:2.87,stress_net_pnl_difference:17.34,
       eligible_for_trading:false,rejection_reasons:['<img src=x onerror="bad()">']},
@@ -57,6 +61,8 @@ for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confir
   "Missing candle recovery","50.0%","Separate daily history could not be downloaded",
   "What happened in the failed trade examples?","Effect of the new outcome memory","-$1.23",
   "Entry context studied:","Large losses retain their full size",
+  "Entry predictions and later outcomes","0.400R","-0.500R","0.900R","Zero forecast RMSE",
+  "Conditional selection experiment","-$3.75","Needs later data",
   "Loss and break-even study","Near break-even","Practice continued after losses","After exit:",
   "Fixed exit experiment","awaiting enough later candles","missing candles","Fees erased a gross gain",
   "Whole-account break-even experiment","$2.25","-$4.50","This experiment cannot control trading",
@@ -65,8 +71,9 @@ for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confir
 assert.ok(!html.includes("<img"));assert.ok(html.includes("&lt;img"));
 assert.equal(element("learningExamples").textContent,"130625");
 context.testUI.renderJournal([{product_id:"BTC-USD",family:"fixture",status:"CLOSED",pnl:-.05,result_r:-.05,
-  exit_reason:"TIME",trade_review:current.results[0].trade_reviews.selected.cases[0].review}]);
+  exit_reason:"TIME",entry_forecast:{estimated_net_r:.75},trade_review:current.results[0].trade_reviews.selected.cases[0].review}]);
 assert.ok(element("journalTable").innerHTML.includes("At-close review"));
+assert.ok(element("journalTable").innerHTML.includes("Entry estimate 0.750R; realized -0.050R"));
 assert.ok(!element("journalTable").innerHTML.includes("<img"));
 context.testUI.download("/api/learning/data?symbol=BTC-USD&interval=15m","test.zip").then(()=>{
   assert.equal(element("download-anchor").clicked,true);

@@ -1,0 +1,1594 @@
+{
+  "design": "Entry forecast error feedback plus a separate conditional selection experiment. Fixed inputs, no parameter search or per-market winner selection.",
+  "source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+  "markets": [
+    {
+      "bundle_sha256": "4dcafdfe1e710f922c3632c9e2cc359e03d66beceba1af6529ed445b9fc8b4f7",
+      "reviewed_report_sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392",
+      "source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "runtime_seconds": 156.08509689600032,
+      "comparison": {
+        "baseline_source_code_sha256": "e4398e78b05109ee79469cc41c823917b628d3f473f6888bd817b542e795bf6f",
+        "primary_net_difference": 0.0,
+        "stress_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "symbol": "DOT-USD",
+      "data_sha256": "ed5499d4ea7a47e5b02183f0cfc20c3c93dc923ded9899a9fcd65c4d9b1199b6",
+      "daily_data_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "baseline": {
+        "engine_version": "market-structure-v11.6-candle-context",
+        "policy_version": "online-net-r-v9-candle-context",
+        "historical_examples": 10839,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.8158507490472409,
+              "max_drawdown_pct": 1.4941025004661945,
+              "gross_pnl": -0.5344880314955955,
+              "fees_paid": 0.849923200018705
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 1,
+              "net_pnl": -3.75,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789536600000,
+        "confirmation": null
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "historical_examples": 10839,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -1.3844112315142638,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.8158507490472409,
+              "max_drawdown_pct": 1.4941025004661945,
+              "gross_pnl": -0.5344880314955955,
+              "fees_paid": 0.849923200018705
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 1,
+              "net_pnl": -3.75,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789536600000,
+        "confirmation": null
+      },
+      "prediction_audit": {
+        "selected": {
+          "samples": 0,
+          "mean_predicted_net_r": null,
+          "mean_actual_net_r": null,
+          "optimism_bias_r": null,
+          "mae_r": null,
+          "rmse_r": null,
+          "zero_forecast_rmse_r": null,
+          "positive_forecasts": 0,
+          "positive_forecasts_that_lost": 0,
+          "near_break_even": 0,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {},
+          "by_forecast_band": {},
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "shadow": {
+          "samples": 1948,
+          "mean_predicted_net_r": -0.6077145508623817,
+          "mean_actual_net_r": -0.5830326573658612,
+          "optimism_bias_r": -0.024681893496520807,
+          "mae_r": 0.5954240147250919,
+          "rmse_r": 0.7368468162373633,
+          "zero_forecast_rmse_r": 0.9370050896101046,
+          "positive_forecasts": 3,
+          "positive_forecasts_that_lost": 2,
+          "near_break_even": 53,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {
+            "signal_consensus_simple": {
+              "samples": 531,
+              "mean_predicted_net_r": -0.5921962701477358,
+              "mean_actual_net_r": -0.5440969499192585,
+              "optimism_bias_r": -0.04809932022847703,
+              "mae_r": 0.6220462531317134,
+              "rmse_r": 0.7510357929636324,
+              "zero_forecast_rmse_r": 0.9178427264865564,
+              "positive_forecasts": 3,
+              "positive_forecasts_that_lost": 2,
+              "near_break_even": 19
+            },
+            "trend_pullback_simple": {
+              "samples": 726,
+              "mean_predicted_net_r": -0.6293572370671121,
+              "mean_actual_net_r": -0.5993277084284292,
+              "optimism_bias_r": -0.030029528638682634,
+              "mae_r": 0.5668032425590238,
+              "rmse_r": 0.7079716698532464,
+              "zero_forecast_rmse_r": 0.9327623343566673,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 14
+            },
+            "breakout_volume_simple": {
+              "samples": 440,
+              "mean_predicted_net_r": -0.578016907971604,
+              "mean_actual_net_r": -0.5913892864575943,
+              "optimism_bias_r": 0.01337237848599043,
+              "mae_r": 0.6089409390279628,
+              "rmse_r": 0.7203587567939859,
+              "zero_forecast_rmse_r": 0.9234566200867407,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 15
+            },
+            "range_reclaim_simple": {
+              "samples": 189,
+              "mean_predicted_net_r": -0.6770715241692356,
+              "mean_actual_net_r": -0.688368217692412,
+              "optimism_bias_r": 0.011296693523176391,
+              "mae_r": 0.5088671715364914,
+              "rmse_r": 0.6655070061643813,
+              "zero_forecast_rmse_r": 0.9537735455979343,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 4
+            },
+            "support_rsi_reclaim_simple": {
+              "samples": 16,
+              "mean_predicted_net_r": -0.44992756202374445,
+              "mean_actual_net_r": -0.837386528707736,
+              "optimism_bias_r": 0.38745896668399155,
+              "mae_r": 0.5650724064210915,
+              "rmse_r": 0.5844634950638368,
+              "zero_forecast_rmse_r": 0.9415431957537496,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 0
+            },
+            "daily_trend_momentum_simple": {
+              "samples": 30,
+              "mean_predicted_net_r": -0.48141459055963876,
+              "mean_actual_net_r": -0.24645816908998777,
+              "optimism_bias_r": -0.23495642146965104,
+              "mae_r": 0.9931742008344355,
+              "rmse_r": 1.3306161934326572,
+              "zero_forecast_rmse_r": 1.3146027838321592,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 1
+            },
+            "volatility_expansion_simple": {
+              "samples": 16,
+              "mean_predicted_net_r": -0.5326959522554677,
+              "mean_actual_net_r": -0.03846319408121501,
+              "optimism_bias_r": -0.4942327581742527,
+              "mae_r": 0.9458733158260224,
+              "rmse_r": 1.215490234493863,
+              "zero_forecast_rmse_r": 1.0646741738084802,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 0
+            }
+          },
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 1945,
+              "mean_predicted_net_r": -0.6091764863530047,
+              "mean_actual_net_r": -0.5834608507518875,
+              "optimism_bias_r": -0.025715635601117306,
+              "mae_r": 0.5944150542325213,
+              "rmse_r": 0.7357101418089983,
+              "zero_forecast_rmse_r": 0.9368567760234909,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 53
+            },
+            "above_0.5R": {
+              "samples": 1,
+              "mean_predicted_net_r": 0.5289258187997361,
+              "mean_actual_net_r": -1.0,
+              "optimism_bias_r": 1.528925818799736,
+              "mae_r": 1.528925818799736,
+              "rmse_r": 1.528925818799736,
+              "zero_forecast_rmse_r": 1.0,
+              "positive_forecasts": 1,
+              "positive_forecasts_that_lost": 1,
+              "near_break_even": 0
+            },
+            "0_to_0.5R": {
+              "samples": 2,
+              "mean_predicted_net_r": 0.2456975289372324,
+              "mean_actual_net_r": 0.04186908186179461,
+              "optimism_bias_r": 0.2038284470754378,
+              "mae_r": 1.1098871917127062,
+              "rmse_r": 1.1284483214419267,
+              "zero_forecast_rmse_r": 1.0427100286059823,
+              "positive_forecasts": 2,
+              "positive_forecasts_that_lost": 1,
+              "near_break_even": 0
+            }
+          },
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "scope": "Entry forecasts evaluated after closure. Account trades and overlapping candidate practice are reported separately."
+      },
+      "conditional_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 0.46560447805001104,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 1.0308590000392202,
+              "max_drawdown_pct": 1.75387005199816,
+              "gross_pnl": 2.604572066187458,
+              "fees_paid": 2.1389675881375347
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -11.165835937499992,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "max_drawdown_pct": 2.2790609353595075,
+              "gross_pnl": -9.027908314782389,
+              "fees_paid": 2.1379276227176116
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "exit_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -1.8375446206849801,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.7554652463486791,
+              "max_drawdown_pct": 1.416048763500889,
+              "gross_pnl": -1.09139031981133,
+              "fees_paid": 0.7461543008737027
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 1,
+              "net_pnl": -3.75,
+              "win_rate": 0.0,
+              "profit_factor": 0.0,
+              "max_drawdown_pct": 0.7965899768256981,
+              "gross_pnl": -3.2719757052081277,
+              "fees_paid": 0.47802429479187225
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "final_source_reproduction_fields": 50
+    },
+    {
+      "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "reviewed_report_sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392",
+      "source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "runtime_seconds": 156.80688465799903,
+      "comparison": {
+        "baseline_source_code_sha256": "e4398e78b05109ee79469cc41c823917b628d3f473f6888bd817b542e795bf6f",
+        "primary_net_difference": 0.0,
+        "stress_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "symbol": "XRP-USD",
+      "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+      "daily_data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "baseline": {
+        "engine_version": "market-structure-v11.6-candle-context",
+        "policy_version": "online-net-r-v9-candle-context",
+        "historical_examples": 11113,
+        "holdout": {
+          "complete": true,
+          "trades": 5,
+          "net_pnl": -6.033706267503987,
+          "win_rate": 20.0,
+          "profit_factor": 0.5067407591702912,
+          "max_drawdown_pct": 2.852880808872927,
+          "gross_pnl": -2.0882782756070357,
+          "fees_paid": 3.945427991896906
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": false,
+              "trades": 9,
+              "net_pnl": null,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": null,
+              "gross_pnl": 23.740568558605947,
+              "fees_paid": 3.131502801426532
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -0.8308210569763332,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.8895487225894707,
+              "max_drawdown_pct": 1.5200968324697548,
+              "gross_pnl": 1.0657842738502223,
+              "fees_paid": 1.8966053308265236
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "win_rate": 40.0,
+              "profit_factor": 0.863648315951891,
+              "max_drawdown_pct": 1.683854177922359,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "max_drawdown_pct": 1.649352439921423,
+            "gross_pnl": -5.9144486584609615,
+            "fees_paid": 1.557426341539038
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 1,
+            "net_pnl": -3.75,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "max_drawdown_pct": 0.9487317231878081,
+            "gross_pnl": -2.960583499529136,
+            "fees_paid": 0.789416500470864
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "A later test period stopped at a data gap while holding a position; its return is unknown.",
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789534800000,
+        "confirmation": null
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "historical_examples": 11113,
+        "holdout": {
+          "complete": true,
+          "trades": 5,
+          "net_pnl": -6.033706267503987,
+          "win_rate": 20.0,
+          "profit_factor": 0.5067407591702912,
+          "max_drawdown_pct": 2.852880808872927,
+          "gross_pnl": -2.0882782756070357,
+          "fees_paid": 3.945427991896906
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": false,
+              "trades": 9,
+              "net_pnl": null,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": null,
+              "gross_pnl": 23.740568558605947,
+              "fees_paid": 3.131502801426532
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 3,
+              "net_pnl": -0.8308210569763332,
+              "win_rate": 33.33333333333333,
+              "profit_factor": 0.8895487225894707,
+              "max_drawdown_pct": 1.5200968324697548,
+              "gross_pnl": 1.0657842738502223,
+              "fees_paid": 1.8966053308265236
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "win_rate": 40.0,
+              "profit_factor": 0.863648315951891,
+              "max_drawdown_pct": 1.683854177922359,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 2,
+            "net_pnl": -7.471875000000011,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "max_drawdown_pct": 1.649352439921423,
+            "gross_pnl": -5.9144486584609615,
+            "fees_paid": 1.557426341539038
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 1,
+            "net_pnl": -3.75,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "max_drawdown_pct": 0.9487317231878081,
+            "gross_pnl": -2.960583499529136,
+            "fees_paid": 0.789416500470864
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "A later test period stopped at a data gap while holding a position; its return is unknown.",
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789534800000,
+        "confirmation": null
+      },
+      "prediction_audit": {
+        "selected": {
+          "samples": 5,
+          "mean_predicted_net_r": 0.32292972800498954,
+          "mean_actual_net_r": -0.3192949753782982,
+          "optimism_bias_r": 0.6422247033832877,
+          "mae_r": 1.201059388490307,
+          "rmse_r": 1.2381093542137107,
+          "zero_forecast_rmse_r": 1.0913908563047008,
+          "positive_forecasts": 5,
+          "positive_forecasts_that_lost": 4,
+          "near_break_even": 0,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {
+            "daily_trend_momentum_simple": {
+              "samples": 5,
+              "mean_predicted_net_r": 0.32292972800498954,
+              "mean_actual_net_r": -0.3192949753782982,
+              "optimism_bias_r": 0.6422247033832877,
+              "mae_r": 1.201059388490307,
+              "rmse_r": 1.2381093542137107,
+              "zero_forecast_rmse_r": 1.0913908563047008,
+              "positive_forecasts": 5,
+              "positive_forecasts_that_lost": 4,
+              "near_break_even": 0
+            }
+          },
+          "by_forecast_band": {
+            "0_to_0.5R": {
+              "samples": 5,
+              "mean_predicted_net_r": 0.32292972800498954,
+              "mean_actual_net_r": -0.3192949753782982,
+              "optimism_bias_r": 0.6422247033832877,
+              "mae_r": 1.201059388490307,
+              "rmse_r": 1.2381093542137107,
+              "zero_forecast_rmse_r": 1.0913908563047008,
+              "positive_forecasts": 5,
+              "positive_forecasts_that_lost": 4,
+              "near_break_even": 0
+            }
+          },
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "shadow": {
+          "samples": 2494,
+          "mean_predicted_net_r": -0.5925762959839153,
+          "mean_actual_net_r": -0.6019503642387578,
+          "optimism_bias_r": 0.009374068254843269,
+          "mae_r": 0.5501759185367648,
+          "rmse_r": 0.6693793391164092,
+          "zero_forecast_rmse_r": 0.903876017507036,
+          "positive_forecasts": 14,
+          "positive_forecasts_that_lost": 9,
+          "near_break_even": 91,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {
+            "trend_pullback_simple": {
+              "samples": 902,
+              "mean_predicted_net_r": -0.6036592764100376,
+              "mean_actual_net_r": -0.6382071372047559,
+              "optimism_bias_r": 0.03454786079471832,
+              "mae_r": 0.5232566204767235,
+              "rmse_r": 0.6330892819817245,
+              "zero_forecast_rmse_r": 0.8972186062720396,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 27
+            },
+            "range_reclaim_simple": {
+              "samples": 288,
+              "mean_predicted_net_r": -0.6801645333264529,
+              "mean_actual_net_r": -0.6979546741525048,
+              "optimism_bias_r": 0.01779014082605246,
+              "mae_r": 0.4538924959878843,
+              "rmse_r": 0.5805224205426237,
+              "zero_forecast_rmse_r": 0.9188072901218567,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 12
+            },
+            "signal_consensus_simple": {
+              "samples": 722,
+              "mean_predicted_net_r": -0.5938280837364373,
+              "mean_actual_net_r": -0.5896967520000485,
+              "optimism_bias_r": -0.004131331736388692,
+              "mae_r": 0.5708574231235245,
+              "rmse_r": 0.6816568940685473,
+              "zero_forecast_rmse_r": 0.9051286842113851,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 29
+            },
+            "breakout_volume_simple": {
+              "samples": 499,
+              "mean_predicted_net_r": -0.5881091674285084,
+              "mean_actual_net_r": -0.5430882184558844,
+              "optimism_bias_r": -0.045020948972624,
+              "mae_r": 0.5974931891997326,
+              "rmse_r": 0.7271024810848488,
+              "zero_forecast_rmse_r": 0.9067043737566726,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 18
+            },
+            "daily_trend_momentum_simple": {
+              "samples": 33,
+              "mean_predicted_net_r": -0.156889409310463,
+              "mean_actual_net_r": -0.42871752264807667,
+              "optimism_bias_r": 0.27182811333761353,
+              "mae_r": 0.9011117436631176,
+              "rmse_r": 1.0530193816959952,
+              "zero_forecast_rmse_r": 1.1162527219193377,
+              "positive_forecasts": 10,
+              "positive_forecasts_that_lost": 6,
+              "near_break_even": 1
+            },
+            "support_rsi_reclaim_simple": {
+              "samples": 26,
+              "mean_predicted_net_r": -0.24822514781474142,
+              "mean_actual_net_r": -0.3707152173563705,
+              "optimism_bias_r": 0.12249006954162898,
+              "mae_r": 0.5440177964521097,
+              "rmse_r": 0.609215221018952,
+              "zero_forecast_rmse_r": 0.6767573239403356,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 2
+            },
+            "volatility_expansion_simple": {
+              "samples": 24,
+              "mean_predicted_net_r": -0.15231974621035668,
+              "mean_actual_net_r": -0.16841977686154883,
+              "optimism_bias_r": 0.016100030651192126,
+              "mae_r": 0.6354549650703819,
+              "rmse_r": 0.7463319066535656,
+              "zero_forecast_rmse_r": 0.7519365696446109,
+              "positive_forecasts": 4,
+              "positive_forecasts_that_lost": 3,
+              "near_break_even": 2
+            }
+          },
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 2480,
+              "mean_predicted_net_r": -0.5967718604420506,
+              "mean_actual_net_r": -0.6050451246929183,
+              "optimism_bias_r": 0.008273264250868335,
+              "mae_r": 0.5469929233259361,
+              "rmse_r": 0.6655396130138633,
+              "zero_forecast_rmse_r": 0.9022681753524008,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 91
+            },
+            "0_to_0.5R": {
+              "samples": 14,
+              "mean_predicted_net_r": 0.15063797945722107,
+              "mean_actual_net_r": -0.05373565521604438,
+              "optimism_bias_r": 0.20437363467326544,
+              "mae_r": 1.1140207844550487,
+              "rmse_r": 1.164497291758851,
+              "zero_forecast_rmse_r": 1.153869050551864,
+              "positive_forecasts": 14,
+              "positive_forecasts_that_lost": 9,
+              "near_break_even": 0
+            }
+          },
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "scope": "Entry forecasts evaluated after closure. Account trades and overlapping candidate practice are reported separately."
+      },
+      "conditional_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 5,
+          "net_pnl": -6.033706267503987,
+          "win_rate": 20.0,
+          "profit_factor": 0.5067407591702912,
+          "max_drawdown_pct": 2.852880808872927,
+          "gross_pnl": -2.0882782756070357,
+          "fees_paid": 3.945427991896906
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "win_rate": null,
+          "profit_factor": null,
+          "max_drawdown_pct": 0,
+          "gross_pnl": 0,
+          "fees_paid": 0
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": false,
+              "trades": 15,
+              "net_pnl": null,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": null,
+              "gross_pnl": 27.0026275864356,
+              "fees_paid": 5.867635391117951
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -8.290280474806025,
+              "win_rate": 20.0,
+              "profit_factor": 0.4429146453879744,
+              "max_drawdown_pct": 2.749706762017722,
+              "gross_pnl": -5.162969168872436,
+              "fees_paid": 3.127311305933673
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -1.2776095252018536,
+              "win_rate": 40.0,
+              "profit_factor": 0.863648315951891,
+              "max_drawdown_pct": 1.683854177922359,
+              "gross_pnl": 2.984275293176877,
+              "fees_paid": 4.26188481837872
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "exit_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 4,
+          "net_pnl": 15.316129301259025,
+          "win_rate": 75.0,
+          "profit_factor": 4.983381553096106,
+          "max_drawdown_pct": 0.7923795998002713,
+          "gross_pnl": 18.54014625027803,
+          "fees_paid": 3.2240169490190396
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 2,
+          "net_pnl": -7.471875000000011,
+          "win_rate": 0.0,
+          "profit_factor": 0.0,
+          "max_drawdown_pct": 1.4943750000000022,
+          "gross_pnl": -5.929873463754288,
+          "fees_paid": 1.5420015362457118
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": false,
+              "trades": 10,
+              "net_pnl": null,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": null,
+              "gross_pnl": 7.320807859732081,
+              "fees_paid": 3.8043626003653186
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 12.194008922610124,
+              "win_rate": 50.0,
+              "profit_factor": 2.6001620646736896,
+              "max_drawdown_pct": 1.531264611543385,
+              "gross_pnl": 16.33414585695051,
+              "fees_paid": 4.140136934340307
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -3.5060007733133602,
+              "win_rate": 20.0,
+              "profit_factor": 0.6241428040527393,
+              "max_drawdown_pct": 2.046889202961416,
+              "gross_pnl": 0.7037651979016377,
+              "fees_paid": 4.209765971214963
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "final_source_reproduction_fields": 50
+    },
+    {
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "reviewed_report_sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392",
+      "source_code_sha256": "5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190",
+      "runtime_seconds": 172.70626350500243,
+      "comparison": {
+        "baseline_source_code_sha256": "e4398e78b05109ee79469cc41c823917b628d3f473f6888bd817b542e795bf6f",
+        "primary_net_difference": 0.0,
+        "stress_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "symbol": "AVAX-USD",
+      "data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "baseline": {
+        "engine_version": "market-structure-v11.6-candle-context",
+        "policy_version": "online-net-r-v9-candle-context",
+        "historical_examples": 11270,
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "win_rate": 50.0,
+          "profit_factor": 0.4222675992391148,
+          "max_drawdown_pct": 1.9159817304433848,
+          "gross_pnl": -1.7627223471257234,
+          "fees_paid": 2.5670163183107153
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "win_rate": 66.66666666666666,
+              "profit_factor": 2.3678092075606223,
+              "max_drawdown_pct": 1.3828270162585663,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "win_rate": 28.57142857142857,
+              "profit_factor": 1.1131162481461465,
+              "max_drawdown_pct": 2.3321405931895005,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 4,
+            "net_pnl": -6.508937457856973,
+            "win_rate": 25.0,
+            "profit_factor": 0.22501091283129454,
+            "max_drawdown_pct": 2.0526209234742177,
+            "gross_pnl": -4.574584679728722,
+            "fees_paid": 1.9343527781282743
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 5,
+            "net_pnl": -5.479983812331852,
+            "win_rate": 40.0,
+            "profit_factor": 0.3660810120446374,
+            "max_drawdown_pct": 1.9159817304433848,
+            "gross_pnl": -2.152499307336887,
+            "fees_paid": 3.3274845049949358
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789535700000,
+        "confirmation": null
+      },
+      "revised": {
+        "engine_version": "market-structure-v11.7-entry-audit",
+        "policy_version": "online-net-r-v10-entry-audit",
+        "historical_examples": 11270,
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "win_rate": 50.0,
+          "profit_factor": 0.4222675992391148,
+          "max_drawdown_pct": 1.9159817304433848,
+          "gross_pnl": -1.7627223471257234,
+          "fees_paid": 2.5670163183107153
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "win_rate": 66.66666666666666,
+              "profit_factor": 2.3678092075606223,
+              "max_drawdown_pct": 1.3828270162585663,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "win_rate": 28.57142857142857,
+              "profit_factor": 1.1131162481461465,
+              "max_drawdown_pct": 2.3321405931895005,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399
+            }
+          }
+        ],
+        "account_feedback_control": {
+          "holdout": {
+            "complete": true,
+            "trades": 4,
+            "net_pnl": -6.508937457856973,
+            "win_rate": 25.0,
+            "profit_factor": 0.22501091283129454,
+            "max_drawdown_pct": 2.0526209234742177,
+            "gross_pnl": -4.574584679728722,
+            "fees_paid": 1.9343527781282743
+          },
+          "holdout_stressed": {
+            "complete": true,
+            "trades": 5,
+            "net_pnl": -5.479983812331852,
+            "win_rate": 40.0,
+            "profit_factor": 0.3660810120446374,
+            "max_drawdown_pct": 1.9159817304433848,
+            "gross_pnl": -2.152499307336887,
+            "fees_paid": 3.3274845049949358
+          }
+        },
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "reviewed_through_ts": 1789535700000,
+        "confirmation": null
+      },
+      "prediction_audit": {
+        "selected": {
+          "samples": 3,
+          "mean_predicted_net_r": 0.42228497774483015,
+          "mean_actual_net_r": -0.4986835748095136,
+          "optimism_bias_r": 0.9209685525543438,
+          "mae_r": 0.9352356817048953,
+          "rmse_r": 1.1379869180317288,
+          "zero_forecast_rmse_r": 0.8667881079689157,
+          "positive_forecasts": 3,
+          "positive_forecasts_that_lost": 2,
+          "near_break_even": 0,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {
+            "support_rsi_reclaim_simple": {
+              "samples": 3,
+              "mean_predicted_net_r": 0.42228497774483015,
+              "mean_actual_net_r": -0.4986835748095136,
+              "optimism_bias_r": 0.9209685525543438,
+              "mae_r": 0.9352356817048953,
+              "rmse_r": 1.1379869180317288,
+              "zero_forecast_rmse_r": 0.8667881079689157,
+              "positive_forecasts": 3,
+              "positive_forecasts_that_lost": 2,
+              "near_break_even": 0
+            }
+          },
+          "by_forecast_band": {
+            "0_to_0.5R": {
+              "samples": 3,
+              "mean_predicted_net_r": 0.42228497774483015,
+              "mean_actual_net_r": -0.4986835748095136,
+              "optimism_bias_r": 0.9209685525543438,
+              "mae_r": 0.9352356817048953,
+              "rmse_r": 1.1379869180317288,
+              "zero_forecast_rmse_r": 0.8667881079689157,
+              "positive_forecasts": 3,
+              "positive_forecasts_that_lost": 2,
+              "near_break_even": 0
+            }
+          },
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "shadow": {
+          "samples": 2280,
+          "mean_predicted_net_r": -0.5977690565805495,
+          "mean_actual_net_r": -0.6424794025475917,
+          "optimism_bias_r": 0.04471034596704139,
+          "mae_r": 0.5427658427477831,
+          "rmse_r": 0.6510091002281558,
+          "zero_forecast_rmse_r": 0.9125669224564281,
+          "positive_forecasts": 22,
+          "positive_forecasts_that_lost": 15,
+          "near_break_even": 82,
+          "missing_forecasts": 0,
+          "untrained_forecasts": 0,
+          "excluded_end_marks": 0,
+          "by_family": {
+            "range_reclaim_simple": {
+              "samples": 187,
+              "mean_predicted_net_r": -0.6605140382360601,
+              "mean_actual_net_r": -0.7324370435862207,
+              "optimism_bias_r": 0.07192300535016057,
+              "mae_r": 0.47716635198743007,
+              "rmse_r": 0.5949304224346564,
+              "zero_forecast_rmse_r": 0.935544218555443,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 3
+            },
+            "trend_pullback_simple": {
+              "samples": 943,
+              "mean_predicted_net_r": -0.6045958497756265,
+              "mean_actual_net_r": -0.6073250518298036,
+              "optimism_bias_r": 0.0027292020541771944,
+              "mae_r": 0.559155750529887,
+              "rmse_r": 0.6777114936615566,
+              "zero_forecast_rmse_r": 0.9102600399538646,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 31
+            },
+            "signal_consensus_simple": {
+              "samples": 572,
+              "mean_predicted_net_r": -0.5984978330613209,
+              "mean_actual_net_r": -0.6688450293958899,
+              "optimism_bias_r": 0.07034719633456835,
+              "mae_r": 0.5385537013454211,
+              "rmse_r": 0.6211718249326709,
+              "zero_forecast_rmse_r": 0.9094144377857466,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 22
+            },
+            "breakout_volume_simple": {
+              "samples": 505,
+              "mean_predicted_net_r": -0.6263078553923934,
+              "mean_actual_net_r": -0.6881950466948844,
+              "optimism_bias_r": 0.06188719130249162,
+              "mae_r": 0.5184295497258427,
+              "rmse_r": 0.6162588363473889,
+              "zero_forecast_rmse_r": 0.9174386160353956,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 23
+            },
+            "daily_trend_momentum_simple": {
+              "samples": 33,
+              "mean_predicted_net_r": -0.35907577270905433,
+              "mean_actual_net_r": -0.48681288874576895,
+              "optimism_bias_r": 0.12773711603671453,
+              "mae_r": 0.6871736052874957,
+              "rmse_r": 0.9028198928358921,
+              "zero_forecast_rmse_r": 0.983359473400388,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 3
+            },
+            "support_rsi_reclaim_simple": {
+              "samples": 27,
+              "mean_predicted_net_r": 0.08735273366232386,
+              "mean_actual_net_r": -0.30017137585111325,
+              "optimism_bias_r": 0.38752410951343713,
+              "mae_r": 0.8071139511718223,
+              "rmse_r": 0.9144748198684632,
+              "zero_forecast_rmse_r": 0.839608417517126,
+              "positive_forecasts": 19,
+              "positive_forecasts_that_lost": 13,
+              "near_break_even": 0
+            },
+            "volatility_expansion_simple": {
+              "samples": 13,
+              "mean_predicted_net_r": -0.08817179541131061,
+              "mean_actual_net_r": -0.06865222387894251,
+              "optimism_bias_r": -0.019519571532368028,
+              "mae_r": 0.5125919581810557,
+              "rmse_r": 0.6214709959835734,
+              "zero_forecast_rmse_r": 0.598475222569396,
+              "positive_forecasts": 3,
+              "positive_forecasts_that_lost": 2,
+              "near_break_even": 0
+            }
+          },
+          "by_forecast_band": {
+            "nonpositive": {
+              "samples": 2258,
+              "mean_predicted_net_r": -0.6049695463329734,
+              "mean_actual_net_r": -0.6454425148541266,
+              "optimism_bias_r": 0.040472968521152806,
+              "mae_r": 0.5411382256446533,
+              "rmse_r": 0.649058717626298,
+              "zero_forecast_rmse_r": 0.9141071269721273,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 82
+            },
+            "0_to_0.5R": {
+              "samples": 22,
+              "mean_predicted_net_r": 0.1412630280091303,
+              "mean_actual_net_r": -0.3383563303586563,
+              "optimism_bias_r": 0.47961935836778663,
+              "mae_r": 0.7098185436053576,
+              "rmse_r": 0.827079594543757,
+              "zero_forecast_rmse_r": 0.7375743653726512,
+              "positive_forecasts": 22,
+              "positive_forecasts_that_lost": 15,
+              "near_break_even": 0
+            }
+          },
+          "selection_uses_summary": false,
+          "scope": "Forecasts saved before entry, scored after normal exits with full net returns. Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. Warm-up forecasts, missing records, end marks and unresolved gap positions are not scored. Historical candidate examples overlap; these are descriptive errors, not independent confidence intervals."
+        },
+        "scope": "Entry forecasts evaluated after closure. Account trades and overlapping candidate practice are reported separately."
+      },
+      "conditional_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "win_rate": 50.0,
+          "profit_factor": 0.4222675992391148,
+          "max_drawdown_pct": 1.9159817304433848,
+          "gross_pnl": -1.7627223471257234,
+          "fees_paid": 2.5670163183107153
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 7,
+              "net_pnl": 15.106928615683046,
+              "win_rate": 71.42857142857143,
+              "profit_factor": 3.602890792358783,
+              "max_drawdown_pct": 1.3828270162585339,
+              "gross_pnl": 18.660202795524185,
+              "fees_paid": 3.5532741798410807
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 7,
+              "net_pnl": 0.9617626738766489,
+              "win_rate": 28.57142857142857,
+              "profit_factor": 1.1131162481461465,
+              "max_drawdown_pct": 2.3321405931895005,
+              "gross_pnl": 5.564079422133129,
+              "fees_paid": 4.602316748256399
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "exit_experiment": {
+        "holdout": {
+          "complete": true,
+          "trades": 3,
+          "net_pnl": -5.610306061557594,
+          "win_rate": 33.33333333333333,
+          "profit_factor": 0.2519707458472496,
+          "max_drawdown_pct": 1.7035860956619113,
+          "gross_pnl": -4.222624641676475,
+          "fees_paid": 1.3876814198811318
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 4,
+          "net_pnl": -4.32973866543648,
+          "win_rate": 50.0,
+          "profit_factor": 0.4222675992391148,
+          "max_drawdown_pct": 1.9159817304433848,
+          "gross_pnl": -1.7627223471257234,
+          "fees_paid": 2.5670163183107153
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": true,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "win_rate": null,
+              "profit_factor": null,
+              "max_drawdown_pct": 0,
+              "gross_pnl": 0,
+              "fees_paid": 0
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 7.826429198409301,
+              "win_rate": 66.66666666666666,
+              "profit_factor": 2.3678092075606223,
+              "max_drawdown_pct": 1.3828270162585663,
+              "gross_pnl": 10.402884249406261,
+              "fees_paid": 2.5764550509968878
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 8,
+              "net_pnl": -2.795450546177449,
+              "win_rate": 25.0,
+              "profit_factor": 0.7719223256099143,
+              "max_drawdown_pct": 2.3908860542690236,
+              "gross_pnl": 2.2043788995814504,
+              "fees_paid": 4.999829445758795
+            }
+          }
+        ],
+        "research_checks_passed": false,
+        "eligible_for_trading": false,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "final_source_reproduction_fields": 50
+    }
+  ]
+}

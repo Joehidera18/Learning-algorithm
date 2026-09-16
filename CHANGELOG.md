@@ -1,3 +1,12 @@
+# Entry prediction accountability — 16 September 2026 UTC
+
+- Save entry forecasts before outcomes are known, including independent candidate practice. Score only normally resolved trades; mark cold models, missing forecasts, final end marks and unresolved gaps separately.
+- Track actual entry forecast squared errors separately from optimizer residuals at closure. After 30 scored forecasts, use the larger error margin. Actual rewards still train once and retain their full economic magnitude.
+- Advance historical candidate feedback in candle order even for bulk calls. Apply a candle's resolved outcomes before the next candle's entry forecasts, with deterministic same-time ordering.
+- Preserve forecasts in paper and Coinbase learning records; learn their errors atomically with journal closure. Show entry estimates in the paper journal and forecast/outcome summaries in historical reports.
+- Add a separate conditional selection study, retaining costs, contextual estimates, error margins, sample minima and risk limits. Its state cannot load as the approved trading model and its report exposes no model.
+- Register the completed V11.6 report as reviewed history, add a pinned before/after replay script, and require fresh practice with engine `market-structure-v11.7-entry-audit`, policy `online-net-r-v10-entry-audit`, report 12.
+
 # Fuller candle context and loss severity — 16 September 2026 UTC
 
 - Expand adaptive inputs from 19 to 27 with closed-candle wicks, RSI change, preceding support/resistance, rolling VWAP-proxy distance, ATR regime and prior compression. Use fixed scales and identical features in historical, paper and Coinbase learning.
