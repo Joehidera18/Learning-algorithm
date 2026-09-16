@@ -277,6 +277,7 @@
   }
   function renderCostLearning(r) {
     let html="";
+    if (r.learning_inputs) html+='<p class="footnote"><b>Entry context studied:</b> Candle rejection, support and resistance, momentum changes, price extension, volatility and trading costs. Only information available at the signal close is used. Large losses retain their full size in recent-return and risk estimates.</p>';
     if (r.failure_learning) html+='<details><summary>What happened in the failed trade examples?</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Stopped out</th><th>Near break-even</th><th>Fees erased a gain</th><th>Time exit loss</th><th>Other losses</th></tr></thead><tbody>'+
       Object.entries(r.failure_learning.by_family || {}).map(function (entry) {
         const a=entry[1].causes || {};

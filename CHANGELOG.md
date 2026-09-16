@@ -1,3 +1,11 @@
+# Fuller candle context and loss severity — 16 September 2026 UTC
+
+- Expand adaptive inputs from 19 to 27 with closed-candle wicks, RSI change, preceding support/resistance, rolling VWAP-proxy distance, ATR regime and prior compression. Use fixed scales and identical features in historical, paper and Coinbase learning.
+- Retain full realized returns in recent economic memory and variance. Measure raw pre-update residuals for the model's ranking penalty; bound the optimizer update instead of hiding large losses in economic statistics.
+- Identify the learning inputs in reports and explain the richer context on the dashboard. Preserve entry candidates, costs, risk limits, chronological label release and qualification rules.
+- Add a declared comparison with pinned V11.5 on identical DOT and AVAX snapshots, with input/source hashes and no winner selection. All supplied dates remain reviewed history.
+- Versions: engine `market-structure-v11.6-candle-context`, policy `online-net-r-v9-candle-context`, report 11. New practice is required after deployment. Includes the earlier finance and exit-study work.
+
 # Causal exit learning and monitoring parity — 15 September 2026 UTC
 
 - Fix adaptive paper and Coinbase signal readiness to require the chosen decision timeframe. Unused higher-timeframe gaps no longer add a different filter from historical replay. Retain daily-context entry checks, legacy multi-timeframe readiness, quote timing, risk limits and activation controls.

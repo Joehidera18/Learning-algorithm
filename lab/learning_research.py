@@ -6,7 +6,7 @@ import json
 import time
 from bisect import bisect_left
 
-from .adaptive import AdaptivePolicy, POLICY_VERSION
+from .adaptive import AdaptivePolicy, POLICY_VERSION, FEATURE_NAMES
 from .engine import ENGINE_VERSION, build_feature_cache
 from .execution import simulate
 from .research import cost_signature, bootstrap_interval, daily_goal_report
@@ -18,7 +18,7 @@ from .outcome_memory import trade_feedback, summarize as summarize_outcomes
 from .trade_review import summarize_trades, merge_summaries, BREAK_EVEN_R, POST_EXIT_HOURS
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
 
-LEARNING_REPORT_VERSION = 10
+LEARNING_REPORT_VERSION = 11
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -256,6 +256,10 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             basis="Incomplete account test: listed closed trades cover only the observed prefix before an unresolved data gap.")
     return {"engine_version":ENGINE_VERSION, "policy_version":POLICY_VERSION,
         "learning_report_version":LEARNING_REPORT_VERSION,
+        "learning_inputs":{"dimensions":len(FEATURE_NAMES), "names":list(FEATURE_NAMES),
+            "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
+                "wicks, RSI change, VWAP distance, volatility and completed daily context. "
+                "Exit reviews and future candles are not entry inputs."},
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_selection":coverage,
         "replay":{"clock":"Historical candles processed without wall-clock waits",

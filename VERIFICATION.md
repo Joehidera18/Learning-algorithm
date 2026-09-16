@@ -1,5 +1,15 @@
 # V11 verification
 
+## 16 September 2026: V11.6 fuller candle context and loss severity
+
+**234 Python tests passed in 71.381 seconds.** New tests verify that entry-time rejection/extension inputs distinguish outcomes the old vector could not, match full and compact candle features, use preceding resistance, and never include exit reviews or later candles. They also verify that a severe gap loss retains its actual size in recent economic moments and prediction-error penalties while weights remain finite and bounded. Invalid old vectors and numerically unusable labels cannot partly update a model. A worker completion test now has the same 30-second budget as the other full-practice test; its original five-second deadline failed only under concurrent replay load and passed alone in 2.141 seconds.
+
+Both actual dashboard checks passed, including the new entry-context explanation, supplied report 19 and finance account separation. Python compilation, JavaScript syntax and diff checks passed. No hosted/mobile visual test, real order or deployment was performed.
+
+Pinned V11.5 and revised V11.6 use identical DOT/AVAX snapshots, completed daily data, costs and reviewed-history boundaries. Independent development examples and diagnostics are unchanged. Ordinary-cost selected trades and final net results remain identical: DOT 0 trades/$0, AVAX 3 trades/-$5.610306. AVAX's higher-cost loss changes from -$5.989253 to -$4.329739, and its second earlier fold rises from $5.582693 to $7.826429; no other earlier ordinary-cost fold changes. Neither market qualifies. The account-feedback controls still fail profitability. There are no new downloaded candles or fresh confirmation prices in these comparisons.
+
+See [the declared design, sources and full results](CANDLE_CONTEXT_RESEARCH.md), [the compact comparison](research_baselines/candle-context-comparison.json) and `scripts/compare_candle_context.py`. The published update includes the earlier finance panel, monitoring repair and non-trading exit experiment. Models must be rebuilt under the new 27-input policy before qualification.
+
 ## 15 September 2026: V11.5 causal exit learning and integrated finances
 
 **229 Python tests passed in 63.927 seconds** after integrating the main-screen finance changes. The new regressions check fee-covered zero-reward exits, prior-close/next-candle timing, same-bar and wick ambiguity, losses through gaps, unknown missing-price outcomes, short-side algebra, causal shadow feedback, additional trades after earlier exits, model/profile separation, and paper/Coinbase rejection of the research-only exit. Readiness tests cover unused timeframe gaps, required timeframe gaps, newly completed candles and separate Coinbase model selection. Checkpoints resume identically after interruption in both the original and experimental model, with no label overlap. Tests use synthetic fixtures and submit no exchange orders.

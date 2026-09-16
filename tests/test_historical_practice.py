@@ -39,7 +39,9 @@ class HistoricalPracticeTests(unittest.TestCase):
             code, _, _ = s.handle("POST", "/api/learning/practice", body={"symbols":["BTC-USD"]},
                                  headers={"Content-Type":"application/json"})
             self.assertEqual(code, 202)
-            s.autolearn.worker.join(timeout=5)
+            # Exercise both complete learning passes. Completion is the contract;
+            # five seconds is not a promised training latency under CPU load.
+            s.autolearn.worker.join(timeout=30)
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.agent.settings, before)
         self.assertFalse(s.agent.runtime["running"])

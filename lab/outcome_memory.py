@@ -1,8 +1,8 @@
 """Causal, recency-weighted memory of comparable completed trade outcomes.
 
 Buckets and a 50-observation half-life are fixed research hypotheses, not tuned
-on the supplied test period. Scores are clipped for robustness; accounting sums
-retain actual returns. Effective counts are ranking aids, not independent bets.
+on the supplied test period. Economic moments retain actual returns, including
+large gap losses. Effective counts are ranking aids, not independent bets.
 """
 import math
 from .trade_review import BREAK_EVEN_R, FINDINGS, REVIEW_FIELDS, validate_review
@@ -60,7 +60,7 @@ def validate_detail(result_r, detail):
 
 
 def update_memory(memory, result_r, available_ts, detail):
-    target = max(-3., min(3., result_r))
+    target = result_r
     memory["samples"] += 1
     memory["weight"] = DECAY*memory["weight"]+1
     memory["weight_squared"] = DECAY**2*memory["weight_squared"]+1
@@ -158,6 +158,8 @@ def summarize(models):
     return {"by_family":families, "half_life_observations":50,
         "break_even_band_r":BREAK_EVEN_R,
         "context_rule":"Strategy, cost burden, intraday regime and completed daily trend.",
+        "return_rule":"Recent net returns and variance retain full realized net R, including tail losses. "
+            "Only optimizer updates and final ranking scores are bounded.",
         "scope":"Completed candidate examples, including overlapping simulations; not account profits. "
                 "Recent net outcomes affect selection. Exit causes describe outcomes, not proven causal explanations. "
                 "Gross returns include slippage. Cost sums cover cost_observations only. "

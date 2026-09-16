@@ -1,8 +1,10 @@
-# CryptO V11.5 — learning and testing complete exit policies
+# CryptO V11.6 — learning from fuller candle context
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.5 fixes a mismatch that could block ongoing signals on gaps in unused timeframes. Each practice run also trains a separate model using a fixed fee-covered break-even exit rule and tests its complete account path. On the supplied DOT and AVAX candles, that exit model did not improve final account profit. It remains an experiment and cannot control trading. See [the fixed rules, measured results and reproduction commands](EXIT_LEARNING_RESEARCH.md).
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.6 gives the learner eight additional entry-time inputs: candle rejection, RSI change, preceding support/resistance, price extension relative to the rolling VWAP proxy, volatility and prior compression. Large losses now retain their full size in recent-return and uncertainty estimates while training updates remain bounded. See [the declared change, sources and comparisons](CANDLE_CONTEXT_RESEARCH.md). Run historical practice again after deployment; older model vectors cannot be reused.
+
+The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 
 ## Start here
 

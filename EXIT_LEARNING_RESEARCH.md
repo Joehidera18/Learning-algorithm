@@ -38,11 +38,11 @@ The exit model has zero profitable earlier folds for DOT and one for AVAX, compa
 
 ## Reproduction
 
-Use a V11.4 checkout at commit `a20b076526c05943805dd04f64bba51e1503d839` for the baseline and this source for the revision. Keep the original attachments unchanged. The baseline below intentionally uses the same report-19 review boundary as the revised experiment.
+This document records the historical V11.5 experiment. Use a V11.4 checkout at commit `a20b076526c05943805dd04f64bba51e1503d839` for the baseline and a V11.5 checkout at `6718a89164bd383c825594f6cb3551ece04b8014` for the revision. Keep the original attachments unchanged. The baseline below intentionally uses the same report-19 review boundary as that experiment. Later V11.6 changes intentionally alter entry learning and are evaluated separately in [CANDLE_CONTEXT_RESEARCH.md](CANDLE_CONTEXT_RESEARCH.md).
 
 ```bash
 python scripts/compare_exit_learning.py --repo /path/to/v11.4 --bundle "DOT-USD_15m_learning-data 5.zip" --reviewed-report "learning-results 19.json" --out dot-baseline.json
-python scripts/compare_exit_learning.py --bundle "DOT-USD_15m_learning-data 5.zip" --reviewed-report "learning-results 19.json" --baseline dot-baseline.json --out dot-revised.json --summary dot-comparison.json
+python scripts/compare_exit_learning.py --repo /path/to/v11.5 --bundle "DOT-USD_15m_learning-data 5.zip" --reviewed-report "learning-results 19.json" --baseline dot-baseline.json --out dot-revised.json --summary dot-comparison.json
 ```
 
 Repeat the same declared commands with `AVAX-USD_15m_learning-data.zip` and distinct output filenames for the second dataset. The script asserts the current model's exact agreement with V11.4, apart from version identifiers. It records the exit-model results without choosing or promoting it. Runtime depends on the machine; each full revised study now trains two separate models.

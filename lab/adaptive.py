@@ -16,12 +16,19 @@ from .outcome_memory import (setup_context, empty_memory, update_memory, validat
     validate_memory, estimate as context_estimate, SHRINKAGE)
 from .exit_management import FIXED_EXIT, EXIT_POLICIES
 
-POLICY_VERSION = "online-net-r-v8-exit-study"
+POLICY_VERSION = "online-net-r-v9-candle-context"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
 REGIME_SHRINKAGE = 50
-DIMENSIONS = 19
+FEATURE_NAMES = (
+    "intercept", "rsi", "volume_z", "adx", "atr_pct", "momentum20", "momentum50",
+    "obv_slope", "signed_volume_pressure", "close_location", "bull_regime", "bear_regime",
+    "range_expansion", "daily_momentum7", "daily_ma_distance_atr", "daily_atr_pct",
+    "cost_r", "net_rr", "time_stop_hours", "upper_wick", "lower_wick", "rsi_change",
+    "distance_to_resistance_atr", "distance_to_support_atr", "vwap_distance_atr",
+    "atr_regime", "prior_compression")
+DIMENSIONS = len(FEATURE_NAMES)
 
 
 def bounded(value, lower=-1., upper=1.):
@@ -52,7 +59,15 @@ def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
         bounded(f.get("range_expansion", 1)/3, 0, 1),
         bounded(daily.get("momentum7", 0)/.2),
         bounded(daily.get("ma_distance_atr", 0)/3),
-        bounded(daily.get("atr_pct", 0)/.1, 0, 1)] + economics
+        bounded(daily.get("atr_pct", 0)/.1, 0, 1)] + economics + [
+        bounded(f.get("upper_wick", 0), 0, 1),
+        bounded(f.get("lower_wick", 0), 0, 1),
+        bounded((f.get("rsi", 50)-f.get("rsi_previous", f.get("rsi", 50)))/20),
+        bounded(f.get("distance_to_resistance_atr", 0)/3),
+        bounded(f.get("distance_to_support_atr", 0)/3),
+        bounded(f.get("vwap_distance_atr", 0)/3),
+        bounded((f.get("atr_regime", 1)-1)/1.5),
+        float(bool(f.get("prior_compression", False)))]
 
 
 def action_key(p):
@@ -79,16 +94,17 @@ def cost_context(vector):
 
 def update_model(model, vector, result_r):
     predicted = sum(w*x for w,x in zip(model["weights"],vector))
-    target = bounded(result_r, -3, 3)
     rate = max(.025, .15/math.sqrt(1+model["samples"]/500))
-    error = bounded(target-predicted, -3, 3)
+    raw_error = result_r-predicted
+    error = bounded(raw_error, -3, 3)
+    # Bound the optimization step, not the economic loss or measured error.
     # Error measured BEFORE the outcome updates the weights. This is a ranking
     # penalty, not a calibrated confidence interval for dependent market samples.
-    model["squared_error"] = model.get("squared_error", 0.) + error*error
+    model["squared_error"] = model.get("squared_error", 0.) + raw_error*raw_error
     norm = 1 + sum(x*x for x in vector)
     model["weights"] = [bounded(w*(1-rate*.0005)+rate*error*x/norm, -3, 3)
                         for w,x in zip(model["weights"],vector)]
-    model["recent_r"] += .03*(target-model["recent_r"])
+    model["recent_r"] += .03*(result_r-model["recent_r"])
     model["samples"] += 1
     model["wins"] += int(result_r > 0)
     model["sum_r"] += result_r
@@ -195,7 +211,9 @@ class AdaptivePolicy:
         if len(vector) != DIMENSIONS or any(not math.isfinite(float(v)) for v in vector):
             raise ValueError("Invalid entry feature vector")
         result_r = float(result_r)
-        if not math.isfinite(result_r) or not math.isfinite(float(available_ts)):
+        # Reject numerically unusable records before mutating any of the four
+        # model components. No plausible trade approaches this arithmetic limit.
+        if not math.isfinite(result_r) or abs(result_r) > 1e100 or not math.isfinite(float(available_ts)):
             raise ValueError("Invalid resolved outcome")
         if available_ts < self.state["last_label_ts"]:
             raise ValueError("Outcomes must be learned in the order they become available")
