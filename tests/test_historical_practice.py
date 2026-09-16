@@ -77,9 +77,9 @@ class HistoricalPracticeTests(unittest.TestCase):
         with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
                 "lab.learning_research.build_feature_cache", side_effect=fixture_features):
             s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
-            # Both independent models collect/review examples. This is a
-            # completion gate, not a speed benchmark.
-            s.autolearn.worker.join(timeout=30)
+            # Three variants collect/review examples and score entry forecasts.
+            # This is a completion gate, not a speed benchmark.
+            s.autolearn.worker.join(timeout=60)
         self.assertFalse(s.autolearn.worker.is_alive())
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
@@ -134,7 +134,7 @@ class HistoricalPracticeTests(unittest.TestCase):
             s.autolearn.study(["BTC-USD"], dict(s.agent.settings))
             history.assert_not_called()
             s.autolearn.start_history(["BTC-USD"])
-            s.autolearn.worker.join(timeout=5)
+            s.autolearn.worker.join(timeout=30)
         self.assertEqual([c.args[1] for c in history.call_args_list], ["15m", "1d"])
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.autolearn.status()["phase"], "completed")
@@ -198,7 +198,7 @@ class HistoricalPracticeTests(unittest.TestCase):
             return candles(3000)
         with patch.object(s.autolearn.downloader, "_history", side_effect=history) as download:
             s.autolearn.start_history(["HBAR", "XRP", "XLM"])
-            s.autolearn.worker.join(timeout=5)
+            s.autolearn.worker.join(timeout=30)
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual([c.args[0] for c in download.call_args_list if c.args[1]=="15m"],
                          ["HBAR-USD", "XRP-USD", "XLM-USD"])

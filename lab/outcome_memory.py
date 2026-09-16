@@ -38,6 +38,8 @@ def trade_feedback(trade):
         detail.update(gross_r=float(trade["gross_pnl"])/risk, fee_r=float(trade["fees_paid"])/risk)
     if trade.get("review"):
         detail["review"] = trade["review"]
+    if trade.get("entry_forecast"):
+        detail["entry_forecast"] = trade["entry_forecast"]
     return detail
 
 
@@ -56,6 +58,10 @@ def validate_detail(result_r, detail):
         normalized.update(gross_r=gross, fee_r=fee)
     if detail.get("review") is not None:
         normalized["review"] = validate_review(detail["review"], result_r)
+    if detail.get("entry_forecast") is not None:
+        from .prediction_audit import entry_snapshot
+        f = detail["entry_forecast"]
+        normalized["entry_forecast"] = entry_snapshot(f, f["signal_close_ts"])
     return normalized
 
 

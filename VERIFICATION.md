@@ -1,3 +1,17 @@
+# 16 September 2026 entry-forecast learning verification
+
+**241 Python tests passed in 145.957 seconds** on the final implementation. The two actual JavaScript mocked-DOM checks passed against the completed V11.6 upload and the new forecast/selection fixtures. Python compilation, JavaScript syntax and diff whitespace checks passed. No hosted/mobile visual verification, deployment or real orders were performed.
+
+New checks establish that a forecast is saved before entry, remains unchanged when other outcomes update the model, is scored only after a normal exit, and updates error evidence without an extra reward. Bulk and incremental shadow advancement produce identical forecasts and model state. Invalid/future forecasts cannot partly update a model. Warm-up/missing/end-mark/zero-return cases stay distinct. The forward decision clock can follow the candle close without admitting future outcomes. Experimental selection state cannot load through the approved trading profile. Paper forecast/error persistence, one-time learning and restart/account separation are covered by the existing journal transaction test with added assertions.
+
+The initial concurrent test run exceeded three worker-completion deadlines. A separate run resolved two; the deliberately dense gap fixture still exceeded 30 seconds with three research variants and forecast scoring. Its completion deadline is now 60 seconds, and two full-practice 5-second deadlines use 30 seconds. No production timeout was changed. The final full suite ran without the large real-data replays competing for CPU and completed successfully; no timing check was skipped.
+
+The same source is replayed against pinned V11.6 on supplied DOT, XRP and AVAX snapshots with identical costs and reviewed boundaries. Final primary results remain $0.00, -$6.03 and -$5.61 respectively; higher-cost results remain $0.00, $0.00 (no XRP trades) and -$4.33. Earlier primary folds are unchanged. The conditional selection experiment has mixed earlier-period results and no final-period improvement; it remains unable to control trading. All markets fail qualification and no unseen confirmation prices are present.
+
+Final-source replays matched all 50 substantive result fields in each DOT, XRP and AVAX repetition (creation time excluded). Their lab-source SHA-256 is `5c2c909f32963c0a17aaa763ab4a51ba724e3eaac138169f0b6d067f0a16c190`. The compact record contains matching input/source hashes and paired results.
+
+The entry audit exposes overprediction in the five selected XRP and three selected AVAX trades. This is a better account of forecast mistakes, not demonstrated profit improvement. See [the design and measured results](ENTRY_LEARNING_RESEARCH.md), [the compact record](research_baselines/entry-learning-comparison.json), and `scripts/compare_entry_learning.py`.
+
 # V11 verification
 
 ## 16 September 2026: V11.6 fuller candle context and loss severity

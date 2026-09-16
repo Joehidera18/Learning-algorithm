@@ -247,6 +247,10 @@ class LearningPersistenceTests(unittest.TestCase):
         return self.agent._open_position("BTC-USD",100.,F,{"key":"fixture","htf_bias":"MIXED"},choice,"learning")
 
     def test_paper_updates_once_and_survives_restart_without_changing_coinbase(self):
+        from lab.prediction_audit import entry_snapshot
+        self.learning['forecast'] = entry_snapshot(
+            current_policy(self.db,'BTC-USD',self.agent.settings).forecast(self.params,self.learning['vector']),
+            int(time.time()*1000))
         position=self.open(); self.assertIsNotNone(position)
         self.assertIsNone(load_state(self.db,"adaptive_paper_BTC-USD"))
         initial_coinbase=current_policy(self.db,"BTC-USD",self.agent.settings,"coinbase").export()
@@ -254,6 +258,10 @@ class LearningPersistenceTests(unittest.TestCase):
         self.agent._close_position("BTC-USD",99.,int(time.time()*1000),"MANUAL")
         saved=load_state(self.db,"adaptive_paper_BTC-USD")
         self.assertEqual(saved["forward_trades"],1)
+        learned = saved['model']['models'][action_key(self.params)]
+        self.assertEqual(learned['entry_error_samples'],1)
+        self.assertAlmostEqual(learned['entry_squared_error'],
+            (self.learning['forecast']['estimated_net_r']-saved['forward_net_r'])**2)
         con=db_connect(self.db)
         try:
             decision=json.loads(con.execute("SELECT decision_json FROM paper_trades WHERE id=?",(position["trade_id"],)).fetchone()[0])
@@ -261,6 +269,7 @@ class LearningPersistenceTests(unittest.TestCase):
         self.assertAlmostEqual(decision["trade_review"]["net_r"],saved["forward_net_r"])
         self.assertEqual(decision["trade_review"]["path_basis"],"observed_paper_quotes_not_a_complete_tick_history")
         self.assertEqual(recent_trades(self.db)[0]["trade_review"],decision["trade_review"])
+        self.assertEqual(recent_trades(self.db)[0]['entry_forecast'],self.learning['forecast'])
         fill=99.99*(1-position["slippage_rate"])
         best=((fill-position["entry"])-(fill+position["entry"])*position["fee_rate"])*position["qty"]/position["risk_usd"]
         self.assertAlmostEqual(decision["trade_review"]["best_net_r"],best)

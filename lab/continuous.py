@@ -500,6 +500,10 @@ class ContinuousLearner:
             choices = policy.opportunities(f) if policy else []
             for choice in choices:
                 choice["learning"]["cost_signature"] = cost_signature(self.settings)
+                if "_ts" in f:
+                    from .prediction_audit import entry_snapshot
+                    choice["learning"]["forecast"] = entry_snapshot(choice["learning"].get("forecast"),
+                        f["_ts"]+INTERVAL_MS[self.settings["decision_interval"]],int(time.time()*1000))
             with self.lock:
                 self.market[pid]["rejections"] = (dict(policy.last_diagnostics["rejections"])
                     if policy else {"no_current_learning_model":1})
@@ -914,6 +918,8 @@ class ContinuousLearner:
                     raise ValueError("No current qualified setup from the Coinbase learning model")
                 params, score = choice["params"], choice["score"]
                 learning = dict(choice["learning"],cost_signature=cost_signature(self.settings))
+                from .prediction_audit import entry_snapshot
+                learning["forecast"] = entry_snapshot(learning.get("forecast"),latest["ts"]+INTERVAL_MS[interval],int(time.time()*1000))
             else:
                 params = self._approved_params(pid)
             if not params:

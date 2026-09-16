@@ -11,6 +11,9 @@ for _market in RECENT_BASELINE["markets"]:
 LATEST_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-19.json").read_text())
 for _market in LATEST_BASELINE["markets"]:
     REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
+ENTRY_AUDIT_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-v11.6-completed.json").read_text())
+for _market in ENTRY_AUDIT_BASELINE["markets"]:
+    REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
 DATA_FIELDS = ("ts", "open", "high", "low", "close", "volume", "quote_volume", "trades")
 
 

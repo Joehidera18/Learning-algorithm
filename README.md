@@ -1,8 +1,8 @@
-# CryptO V11.6 — learning from fuller candle context
+# CryptO V11.7 — checking predictions against completed trades
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.6 gives the learner eight additional entry-time inputs: candle rejection, RSI change, preceding support/resistance, price extension relative to the rolling VWAP proxy, volatility and prior compression. Large losses now retain their full size in recent-return and uncertainty estimates while training updates remain bounded. See [the declared change, sources and comparisons](CANDLE_CONTEXT_RESEARCH.md). Run historical practice again after deployment; older model vectors cannot be reused.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.7 saves each entry forecast and learns its actual error after the trade closes. Once a model component has 30 scored entry forecasts, those errors can raise its ranking margin; later model updates cannot hide earlier overprediction. Reports show expected versus realized net returns. A separate experiment tests removing the broad recent-loss veto while keeping the other checks; it cannot control trading. See [the design, research and measured results](ENTRY_LEARNING_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
 
 The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 

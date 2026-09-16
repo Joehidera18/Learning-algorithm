@@ -170,10 +170,13 @@
   function renderJournal(rows) {
     $("journalTable").innerHTML = rows.length ? rows.map(function (t) {
       const review=t.trade_review;
+      const forecast=t.entry_forecast;
+      const prediction=forecast ? '<p class="footnote">Entry estimate '+num(forecast.estimated_net_r,3)+
+        'R; realized '+num(t.result_r,3)+'R. An estimate is not a win probability.</p>' : '';
       const detail=review && review.outcome ? '<details><summary>At-close review</summary><p>'+escape(review.outcome.replace(/_/g," "))+
         '; fees '+num(review.fee_r,3)+'R; best observed net mark '+num(review.best_net_r,3)+'R; giveback '+num(review.giveback_r,3)+
         'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p><p class="footnote">Observed quotes may not capture every price between updates.</p></details>' : '';
-      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+ "</td></tr>";
+      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+ "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
   function rejectionSummary(counts) {
@@ -319,6 +322,25 @@
     }
     return html;
   }
+  function renderPredictionAudit(r) {
+    let html='';
+    if (r.prediction_audit) {
+      const audits=[['Selected account trades',r.prediction_audit.selected],['Independent practice',r.prediction_audit.shadow]];
+      html+='<details><summary>Entry predictions and later outcomes</summary><div class="table-wrap"><table><thead><tr><th>Source</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Overprediction</th><th>Forecast RMSE</th><th>Zero forecast RMSE</th></tr></thead><tbody>'+
+        audits.filter(a=>a[1]).map(function (a) {const v=a[1];return '<tr><td>'+a[0]+'</td><td>'+num(v.samples,0)+
+          '</td><td>'+num(v.mean_predicted_net_r,3)+'R</td><td>'+num(v.mean_actual_net_r,3)+'R</td><td>'+num(v.optimism_bias_r,3)+
+          'R</td><td>'+num(v.rmse_r,3)+'R</td><td>'+num(v.zero_forecast_rmse_r,3)+'R</td></tr>';}).join('')+
+        '</tbody></table></div><p class="footnote">Predictions were saved before entry and checked after closure. Positive overprediction means the model expected too much. R is net profit divided by initial dollar risk. Lower RMSE means smaller forecast errors; the zero forecast is a prediction benchmark. Practice examples overlap and are not account profits. Missing, warm-up, unfinished and gap-censored records are not scored.</p>'+
+        '<p class="footnote">'+escape(r.entry_error_rule || '')+'</p></details>';
+    }
+    const study=r.selection_policy_comparison;
+    if (study) html+='<details><summary>Conditional selection experiment</summary><p>'+escape(study.rule)+'</p><p>Final test: '+
+      money((study.holdout || {}).net_pnl)+' across '+num((study.holdout || {}).trades,0)+' trades; at higher costs '+
+      money((study.holdout_stressed || {}).net_pnl)+'. Difference from the primary model: '+money(study.net_pnl_difference)+
+      '.</p><p class="footnote">This experiment cannot control trading. Earlier-period results and later confirmation must also be considered.</p><ul>'+
+      (study.rejection_reasons || []).map(v=>'<li>'+escape(v)+'</li>').join('')+'</ul></details>';
+    return html;
+  }
   function renderTradeReviews(r) {
     const study=r.trade_reviews;
     if (!study) return "";
@@ -417,7 +439,7 @@
           ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        renderCostLearning(r)+renderTradeReviews(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
+        renderCostLearning(r)+renderPredictionAudit(r)+renderTradeReviews(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
         (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
     }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
