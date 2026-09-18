@@ -178,17 +178,17 @@ class HistoricalCoverageTests(unittest.TestCase):
                 with self.assertRaises(InterruptedError):
                     learn_history(rows, "BTC-USD", DEFAULTS, cancelled=lambda:stopped,
                                   checkpoint=checkpoint)
-                self.assertEqual(len(simulations), 3)
+                self.assertEqual(len(simulations), 6)  # Two tracks per completed candidate.
                 stopped = False
                 with self.assertRaises(InterruptedError):
                     learn_history(rows, "BTC-USD", DEFAULTS, cancelled=lambda:stopped,
                                   checkpoint=checkpoint)
-                self.assertEqual(len(simulations),25)
+                self.assertEqual(len(simulations),50)
                 self.assertNotIn('exit_policy',saved[0]['diagnostics']['params'])
                 self.assertEqual(saved[22]['diagnostics']['params']['exit_policy'],'fee_covered_break_even')
                 stopped = False
                 resumed = learn_history(rows, "BTC-USD", DEFAULTS, checkpoint=checkpoint)
-                self.assertEqual(len(simulations), 44)
+                self.assertEqual(len(simulations), 88)
                 self.assertEqual(set(saved),set(range(44)))
             fresh = learn_history(rows, "BTC-USD", DEFAULTS)
         self.assertGreater(resumed["historical_examples"], 100)

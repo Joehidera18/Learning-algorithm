@@ -1,8 +1,8 @@
-# CryptO V11.8 — learning from forecast mistakes
+# CryptO V11.9 — separate practice for eligible setups
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.8 records forecasts during earlier training as well as later tests, always before the outcome becomes known. Those earlier prediction errors now inform the existing entry error margin. Losses and break-even outcomes retain their actual net returns. The dashboard also compares original forecasts with an experimental bias correction on the same examples; that correction is disabled for trading because its measured results were mixed. See [the design, research and measured results](FORECAST_CALIBRATION_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.9 fixes a practice bottleneck: an open example that fails the cost rules can no longer prevent the same strategy from studying a later setup that passes them. Two separate practice tracks learn actual net outcomes, including losses and break-even results, only after closure. The forecast panel now separates these groups so costly exploratory examples cannot hide how well eligible setups are predicted. See [the design, research and measured results](PRACTICE_TRACKS_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
 
 V11.7 entry-error margins and the separate conditional-selection experiment remain included. That experiment cannot control trading. [Its earlier paired replays](ENTRY_LEARNING_RESEARCH.md) showed no final-period profit improvement.
 

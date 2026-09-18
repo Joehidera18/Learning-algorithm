@@ -5,7 +5,7 @@ When intrabar order is unknown, assume the stop was reached first.
 """
 import math
 import statistics
-from .trade_quality import net_payoff, cooldown_minutes, signal_atr
+from .trade_quality import net_payoff, cooldown_minutes, signal_atr, signal_cost_check
 from .trade_review import close_review
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT, EXIT_POLICIES, protect_after_close
 
@@ -23,7 +23,7 @@ def simulate(*args, **kwargs):
 def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
-             feedback=None, on_resolved=None, on_entry=None):
+             feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all"):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
@@ -41,6 +41,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
               "entry_rejections": {}}
     if training_examples and policy is not None:
         raise ValueError("Independent training examples cannot be used for a policy account test")
+    if practice_cost_mode not in ("all", "eligible", "cost_blocked"):
+        raise ValueError("Unknown practice cost mode")
+    if practice_cost_mode != "all" and not training_examples:
+        raise ValueError("Separate practice tracks cannot be used for account trading")
     if params.get("exit_policy", FIXED_EXIT) not in EXIT_POLICIES:
         raise ValueError("Unknown exit policy")
     if training_examples:
@@ -187,8 +191,20 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     cost_reason = ("trading_cost_too_high" if cost_r > trade_params.get("max_cost_r", .8)
                                    else "net_reward_too_small" if quality["net_rr"] < trade_params.get("min_net_rr",0)
                                    else None)
+                    # Eligibility must match BOTH account checks: economics at
+                    # signal close and at the next open. No exit information is
+                    # used to route an example. Complementary tracks ensure a
+                    # rejected-cost position cannot occupy eligible practice.
+                    practice_reason = cost_reason
+                    if training_examples and practice_cost_mode != "all":
+                        _, signal_reason = signal_cost_check(f, trade_params, fee_rate, base_slip)
+                        practice_reason = signal_reason or cost_reason
                     if stop <= 0 or target <= 0 or not math.isfinite(unit_risk) or unit_risk <= 0:
                         reject("invalid_stop_distance", entry=True)
+                    elif practice_cost_mode == "eligible" and practice_reason:
+                        reject(practice_reason, entry=True)
+                    elif practice_cost_mode == "cost_blocked" and not practice_reason:
+                        reject("belongs_to_eligible_practice", entry=True)
                     elif cost_reason and not training_examples:
                         reject(cost_reason, entry=True)
                     else:
@@ -214,7 +230,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "break_even_active_ts":None,
                                 "qty": qty, "qty_initial": qty, "risk_dollars": qty * unit_risk,
                                 "planned_cost_r": cost_r, "planned_net_rr":quality["net_rr"], "risk_multiplier": 1.0,
-                                "training_cost_override":cost_reason if training_examples else None,
+                                "training_cost_override":practice_reason if training_examples else None,
+                                "practice_lane":("cost_blocked" if practice_reason else "eligible") if training_examples else None,
                                 "training_vector":training_vector,
                                 "effective_risk_fraction": risk, "t1_hit": False,
                                 "realized_partial": -entry_fee, "gross_pnl": 0.0, "fees_paid": entry_fee,
@@ -229,10 +246,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                             if on_entry:
                                 on_entry(position)
                             funnel["entries_opened"] += 1
-                            if training_examples and cost_reason:
+                            if training_examples and practice_reason:
                                 funnel["exploratory_entries"] += 1
                                 counts = funnel["training_cost_overrides"]
-                                counts[cost_reason] = counts.get(cost_reason, 0)+1
+                                counts[practice_reason] = counts.get(practice_reason, 0)+1
         if position:
             p = position
             # Once a stop fills, do not mark through lower prices later in the bar.

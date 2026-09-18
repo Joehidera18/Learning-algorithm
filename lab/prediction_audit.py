@@ -99,6 +99,7 @@ class PredictionAudit:
         self.raw_totals, self.paired_totals = empty_totals(), empty_totals()
         self.raw_bands = {}
         self.adjusted = self.applied = 0
+        self.lanes = {}
 
     def observe(self, trade, actual=None):
         if trade.get("reason") == "END":
@@ -118,9 +119,14 @@ class PredictionAudit:
             raise ValueError("Non-finite prediction audit outcome")
         family = trade["strategy_family"]
         band = forecast_band(predicted)
+        lane = trade.get("practice_lane")
+        if lane is not None and lane not in ("eligible", "cost_blocked"):
+            raise ValueError("Invalid practice lane in prediction audit")
         for totals in (self.totals, self.families.setdefault(family, empty_totals()),
                        self.bands.setdefault(band, empty_totals())):
             add(totals, predicted, actual)
+        if lane is not None:
+            add(self.lanes.setdefault(lane, empty_totals()), predicted, actual)
         if "raw_estimated_net_r" in forecast:
             raw = forecast["raw_estimated_net_r"]
             trial = forecast["trial_estimated_net_r"]
@@ -139,6 +145,7 @@ class PredictionAudit:
             "excluded_end_marks":self.end_marks,
             "by_family":{k:metrics(v) for k,v in self.families.items()},
             "by_forecast_band":{k:metrics(v) for k,v in self.bands.items()},
+            "by_practice_lane":{k:metrics(v) for k,v in self.lanes.items()},
             "calibration":{"paired_samples":self.raw_totals["samples"],
                 "adjusted_forecasts":self.adjusted,
                 "applied_forecasts":self.applied,

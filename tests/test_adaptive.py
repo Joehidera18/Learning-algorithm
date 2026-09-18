@@ -185,6 +185,7 @@ class LearningProtocolTests(unittest.TestCase):
             training=kwargs.get("training_examples",False)
             calls.append((start,end,training,kwargs.get("policy")))
             indices=[240+i*35 for i in range(100)] if training else [start+i for i in range(40)]
+            if training and kwargs.get("practice_cost_mode") == "cost_blocked": indices = []
             payoff=(1. if data[-1]["close"]==100 else -1.) if start>=4000 else 1.
             if not training and (kwargs["policy"].learn is False or not kwargs["policy"].regime_adaptation
                                  or kwargs["policy"].legacy_candidates_only):

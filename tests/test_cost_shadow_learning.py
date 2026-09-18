@@ -179,6 +179,7 @@ class EvaluationTests(unittest.TestCase):
         def replay(rows,features,start,end,balance,risk,fee,slip,params,**kwargs):
             training = kwargs.get("training_examples",False)
             indices = [240+i*35 for i in range(100)] if training else list(range(start,start+40))
+            if training and kwargs.get("practice_cost_mode") == "cost_blocked": indices = []
             reward = -1. if account_control_loss and not training and kwargs.get("feedback") is None and kwargs["policy"].learn else 1.
             trades = [{"entry_ts":rows[i]["ts"],"exit_ts":rows[i]["ts"],"reason":"TARGET2",
                 "features":F,"training_vector":feature_vector(F),"strategy_family":params["family"],
