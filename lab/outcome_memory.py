@@ -40,6 +40,8 @@ def trade_feedback(trade):
         detail["review"] = trade["review"]
     if trade.get("entry_forecast"):
         detail["entry_forecast"] = trade["entry_forecast"]
+    if trade.get("practice_lane"):
+        detail["practice_lane"] = trade["practice_lane"]
     return detail
 
 

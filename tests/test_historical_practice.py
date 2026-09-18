@@ -77,9 +77,9 @@ class HistoricalPracticeTests(unittest.TestCase):
         with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
                 "lab.learning_research.build_feature_cache", side_effect=fixture_features):
             s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
-            # Three variants collect/review examples and score entry forecasts.
-            # This is a completion gate, not a speed benchmark.
-            s.autolearn.worker.join(timeout=60)
+            # Three variants now run two practice tracks per candidate. This
+            # dense fixture is a completion/persistence gate, not a speed test.
+            s.autolearn.worker.join(timeout=120)
         self.assertFalse(s.autolearn.worker.is_alive())
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")

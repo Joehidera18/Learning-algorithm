@@ -334,6 +334,18 @@
         '</tbody></table></div><p class="footnote">Predictions were saved before entry and checked after closure. Positive overprediction means the model expected too much. R is net profit divided by initial dollar risk. Lower RMSE means smaller forecast errors; the zero forecast is a prediction benchmark. Practice examples overlap and are not account profits. Missing, warm-up, unfinished and gap-censored records are not scored.</p>'+
         '<p class="footnote">'+escape(r.entry_error_rule || '')+'</p>';
       const paired=audits.filter(a=>a[1] && a[1].calibration && a[1].calibration.paired_samples>0);
+      const laneRows=[];
+      audits.forEach(function(a) {
+        const lanes=(a[1] || {}).by_practice_lane || {};
+        [['eligible','Passes cost rules'],['cost_blocked','Fails cost rules']].forEach(function(lane) {
+          const v=lanes[lane[0]];
+          if (v) laneRows.push('<tr><td>'+a[0]+'</td><td>'+lane[1]+'</td><td>'+num(v.samples,0)+
+            '</td><td>'+num(v.mean_predicted_net_r,3)+'R</td><td>'+num(v.mean_actual_net_r,3)+
+            'R</td><td>'+num(v.rmse_r,3)+'R</td></tr>');
+        });
+      });
+      if (laneRows.length) html+='<h4>Learning from trades that pass the cost rules</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Practice track</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Forecast RMSE</th></tr></thead><tbody>'+
+        laneRows.join('')+'</tbody></table></div><p class="footnote">Separate practice tracks keep a costly open example from blocking a later setup that passes the cost rules. Both learn actual returns after fees, including losses and break-even results. Passing cost rules does not mean a trade is profitable or approved for the account.</p>';
       if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Trial adjustments</th><th>Original forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
         paired.map(function(a) {const c=a[1].calibration;return '<tr><td>'+a[0]+'</td><td>'+num(c.paired_samples,0)+
           '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+

@@ -20,8 +20,9 @@ from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
 from .prediction_audit import summarize_predictions
 from .chronological_learning import ChronologicalTrainer
 from .forecast_calibration import summarize as summarize_calibration
+from .practice import PRACTICE_LANES, merge_counts, outcome_totals
 
-LEARNING_REPORT_VERSION = 13
+LEARNING_REPORT_VERSION = 14
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -114,16 +115,21 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         progress(phase="learning", message=f"{symbol}: studying setup {index+1}/{len(candidates)}")
         saved = checkpoint["load"](index) if checkpoint else None
         if saved is None:
-            metrics, trades = simulate(rows, features, 240, development, 500,
-                settings["risk_per_trade"], fee, slip, params,
-                cancelled=cancelled, training_examples=True, bar_interval_ms=step)
-            labels = [(trade["exit_ts"]+step, index,
-                       trade["training_vector"],
-                       trade["r_multiple"], trade_feedback(trade), trade["entry_ts"])
-                      for trade in trades if trade["reason"] != "END"]
+            labels, reviews, funnel, lanes = [], [], {}, {}
+            for lane in PRACTICE_LANES:
+                metrics, trades = simulate(rows, features, 240, development, 500,
+                    settings["risk_per_trade"], fee, slip, params,
+                    cancelled=cancelled, training_examples=True, bar_interval_ms=step,
+                    practice_cost_mode=lane)
+                labels.extend((trade["exit_ts"]+step, index, trade["training_vector"],
+                    trade["r_multiple"], trade_feedback(trade), trade["entry_ts"])
+                    for trade in trades if trade["reason"] != "END")
+                lanes[lane] = {**outcome_totals(trades), "signal_funnel":metrics.get("signal_funnel", {})}
+                merge_counts(funnel, metrics.get("signal_funnel", {}))
+                reviews.append(summarize_trades(rows,trades,step,development))
             saved = {"labels":labels, "diagnostics":{"params":dict(params),
-                "resolved_examples":len(labels), "signal_funnel":metrics.get("signal_funnel", {})},
-                "trade_reviews":summarize_trades(rows,trades,step,development)}
+                "resolved_examples":len(labels), "signal_funnel":funnel, "by_practice_lane":lanes},
+                "trade_reviews":merge_summaries(reviews)}
             if checkpoint:
                 checkpoint["save"](index, saved)
             del trades
@@ -308,11 +314,13 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "historical_examples":len(examples), "candidate_count":len(candidates),
         "regime_examples":regime_examples,
         "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
-            "mode":"Independent historical exploration, including cost-rejected setups. "
+            "mode":"Separate eligible and cost-blocked practice tracks for each strategy. "
+                   "An open cost-blocked example cannot occupy eligible practice; entry eligibility uses signal and fill costs. "
                    "All fees and slippage are charged; unresolved trades spanning gaps are excluded from learning. "
                    "Repeated losses do not pause independent label collection beyond routine entry spacing. "
                    "Policy tests and trading retain their cost and qualification checks.",
-            "count_basis":"Candidate evaluations can overlap on the same candles. Counts are not independent opportunities or account trades."},
+            "count_basis":"Counts cover two complementary tracks per candidate; candle checks repeat across tracks. "
+                          "Different strategies and holding periods overlap. These are not independent bets or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
         "development_prediction_audit":trainer.predictions.summary(),
         "forecast_calibration":{**summarize_calibration(trained["models"]),

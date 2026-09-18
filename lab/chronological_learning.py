@@ -15,14 +15,21 @@ class ChronologicalTrainer:
         self.events, self.pending = [], {}
         self.cursor, self.last_clock = 0, -1
         self.predictions = PredictionAudit()
+        seen = set()
         for number, example in enumerate(examples):
             available, index, vector, reward, outcome, entry_ts = example
             if (not math.isfinite(entry_ts) or not math.isfinite(available)
                     or not 0 <= entry_ts < available):
                 raise ValueError("Development forecast must precede its resolved outcome")
+            identity = (index, entry_ts)
+            if identity in seen:
+                raise ValueError("Duplicate candidate entry in development practice")
+            seen.add(identity)
             # All known closures at a clock precede decisions at that clock.
             self.events.extend(((entry_ts,1,index,number),(available,0,index,number)))
-        self.events.sort()
+        # Two tracks can close different entries of one candidate at the same
+        # clock. Use entry time, not collection order, to match shadow replay.
+        self.events.sort(key=lambda e:(e[0],e[1],e[2],self.examples[e[3]][5]))
 
     def advance(self, cut_ts):
         if cut_ts < self.last_clock:
@@ -41,6 +48,7 @@ class ChronologicalTrainer:
                 detail = dict(outcome,entry_forecast=forecast)
                 self.policy.observe(params,vector,reward,available,outcome=detail)
                 self.predictions.observe({"reason":outcome.get("reason","UNKNOWN"),
-                    "strategy_family":params["family"],"entry_forecast":forecast},reward)
+                    "strategy_family":params["family"],"entry_forecast":forecast,
+                    "practice_lane":outcome.get("practice_lane")},reward)
             self.cursor += 1
         return self.policy.export()

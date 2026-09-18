@@ -1,3 +1,12 @@
+# Eligible practice coverage — 18 September 2026 UTC
+
+- Give every candidate separate cost-eligible and cost-blocked historical practice tracks. An open rejected-cost position can no longer occupy later eligible practice. Both tracks charge full costs and learn losses or break-even outcomes once, after closure.
+- Preserve entry forecasts, reject duplicate candidate entries, and order simultaneous closures by original entry time consistently in development and shadow replay.
+- Report forecast errors separately for the two tracks. Retain account risk limits, candidate templates, price-gap handling and qualification requirements.
+- Audit all ten supplied reports and ten candle archives. Record duplicate prices and the one revised overlapping DOT candle explicitly. Pin before/after comparisons and independently verify their practice entries, outcomes and cost groups.
+- The fixed replay adds 620 development examples and 22 net additional cost-eligible final-period examples across DOT/XRP/AVAX. Final account returns are unchanged; earlier periods and matched forecast errors are mixed. No profitability claim or alternate-policy promotion.
+- Register the latest V11.8 endpoints as reviewed. Versions: engine `market-structure-v11.9-practice-tracks`, policy `online-net-r-v12-practice-tracks`, report 14. Fresh practice is required after deployment.
+
 # Chronological forecast correction — 16 September 2026 UTC
 
 - Replay development entries and closures in chronological order; retain the entry forecast and learn each resolved reward once. Preserve deterministic checkpoint reconstruction and future-label isolation.
