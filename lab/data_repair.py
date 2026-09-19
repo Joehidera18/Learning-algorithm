@@ -6,7 +6,7 @@ smaller Coinbase candles. Existing observations are never overwritten.
 import math
 from .data import INTERVAL_MS
 
-SMALLER = {"1h": "15m", "15m": "5m", "5m": "1m", "1d": "1h"}
+SMALLER = {"1h": "15m", "15m": "5m", "5m": "1m", "6h": "1h", "1d": "1h"}
 
 
 def valid_candle(row, step):

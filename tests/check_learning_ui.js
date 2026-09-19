@@ -17,11 +17,24 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,renderJournal,download};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
 const original=process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2],"utf8")) :
   {results:[],historical_examples:0,phase:"completed",message:"Fixture"};
 context.testUI.renderLearning(original);
+assert.equal(element("practiceInterval1h").checked,true);
+assert.equal(element("practiceInterval6h").checked,true);
+assert.equal(element("practiceInterval5m").checked,false);
+element("autoFee").value="0.4";
+element("autoFee").reportValidity=()=>true;
+element("practiceSymbols").value="BTC, eth, BTC-USD";
+element("practiceHistory").value="2920";
+const plan=JSON.parse(JSON.stringify(context.testUI.practicePlan()));
+assert.deepEqual(plan,{fee_rate:.004,symbols:["BTC-USD","ETH-USD"],intervals:["15m","1h","6h"],history_days:2920});
+for (const iv of ["5m","15m","1h","6h"]) element("practiceInterval"+iv).checked=false;
+assert.throws(()=>context.testUI.practicePlan(),/at least one timeframe/);
+element("practiceInterval6h").checked=true;
+assert.deepEqual(JSON.parse(JSON.stringify(context.testUI.practicePlan().intervals)),["6h"]);
 if (original.results.length) {
   assert.match(element("learningResults").innerHTML,/BTC-USD/);
   assert.equal(element("learningTestTrades").textContent,String(original.results.reduce((n,r)=>n+(r.holdout?.trades||0),0)));
@@ -29,6 +42,8 @@ if (original.results.length) {
 const current={...original,current_policy_version:"fixture",current_report_version:8,historical_examples:130625,
   results:[{symbol:'BTC-USD<img src=x onerror="bad()">',interval:"15m",policy_version:"fixture",learning_report_version:8,
     validated:false,holdout:{net_pnl:-.62,trades:16},holdout_stressed:{net_pnl:-21.84},data_quality:{rows:3000},
+    history_request:{requested_days:2920,effective_days:1825,observed_candles:105063,coverage_pct:60,
+      first_candle_ts:1695166200000,last_candle_close_ts:1789774200000},
     market_data:{provider:"Fixture",gap_repair:{recovered_direct:2,recovered_from_smaller_candles:3,missing_after:4},
       daily_context:{status:"daily_download_unavailable"}},
     daily_data:{source:"complete_intraday_aggregation",holdout_ready_candles:500,holdout_candles:1000},
@@ -58,7 +73,8 @@ const current={...original,current_policy_version:"fixture",current_report_versi
     holdout_shadow_feedback:{resolved_examples:120},performance_attribution:{scope:"Modeled costs",
       by_family:{daily_trend_momentum_simple:{trades:16,gross_pnl:9.01,fees_paid:9.63,net_pnl:-.62}}},
     evaluation:{reuses_reviewed_history:true,reviewed_through_ts:1789448400000,confirmation:{start_ts:1789448400000,
-      end_ts:1789452000000,metrics:{trades:0,net_pnl:0},stressed:{net_pnl:0},
+      end_ts:1789452000000,metrics:{trades:0,net_pnl:0,feedback:{resolved_examples:20,
+        by_entry_period:{carried_in:{resolved_examples:8}}}},stressed:{net_pnl:0},practice_continuity:{},
       account_feedback_control:{metrics:{net_pnl:-2},stressed:{net_pnl:-3}}}}}]};
 context.testUI.renderLearning(current);
 const html=element("learningResults").innerHTML;
@@ -74,10 +90,17 @@ for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confir
   "Loss and break-even study","Near break-even","Practice continued after losses","After exit:",
   "Fixed exit experiment","awaiting enough later candles","missing candles","Fees erased a gross gain",
   "Whole-account break-even experiment","$2.25","-$4.50","This experiment cannot control trading",
-  "Selected-trade feedback on later prices","-$2.00","-$3.00","Download candles &amp; report"])
+  "Selected-trade feedback on later prices","-$2.00","-$3.00","Download candles &amp; report",
+  "History coverage:","2920 days requested; 1825 day limit","105063 candles, 60.0%","· 15m"])
   assert.ok(html.includes(text),text);
+assert.ok(html.includes('20 practice outcomes became available in this window; 8 came from examples opened earlier.'));
 assert.ok(!html.includes("<img"));assert.ok(html.includes("&lt;img"));
 assert.equal(element("learningExamples").textContent,"130625");
+context.testUI.renderLearning({...current,completed_studies:2,total_studies:6,total_markets:2,
+  results:[current.results[0],{...current.results[0],symbol:"ETH-USD",interval:"6h",research_only:true,validated:true}]});
+assert.match(element("learningResults").innerHTML,/ETH-USD · 6h/);
+assert.match(element("learningResults").innerHTML,/<span class="badge ">Research only<\/span>/);
+assert.match(element("learningProgress").textContent,/2 of 6 studies processed across 2 coins/);
 context.testUI.renderJournal([{product_id:"BTC-USD",family:"fixture",status:"CLOSED",pnl:-.05,result_r:-.05,
   exit_reason:"TIME",entry_forecast:{estimated_net_r:.75},trade_review:current.results[0].trade_reviews.selected.cases[0].review}]);
 assert.ok(element("journalTable").innerHTML.includes("At-close review"));

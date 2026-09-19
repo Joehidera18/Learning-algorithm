@@ -41,6 +41,17 @@ element("financeMarket").handlers.change();
 update("history",history);
 assert.equal(element("financeMarket").value,"AVAX-USD:15m");
 assert.ok(!element("financeNote").textContent.includes("Partial totals"));
+const multiple={total_markets:1,total_studies:2,results:[history.results[0],
+  {symbol:"AVAX-USD",interval:"6h",trade_finances:{...totals,net_pnl:-4,money_won:0,money_lost:4}}]};
+update("history",multiple);
+assert.equal(element("financeNet").textContent,"$2.00","15m selection stays separate from the same coin at 6h");
+element("financeMarket").value="AVAX-USD:6h";
+element("financeMarket").handlers.change();
+assert.equal(element("financeNet").textContent,"-$4.00");
+element("financeMarket").value="*";
+element("financeMarket").handlers.change();
+assert.equal(element("financeNet").textContent,"-$2.00");
+assert.match(element("financeNote").textContent,/may overlap/);
 choose("paper");
 assert.equal(storage.get("cryptoFinanceSource"),"paper");
 assert.equal(element("financeTrades").textContent,"—");

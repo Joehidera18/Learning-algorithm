@@ -205,6 +205,12 @@ class ReviewPersistenceTests(unittest.TestCase):
         self.service = Service(self.base, db_path=self.base/"test.sqlite3", data_dir=self.base/"data")
         self.learner = self.service.autolearn
         self.settings = dict(self.service.agent.settings)
+        from lab.study_plan import DEFAULT_PRACTICE_SYMBOLS
+        products = patch.object(self.service.agent.client, "products", return_value=[{
+            "id":s, "base_currency":s[:-4], "quote_currency":"USD", "status":"online"}
+            for s in DEFAULT_PRACTICE_SYMBOLS])
+        products.start()
+        self.addCleanup(products.stop)
 
     def tearDown(self):
         self.service.agent.stop()

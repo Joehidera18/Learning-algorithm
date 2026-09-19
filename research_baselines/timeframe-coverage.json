@@ -1,0 +1,531 @@
+{
+  "source_code_sha256": "415593a1742073c96bf5d9b570d913f831d607b3e44fa29516f6147e32efaef7",
+  "studies": [
+    {
+      "symbol": "LTC-USD",
+      "interval": "1h",
+      "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+      "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+      "data_sha256": "5c482a99227a6712c8e45c924c5679e67f908d6d16c05b4ab0505a239dbc9460",
+      "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+      "candles": 26261,
+      "missing_target_buckets": 18,
+      "source_start_ts": 1695166200000,
+      "source_end_ts": 1789774200000,
+      "historical_examples": 3623,
+      "later_practice_outcomes": 819,
+      "model_observations": 4442,
+      "regime_examples": {
+        "BULL": 3258,
+        "BEAR": 22,
+        "CHOP": 1162
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "1h",
+        "training_start_ts": 1696032000000,
+        "training_end_ts": 1770750000000,
+        "test_start_ts": 1770836400000,
+        "test_end_ts": 1789772400000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "1h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 97.15
+    },
+    {
+      "symbol": "LTC-USD",
+      "interval": "6h",
+      "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+      "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+      "data_sha256": "88f284d6a756688ed4135d0f9e33aa167b659b61b0db20f654b1613f6a591a51",
+      "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+      "candles": 4372,
+      "missing_target_buckets": 7,
+      "source_start_ts": 1695166200000,
+      "source_end_ts": 1789774200000,
+      "historical_examples": 463,
+      "later_practice_outcomes": 117,
+      "model_observations": 580,
+      "regime_examples": {
+        "BULL": 393,
+        "BEAR": 4,
+        "CHOP": 183
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "6h",
+        "training_start_ts": 1700352000000,
+        "training_end_ts": 1770724800000,
+        "test_start_ts": 1770811200000,
+        "test_end_ts": 1789754400000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "6h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 17.176
+    },
+    {
+      "symbol": "DOT-USD",
+      "interval": "1h",
+      "bundle_sha256": "34d0812c56f07a64447ba327583fa5f5fe4a6c0e47cfe4b107d8d24a1e33baa6",
+      "source_data_sha256": "9bc18b653098ceed6aaf03aaa85f2991c5e6b9aa63bd54d4371c80d29200d14d",
+      "data_sha256": "fa14edf397fbb556d7b36f286e3a645cede7793659074395473edc6b97302cfd",
+      "daily_data_sha256": "64e42956dfa87de5c84440596d2ed09ba0a7639196c3b067e73bd1543a3dac00",
+      "candles": 26248,
+      "missing_target_buckets": 32,
+      "source_start_ts": 1695117600000,
+      "source_end_ts": 1789725600000,
+      "historical_examples": 3264,
+      "later_practice_outcomes": 496,
+      "model_observations": 3760,
+      "regime_examples": {
+        "BULL": 2776,
+        "BEAR": 6,
+        "CHOP": 978
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "1h",
+        "training_start_ts": 1695981600000,
+        "training_end_ts": 1770663600000,
+        "test_start_ts": 1770750000000,
+        "test_end_ts": 1789725600000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "1h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 86.226
+    },
+    {
+      "symbol": "DOT-USD",
+      "interval": "6h",
+      "bundle_sha256": "34d0812c56f07a64447ba327583fa5f5fe4a6c0e47cfe4b107d8d24a1e33baa6",
+      "source_data_sha256": "9bc18b653098ceed6aaf03aaa85f2991c5e6b9aa63bd54d4371c80d29200d14d",
+      "data_sha256": "0e77fbe1d97508cce6c46e9b1b0898485df7d42cd105039d6632aed4c7494f9a",
+      "daily_data_sha256": "64e42956dfa87de5c84440596d2ed09ba0a7639196c3b067e73bd1543a3dac00",
+      "candles": 4359,
+      "missing_target_buckets": 20,
+      "source_start_ts": 1695117600000,
+      "source_end_ts": 1789725600000,
+      "historical_examples": 358,
+      "later_practice_outcomes": 14,
+      "model_observations": 372,
+      "regime_examples": {
+        "BULL": 220,
+        "BEAR": 0,
+        "CHOP": 152
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "6h",
+        "training_start_ts": 1700308800000,
+        "training_end_ts": 1770465600000,
+        "test_start_ts": 1770552000000,
+        "test_end_ts": 1789711200000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "6h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 11.641
+    },
+    {
+      "symbol": "XRP-USD",
+      "interval": "1h",
+      "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "source_data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+      "data_sha256": "90e1a434d9a88ac6030315a33231a193a92ceb2d9c07a45b82ef179f47c98598",
+      "daily_data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+      "candles": 26261,
+      "missing_target_buckets": 19,
+      "source_start_ts": 1694926800000,
+      "source_end_ts": 1789534800000,
+      "historical_examples": 3178,
+      "later_practice_outcomes": 616,
+      "model_observations": 3794,
+      "regime_examples": {
+        "BULL": 2860,
+        "BEAR": 18,
+        "CHOP": 916
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 1,
+        "net_pnl": -3.75,
+        "fees_paid": 0.61322829121043,
+        "max_drawdown_pct": 1.1818984762798102,
+        "win_rate": 0.0
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 2,
+        "net_pnl": -4.591596212039633,
+        "fees_paid": 1.184646925246141,
+        "max_drawdown_pct": 1.3292946333472933,
+        "win_rate": 0.0
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "1h",
+        "training_start_ts": 1695790800000,
+        "training_end_ts": 1770512400000,
+        "test_start_ts": 1770598800000,
+        "test_end_ts": 1789534800000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "1h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "A later test period stopped at a data gap while holding a position; its return is unknown.",
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 84.818
+    },
+    {
+      "symbol": "XRP-USD",
+      "interval": "6h",
+      "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "source_data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+      "data_sha256": "f3fdaedb1ba937a39e49d29b0f52dfdb7a5e2e23d1237e11fab914b0281185b6",
+      "daily_data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+      "candles": 4371,
+      "missing_target_buckets": 8,
+      "source_start_ts": 1694926800000,
+      "source_end_ts": 1789534800000,
+      "historical_examples": 357,
+      "later_practice_outcomes": 64,
+      "model_observations": 421,
+      "regime_examples": {
+        "BULL": 294,
+        "BEAR": 0,
+        "CHOP": 127
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "6h",
+        "training_start_ts": 1700114400000,
+        "training_end_ts": 1770487200000,
+        "test_start_ts": 1770573600000,
+        "test_end_ts": 1789516800000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "6h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 13.458
+    },
+    {
+      "symbol": "AVAX-USD",
+      "interval": "1h",
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "source_data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "data_sha256": "722c051398785fac31438ab71300112d68bebeee90a8fc021a8efd6585dc1fb6",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "candles": 26241,
+      "missing_target_buckets": 38,
+      "source_start_ts": 1694853900000,
+      "source_end_ts": 1789461900000,
+      "historical_examples": 3317,
+      "later_practice_outcomes": 640,
+      "model_observations": 3957,
+      "regime_examples": {
+        "BULL": 2975,
+        "BEAR": 16,
+        "CHOP": 966
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "1h",
+        "training_start_ts": 1695722400000,
+        "training_end_ts": 1770400800000,
+        "test_start_ts": 1770487200000,
+        "test_end_ts": 1789459200000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "1h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 96.826
+    },
+    {
+      "symbol": "AVAX-USD",
+      "interval": "6h",
+      "bundle_sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "source_data_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+      "data_sha256": "0a891c0f46a38219731075255298e2683ef9a29e33429a53ca4ba7998dd78178",
+      "daily_data_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+      "candles": 4356,
+      "missing_target_buckets": 23,
+      "source_start_ts": 1694853900000,
+      "source_end_ts": 1789461900000,
+      "historical_examples": 379,
+      "later_practice_outcomes": 42,
+      "model_observations": 421,
+      "regime_examples": {
+        "BULL": 281,
+        "BEAR": 0,
+        "CHOP": 140
+      },
+      "holdout": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "holdout_stressed": {
+        "complete": true,
+        "trades": 0,
+        "net_pnl": 0.0,
+        "fees_paid": 0,
+        "max_drawdown_pct": 0,
+        "win_rate": null
+      },
+      "replay": {
+        "clock": "Historical candles processed without wall-clock waits",
+        "decision_interval": "6h",
+        "training_start_ts": 1700157600000,
+        "training_end_ts": 1770249600000,
+        "test_start_ts": 1770336000000,
+        "test_end_ts": 1789452000000,
+        "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+        "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+        "feedback_rule": "Learn a trade result only after its exit candle closes."
+      },
+      "cost_signature": {
+        "decision_interval": "6h",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "validated": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "runtime_seconds": 13.798
+    }
+  ],
+  "selection_uses_results": false,
+  "qualification_uses_results": false,
+  "scope": "Fixed 1h and 6h replays of supplied 15m prices, aggregated only from complete observed buckets. Overlapping prices are not additional independent evidence. Each study has its own $500 simulated account. No new external candles were downloaded.",
+  "final_source_code_sha256": "3670f2704c3efcef824dbca17e77d6e3a85fe54bcc88a162e3cae20cdd775bc7",
+  "source_scope_note": "The replay source hash predates two orchestration-only changes: automatic studies retain the selected lookback, and 6h models are restricted to research with forward monitoring support removed. This offline script calls learn_history directly; its learning/execution modules, DEFAULTS, data, costs and interval aggregation are unchanged. Final orchestration is regression-tested separately."
+}

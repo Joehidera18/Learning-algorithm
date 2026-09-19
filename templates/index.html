@@ -10,7 +10,7 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.4</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.10</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
@@ -31,12 +31,24 @@
 <div class="panel-title"><h1 id="learningHeading">Your trading system</h1><span id="learningPhase" class="badge">Ready</span></div>
 <p id="learningMessage" role="status">Practice on recorded market prices first, then monitor new prices with paper money.</p>
 <label for="practiceSymbols">Coins to practice on</label>
-<textarea id="practiceSymbols" rows="3" maxlength="450" autocapitalize="characters" spellcheck="false" aria-describedby="practiceSymbolsHelp">BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT</textarea>
-<p id="practiceSymbolsHelp" class="footnote">Enter up to 20 Coinbase USD tickers separated by commas, such as HBAR, XRP, XLM. These selections apply to historical practice. Your last submitted list is saved.</p>
+<textarea id="practiceSymbols" rows="3" maxlength="1250" autocapitalize="characters" spellcheck="false" aria-describedby="practiceSymbolsHelp">BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT, UNI, AAVE, ATOM, NEAR, FIL, ETC, ALGO, XTZ, ICP, INJ, OP, ARB, RENDER, APT, SUI, SHIB, PEPE</textarea>
+<p id="practiceSymbolsHelp" class="footnote">Enter up to 60 Coinbase USD tickers separated by commas. Your list is saved. Availability is checked when practice runs.</p>
+<button id="practiceDefaults" class="small">Use suggested 30 coins</button>
+<div class="practice-options">
+<fieldset><legend>Timeframes to study</legend><div class="practice-intervals">
+<label class="check"><input id="practiceInterval5m" type="checkbox">5 minutes</label>
+<label class="check"><input id="practiceInterval15m" type="checkbox" checked>15 minutes</label>
+<label class="check"><input id="practiceInterval1h" type="checkbox" checked>1 hour</label>
+<label class="check"><input id="practiceInterval6h" type="checkbox" checked>6 hours</label>
+</div></fieldset>
+<label>History to request<select id="practiceHistory"><option value="365">1 year</option><option value="1095">3 years</option><option value="1825" selected>5 years</option><option value="2920">8 years</option></select></label>
+</div>
 <button id="practiceBtn" class="primary">Practice on real market history</button>
-<p class="footnote">Requests up to three years of recorded Coinbase history for each selected coin, one coin at a time. Available history varies by market; unavailable or insufficient data is reported for that coin. Uses the candle interval in Settings and simulates past trades without waiting for live candles. Each decision sees only prices available at that past moment.</p>
-<div class="small-metrics learning-metrics"><div>Market-data hours studied<strong id="learningHours">0</strong></div><div>Historical training examples<strong id="learningExamples">0</strong></div><div>Final-test account trades<strong id="learningTestTrades">0</strong></div><div>Forward paper trades learned from<strong id="learningTrades">0</strong></div><div>Markets ready to trade<strong id="learningMarkets">0</strong></div></div>
-<div class="learning-settings"><label>Coinbase fee per side (%) <input id="autoFee" type="number" min="0" max="2" step="0.001" value="0.4"></label><p class="footnote">Use your actual fee. The initial 0.4% is an assumption. Hours are summed across coins. Real orders stay off until you separately configure and enable Coinbase.</p></div>
+<p class="footnote">Studies each coin and timeframe separately, using completed daily candles for broader trend context. Limits: 5-minute candles up to 1 year, 15-minute up to 5 years, hourly and 6-hour up to 8 years. Each result shows actual coverage; newer listings and missing candles reduce it. Larger studies can take hours. Completed work is saved; resume an interrupted study within 24 hours to reuse its learning checkpoints.</p>
+<p id="learningProgress" class="footnote" role="status"></p>
+<p class="footnote">Six-hour studies are research only. Only the 5-minute, 15-minute or hourly decision interval selected in Settings can qualify for forward trading. Results from other timeframes remain separate research. Each past decision sees only information available at that moment.</p>
+<div class="small-metrics learning-metrics"><div>Market hours covered<strong id="learningHours">0</strong></div><div>Historical training examples<strong id="learningExamples">0</strong></div><div>Final-test account trades<strong id="learningTestTrades">0</strong></div><div>Forward paper trades learned from<strong id="learningTrades">0</strong></div><div>Markets ready to trade<strong id="learningMarkets">0</strong></div></div>
+<div class="learning-settings"><label>Coinbase fee per side (%) <input id="autoFee" type="number" min="0" max="2" step="0.001" value="0.4"></label><p class="footnote">Use your actual fee. The initial 0.4% is an assumption. Hours are summed across coins; overlapping timeframes count once. Practice examples can overlap and are not independent trades. Real orders stay off until you separately configure and enable Coinbase.</p></div>
 <p class="muted">The learner compares outcomes at similar trading costs and keeps practicing skipped opportunities as historical candles close. Account results count only selected trades. Reused research and confirmation on later prices are shown separately.</p>
 <p class="muted">Practice keeps studying after losses. Losses and near-break-even outcomes receive detailed reviews of costs, entry conditions, lost gains and later price movement. A fixed exit experiment asks whether a fee-covered break-even stop would have changed the result.</p>
 <p class="muted">Practice includes daily trend/momentum, volatility expansion, and support with RSI recovery alongside the original strategies. The new setups use completed daily candles, allow trades to last several days, and must pass the same tests after costs. They require 21 consecutive complete days of history after a gap.</p>
@@ -113,7 +125,7 @@
 <article class="panel"><h2>Account history</h2><p class="muted">Download a database backup to preserve settings, trades, research, and learned observations.</p><button id="backupBtn">Download database backup</button><hr><h3>Reset the paper account</h3><p class="muted">Close all paper positions before resetting. Reset returns the account to $500 and clears its journal; a database backup is created first.</p><label class="check"><input id="keepMemory" type="checkbox" checked> Keep learned observations and research</label><button id="resetBtn" class="danger">Reset paper account</button></article>
 </section>
 </main>
-<footer>CryptO Research Lab V11.4 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
+<footer>CryptO Research Lab V11.10 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
 </div>
 </body>
 </html>

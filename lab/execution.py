@@ -23,7 +23,8 @@ def simulate(*args, **kwargs):
 def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
-             feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all"):
+             feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all",
+             on_training_event=None):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
@@ -41,6 +42,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
               "entry_rejections": {}}
     if training_examples and policy is not None:
         raise ValueError("Independent training examples cannot be used for a policy account test")
+    if on_training_event is not None and not training_examples:
+        raise ValueError("Practice diagnostics cannot be attached to an account test")
     if practice_cost_mode not in ("all", "eligible", "cost_blocked"):
         raise ValueError("Unknown practice cost mode")
     if practice_cost_mode != "all" and not training_examples:
@@ -103,7 +106,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             # Independent label collection continues after losses. Routine spacing
             # remains; account loss-streak pauses still apply outside this branch.
             base_delay = p["decision_params"].get("cooldown_minutes",15)
-            funnel["loss_pause_overrides"] += int(delay > base_delay and reason != "END")
+            override = delay > base_delay and reason != "END"
+            funnel["loss_pause_overrides"] += int(override)
+            if override and on_training_event:
+                on_training_event("loss_pause_overrides", candle["ts"]+bar_ms)
             delay = base_delay
         next_entry_ts = candle["ts"] + bar_ms + delay*60000
         if on_resolved and reason != "END":
@@ -134,6 +140,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     complete, stopped_at = False, signal["ts"]+bar_ms
                     break
                 funnel["gap_censored_examples"] += 1
+                if on_training_event:
+                    on_training_event("gap_censored_examples", candle["ts"]+bar_ms)
                 position, cash = None, float(balance)
             continue
         current_day = candle["ts"]//86400000

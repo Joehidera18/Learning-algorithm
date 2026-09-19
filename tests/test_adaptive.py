@@ -361,6 +361,12 @@ class AutomaticWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.service=Service(BASE,Path(self.tmp.name)/"api.sqlite3",Path(self.tmp.name)/"data")
+        from lab.study_plan import DEFAULT_PRACTICE_SYMBOLS
+        products = patch.object(self.service.agent.client, "products", return_value=[{
+            "id":s, "base_currency":s[:-4], "quote_currency":"USD", "status":"online"}
+            for s in DEFAULT_PRACTICE_SYMBOLS])
+        products.start()
+        self.addCleanup(products.stop)
 
     def tearDown(self):
         self.service.autolearn.stop(); self.service.agent.stop(); self.tmp.cleanup()
@@ -389,7 +395,7 @@ class AutomaticWorkflowTests(unittest.TestCase):
         self.assertFalse(restarted.status()["enabled"])
         self.assertIsNone(restarted.worker)
 
-    def test_study_requests_three_years_and_caches_identical_data(self):
+    def test_study_requests_five_years_and_caches_identical_data(self):
         a=self.service.autolearn; rows=candles(3000)
         result={"symbol":"BTC-USD","validated":False,"data_hours":750,"historical_examples":0,
             "cost_signature":cost_signature(self.service.agent.settings),"rejection_reasons":["fixture"]}

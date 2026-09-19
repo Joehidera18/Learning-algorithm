@@ -1,3 +1,19 @@
+# Broader market studies and continuous confirmation — 19 September 2026 UTC
+
+- Add 30 suggested markets, up to 60 custom tickers, separate 5m/15m/1h/6h studies and longer history controls. Default dashboard plan: 15m/1h/6h with five years requested. Explicit interval caps: one/five/eight/eight years.
+- Show actual dates/candle coverage, distinguish coins from studies, and union market hours across overlapping timeframes. Keep each model/account separate; only the configured decision interval may install a forward profile.
+- Isolate timeframe jobs and checkpoints, include lookback in reuse identity, preserve other saved studies, retain older cached candles on shorter downloads, and keep reviewed-price boundaries across timeframe changes.
+- Check current product availability, continue after unavailable studies, add native 6-hour download/research/export support (research only), and expand automatic reviews from five to ten markets.
+- Replay complete observed hourly/6-hour buckets from all four distinct supplied coin datasets as reused-history research; no new independent observations or future profitability are claimed.
+
+- Preserve open practice positions, cooldowns and original entry forecasts when measuring results after a review date. Learn each carried-in outcome only when its exit candle closes; report it separately from examples entered in the new window.
+- Keep the saved model from the primary continuous replay. A changed review boundary must not change the saved learner on identical inputs.
+- Give ordinary and higher-cost confirmation their corresponding costed practice histories and matched selected-account feedback controls.
+- Count gap-censored examples and practice loss-pause overrides at the event clock so window summaries do not recount earlier events.
+- Explain carried-in learning in the dashboard and correct the stale visible version label. Record the 11-market partial V11.9 export as reviewed history; retain prior BCH/DOT boundaries.
+- Add deterministic chronology, cooldown, reporting, model-invariance and cost-control regressions, plus a fixed LTC reproduction against V11.9. No strategy or trading threshold is tuned from the comparison.
+- Versions: engine `market-structure-v11.10-continuous-confirmation`, policy `online-net-r-v13-continuous-confirmation`, report 15. Fresh practice is required after deployment.
+
 # Eligible practice coverage — 18 September 2026 UTC
 
 - Give every candidate separate cost-eligible and cost-blocked historical practice tracks. An open rejected-cost position can no longer occupy later eligible practice. Both tracks charge full costs and learn losses or break-even outcomes once, after closure.

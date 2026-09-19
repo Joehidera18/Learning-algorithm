@@ -4,6 +4,7 @@
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
   let practiceSelectionLoaded = false;
+  const practiceIntervals=["5m","15m","1h","6h"];
   const financeData = {paper:null,coinbase:null,history:null};
   const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
   const escape = function (value) { return String(value == null ? "—" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
@@ -77,9 +78,10 @@
           note=reports.length ? "Selected final-test results after costs from "+available.length+" separate market simulation"+(available.length===1 ? "." : "s. These totals are not one combined portfolio.") : "Run historical practice to see selected test trades here.";
           if (selected.length>available.length) note+=" Partial totals: "+(selected.length-available.length)+" market(s) have incomplete or unavailable trade records and are excluded.";
           if (totals.window_end_exits) note+=" Includes "+totals.window_end_exits+" simulated exit(s) at the end of the test window.";
-          if (reports.length) note+=" Training examples and alternative test runs are excluded.";
+          if (reports.length) note+=" Training examples and alternative test runs are excluded. Coin/timeframe studies may overlap and are not independent evidence.";
         } else note="Complete saved test trades are unavailable for this selection. Run historical practice again.";
-        if (saved.value.total_markets>reports.length) note+=" Saved reports: "+reports.length+" of "+saved.value.total_markets+" requested markets.";
+        const requested=saved.value.total_studies || saved.value.total_markets;
+        if (requested>reports.length) note+=" Saved reports: "+reports.length+" of "+requested+" requested studies.";
       } else if (source==="paper") {
         totals=saved.value.trade_finances;
         note="Paper money · All closed trades in this account's saved journal, after fees and modeled slippage. Open-position gains and losses are shown separately in Overview.";
@@ -316,6 +318,13 @@
         ' to '+escape(date(fresh.end_ts,true))+'. '+num(fresh.metrics.trades,0)+' selected trades; '+money(fresh.metrics.net_pnl)+
         ' after costs, '+money(fresh.stressed.net_pnl)+' at higher costs. A small or incomplete test cannot qualify.</p>';
       else html+='<p class="footnote">No later price window is available in this download yet. Historical practice is complete; new confirmation data is still needed.</p>';
+      if (fresh && fresh.practice_continuity) {
+        const feedback=(fresh.metrics || {}).feedback || {}, periods=feedback.by_entry_period || {};
+        html+='<p class="footnote"><b>Learning continued across the review date:</b> '+num(feedback.resolved_examples || 0,0)+
+          ' practice outcomes became available in this window; '+num((periods.carried_in || {}).resolved_examples || 0,0)+
+          ' came from examples opened earlier. Open practice trades keep their original entry forecasts. '+
+          'These learning examples are separate from the selected account trades above.</p>';
+      }
       if (fresh && fresh.account_feedback_control) html+='<p class="footnote"><b>Selected-trade feedback on later prices:</b> '+
         money(fresh.account_feedback_control.metrics.net_pnl)+' after costs; '+money(fresh.account_feedback_control.stressed.net_pnl)+
         ' at higher costs. Both must also pass.</p>';
@@ -431,14 +440,22 @@
     if (!practiceSelectionLoaded) {
       const saved=s.practice_symbols || s.default_practice_symbols;
       if (Array.isArray(saved) && saved.length) $("practiceSymbols").value=saved.map(function (symbol) { return symbol.replace(/-USD$/, ""); }).join(", ");
+      const intervals=s.practice_intervals || s.default_practice_intervals || ["15m","1h","6h"];
+      practiceIntervals.forEach(function (iv) { $("practiceInterval"+iv).checked=intervals.includes(iv); });
+      $("practiceHistory").value=String(s.history_days || 1825);
       practiceSelectionLoaded=true;
     }
     $("practiceSymbols").disabled=!!s.enabled || s.phase==="stopping";
+    ["practiceHistory","practiceDefaults"].concat(practiceIntervals.map(function (iv) {return "practiceInterval"+iv;})).forEach(function (id) {
+      $(id).disabled=!!s.enabled || s.phase==="stopping";
+    });
     const phases={stopped:"Ready",starting:"Loading markets",downloading:"Collecting history",
       learning:"Learning",testing:"Testing",watching:"Watching & learning",waiting:"Waiting for evidence",
       error:"Needs attention",stopping:"Stopping",completed:"Practice complete"};
     $("learningPhase").textContent=phases[s.phase] || s.phase;
     $("learningMessage").textContent=s.message;
+    $("learningProgress").textContent=s.total_studies ? (s.completed_studies || 0)+" of "+s.total_studies+
+      " studies processed across "+s.total_markets+" coins. Failed or unavailable studies are listed below." : "";
     $("learningHours").textContent=Math.round(s.market_data_hours || 0).toLocaleString();
     $("learningExamples").textContent=num(s.historical_examples || 0,0);
     $("learningTestTrades").textContent=num((s.results || []).reduce(function (sum,r) { return sum+((r.holdout || {}).trades || 0); },0),0);
@@ -453,15 +470,20 @@
       const stale=(s.current_policy_version && r.policy_version!==s.current_policy_version) ||
         (s.current_report_version && r.learning_report_version!==s.current_report_version);
       const incomplete=h.complete===false || stressed.complete===false;
-      return '<div class="learning-result"><b>'+escape(r.symbol)+'</b><span class="badge '+(r.validated && !stale ? "positive" : "negative")+'">'+
-        (stale ? "Updated learner · practice again" : (r.validated ? "Passed historical checks" : "Not qualified"))+'</span><p>'+
+      const coverage=r.history_request;
+      const coverageText=coverage ? '<p class="footnote"><b>History coverage:</b> '+num(coverage.requested_days,0)+
+        ' days requested; '+num(coverage.effective_days,0)+' day limit for this study.'+
+        (finite(coverage.observed_candles) ? ' '+num(coverage.observed_candles,0)+' candles, '+num(coverage.coverage_pct,1)+
+          '% of that window. '+escape(date(coverage.first_candle_ts,true))+' to '+escape(date(coverage.last_candle_close_ts,true))+'.' : '')+'</p>' : '';
+      return '<div class="learning-result"><b>'+escape(r.symbol)+' · '+escape(r.interval || "15m")+'</b><span class="badge '+(r.research_only ? "" : r.validated && !stale ? "positive" : "negative")+'">'+
+        (r.research_only ? "Research only" : stale ? "Updated learner · practice again" : (r.validated ? "Passed historical checks" : "Not qualified"))+'</span><p>'+
         (r.error ? escape(r.error) : incomplete ? 'Final test incomplete: missing candles interrupted an open position. A full-period result is unavailable.' :
           ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
-        '</p><p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
+        '</p>'+coverageText+'<p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
         renderCostLearning(r)+renderPredictionAudit(r)+renderTradeReviews(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
         (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
-    }).join("")+'<p class="footnote">Each market test starts with $500. These results are not a combined account return or a profit forecast.</p>' :
+    }).join("")+'<p class="footnote">Each coin/timeframe test starts with $500. Studies may overlap. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
   }
   function renderCandidateSelection(selection) {
@@ -531,15 +553,30 @@
     await api("/api/learning/start",{fee_rate:Number(input.value)/100}); settingsLoaded=false; await refresh();
   });
   $("practiceSymbols").addEventListener("input",function () { practiceSelectionLoaded=true; });
-  bind("practiceBtn",async function () {
+  ["practiceHistory"].concat(practiceIntervals.map(function (iv) {return "practiceInterval"+iv;})).forEach(function (id) {
+    $(id).addEventListener("change",function () {practiceSelectionLoaded=true;});
+  });
+  bind("practiceDefaults",function () {
+    const symbols=(learningState || {}).default_practice_symbols;
+    if (!Array.isArray(symbols) || !symbols.length) throw new Error("Wait for the learning settings to load.");
+    $("practiceSymbols").value=symbols.map(function (s) {return s.replace(/-USD$/, "");}).join(", ");
+    practiceSelectionLoaded=true;
+  });
+  function practicePlan() {
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");
     const symbols=Array.from(new Set($("practiceSymbols").value.toUpperCase().split(/[,\s]+/).filter(Boolean).map(function (symbol) {
       return symbol.endsWith("-USD") ? symbol : symbol+"-USD";
     })));
-    if (!symbols.length || symbols.length>20) throw new Error("Choose one to twenty coins for historical practice.");
+    if (!symbols.length || symbols.length>60) throw new Error("Choose one to sixty coins for historical practice.");
     if (symbols.some(function (symbol) { return !/^[A-Z0-9]{2,16}-USD$/.test(symbol); })) throw new Error("Enter Coinbase USD tickers such as HBAR, XRP, XLM.");
-    await api("/api/learning/practice",{fee_rate:Number(input.value)/100,symbols:symbols}); settingsLoaded=false; await refresh();
+    const intervals=practiceIntervals.filter(function (iv) {return $("practiceInterval"+iv).checked;});
+    if (!intervals.length) throw new Error("Choose at least one timeframe to study.");
+    return {fee_rate:Number(input.value)/100,symbols:symbols,
+      intervals:intervals,history_days:Number($("practiceHistory").value)};
+  }
+  bind("practiceBtn",async function () {
+    await api("/api/learning/practice",practicePlan()); settingsLoaded=false; await refresh();
   });
   bind("stopBtn",async function () { await api("/api/continuous/stop",{}); await refresh(); });
   bind("pauseBtn",async function () { await api("/api/continuous/pause",{paused:!(state && state.settings.entries_paused)}); await refresh(); });

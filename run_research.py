@@ -11,6 +11,7 @@ from lab.data import load_history, INTERVAL_MS
 from lab.paper_store import init_continuous_db
 from lab.research import ResearchManager, research
 from lab.learning_research import learn_history
+from lab.study_plan import HISTORY_DAYS, INTERVAL_HISTORY_LIMITS, study_days, history_coverage
 
 
 def main(argv=None):
@@ -19,12 +20,12 @@ def main(argv=None):
     source.add_argument("--csv", type=Path, help="Existing historical candles; source is supplied by you")
     source.add_argument("--coinbase", action="store_true", help="Download recorded prices from Coinbase's public API")
     parser.add_argument("--symbol", default="BTC-USD")
-    parser.add_argument("--interval", choices=["5m", "15m", "1h"], default="15m")
+    parser.add_argument("--interval", choices=["5m", "15m", "1h", "6h"], default="15m")
     parser.add_argument("--fee", type=float, default=.004, help="Fee fraction per side; .004 means 0.4%%")
     parser.add_argument("--slippage", type=float, default=.0005)
     parser.add_argument("--learning", action="store_true", help="Train and evaluate the adaptive policy used by automatic learning")
     parser.add_argument("--daily-csv", type=Path, help="Optional recorded 1d OHLCV candles for --csv --learning; included as completed context only")
-    parser.add_argument("--days", type=int, default=1095, help="History to download, up to 1095 days")
+    parser.add_argument("--days", type=int, help="History days: up to 365 for 5m, 1825 for 15m, 2920 for 1h/6h; default five years subject to these limits")
     parser.add_argument("--end", help="Optional exclusive historical end date, YYYY-MM-DD in UTC; requires --coinbase")
     parser.add_argument("--cache-dir", type=Path, default=Path("data/automatic"), help="Saved Coinbase download directory")
     parser.add_argument("--out", type=Path, default=Path("research-result.json"))
@@ -34,8 +35,9 @@ def main(argv=None):
     import re
     if args.coinbase and not re.fullmatch(r"[A-Z0-9]{2,16}-USD", args.symbol):
         parser.error("Use a Coinbase USD market such as BTC-USD")
-    if not 30 <= args.days <= 1095:
-        parser.error("Download history must be 30–1095 days")
+    args.days = study_days(args.interval, HISTORY_DAYS) if args.days is None else args.days
+    if not 30 <= args.days <= INTERVAL_HISTORY_LIMITS[args.interval]:
+        parser.error(f"Download history for {args.interval} must be 30–{INTERVAL_HISTORY_LIMITS[args.interval]} days; use 1h or 6h for up to eight years")
     end_ms = None
     if args.end:
         if not args.coinbase:
@@ -47,6 +49,9 @@ def main(argv=None):
         if end_ms > time.time()*1000:
             parser.error("The historical end date cannot be in the future")
     settings = {**DEFAULTS, "decision_interval": args.interval, "fee_rate": args.fee, "slippage_rate": args.slippage}
+    if args.coinbase and end_ms is None:
+        step = INTERVAL_MS[args.interval]
+        end_ms = int(time.time()*1000)//step*step
     if not 0 <= args.fee <= .02 or not 0 <= args.slippage <= .01:
         parser.error("Fee or slippage is outside the supported range")
     daily_rows, daily_source = None, None
@@ -84,6 +89,10 @@ def main(argv=None):
         result = research(rows, args.symbol, settings,
             progress=lambda stage, done, total, message: print(f"{done}/{total} {message}", flush=True))
     result["market_data"] = provenance
+    if args.coinbase:
+        step = INTERVAL_MS[args.interval]
+        cutoff = int(time.time()*1000 if end_ms is None else end_ms)//step*step
+        result["history_request"] = history_coverage(rows, args.interval, args.days, cutoff)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, allow_nan=False))
     print("Historical gate:", "PASSED for further paper testing" if result["validated"] else "NOT PASSED")

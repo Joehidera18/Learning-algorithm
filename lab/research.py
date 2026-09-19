@@ -46,8 +46,8 @@ def bootstrap_interval(values, seed=7, runs=500):
 
 
 def validate_rows(rows, interval, allow_gaps=False):
-    if interval not in ("5m", "15m", "1h"):
-        raise ValueError("Use 5m, 15m, or 1h candles")
+    if interval not in ("5m", "15m", "1h", "6h"):
+        raise ValueError("Use 5m, 15m, 1h or 6h candles")
     if len(rows) < 3000:
         raise ValueError("Research needs at least 3,000 completed candles")
     step = INTERVAL_MS[interval]
@@ -298,9 +298,13 @@ class ResearchManager:
         folder.mkdir(parents=True, exist_ok=True)
         path = folder / f"{symbol}_{interval}.csv"
         existing = load_history(path) if path.exists() else []
+        retained = {r["ts"]:r for r in existing}
         rows = {r["ts"]: r for r in existing if start <= r["ts"] < end}
         def checkpoint():
-            ordered = [rows[k] for k in sorted(rows)]
+            # A shorter follow-up request must not erase older observations or
+            # the daily inputs needed by another timeframe's saved report.
+            retained.update(rows)
+            ordered = [retained[k] for k in sorted(retained)]
             temp = path.with_suffix(".tmp")
             with temp.open("w", newline="") as handle:
                 writer = csv.DictWriter(handle, fieldnames=["ts", "open", "high", "low", "close", "volume", "quote_volume", "trades"])
@@ -338,7 +342,7 @@ class ResearchManager:
                 except (OSError, ValueError):
                     pass
             history = {r["ts"]:r for r in previous.get("recovery_history", previous.get("recovered", []))
-                       if r.get("ts") in rows}
+                       if r.get("ts") in retained or r.get("ts") in rows}
             history.update({r["ts"]:r for r in repair["recovered"]})
             repair["recovery_history"] = [history[t] for t in sorted(history)]
             self.data_reports[(symbol, interval)] = repair
