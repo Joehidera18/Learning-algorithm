@@ -25,6 +25,7 @@ def main(argv=None):
     parser.add_argument("--slippage", type=float, default=.0005)
     parser.add_argument("--learning", action="store_true", help="Train and evaluate the adaptive policy used by automatic learning")
     parser.add_argument("--daily-csv", type=Path, help="Optional recorded 1d OHLCV candles for --csv --learning; included as completed context only")
+    parser.add_argument("--bitcoin-csv", type=Path, help="Optional recorded BTC-USD 1d OHLCV candles for --csv --learning; completed market context only")
     parser.add_argument("--days", type=int, help="History days: up to 365 for 5m, 1825 for 15m, 2920 for 1h/6h; default five years subject to these limits")
     parser.add_argument("--end", help="Optional exclusive historical end date, YYYY-MM-DD in UTC; requires --coinbase")
     parser.add_argument("--cache-dir", type=Path, default=Path("data/automatic"), help="Saved Coinbase download directory")
@@ -32,6 +33,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.daily_csv and (not args.csv or not args.learning):
         parser.error("--daily-csv requires --csv and --learning")
+    if args.bitcoin_csv and (not args.csv or not args.learning):
+        parser.error("--bitcoin-csv requires --csv and --learning")
     import re
     if args.coinbase and not re.fullmatch(r"[A-Z0-9]{2,16}-USD", args.symbol):
         parser.error("Use a Coinbase USD market such as BTC-USD")
@@ -55,6 +58,7 @@ def main(argv=None):
     if not 0 <= args.fee <= .02 or not 0 <= args.slippage <= .01:
         parser.error("Fee or slippage is outside the supported range")
     daily_rows, daily_source = None, None
+    bitcoin_rows, bitcoin_source = None, None
     if args.coinbase:
         # The temporary research controller does not create a trading account or
         # connect a ticker. Download chunks persist in the explicit cache folder.
@@ -68,6 +72,8 @@ def main(argv=None):
                 if args.learning and rows:
                     daily_rows, daily_source = downloader.daily_history(args.symbol, args.days,
                         rows[-1]["ts"]+INTERVAL_MS[args.interval])
+                    bitcoin_rows, bitcoin_source = ((daily_rows, daily_source) if args.symbol == "BTC-USD" else
+                        downloader.daily_history("BTC-USD", args.days, rows[-1]["ts"]+INTERVAL_MS[args.interval]))
             except Exception as exc:
                 print(f"Real Coinbase history could not be downloaded: {exc}. No substitute prices were generated.")
                 return 1
@@ -75,16 +81,19 @@ def main(argv=None):
             "endpoint":REST+f"/products/{args.symbol}/candles", "synthetic_fallback":False,
             "retrieval":"Public candle API with saved local download chunks",
             "gap_repair":downloader.data_reports.get((args.symbol, args.interval)),
-            "daily_context":daily_source}
+            "daily_context":daily_source, "bitcoin_context":bitcoin_source}
     else:
         rows = load_history(args.csv)
         if args.daily_csv:
             daily_rows = load_history(args.daily_csv)
+        if args.bitcoin_csv:
+            bitcoin_rows = load_history(args.bitcoin_csv)
         provenance = {"provider":"User-supplied CSV (source not independently verified)",
             "kind":"provided_ohlcv", "filename":args.csv.name, "synthetic_fallback":False}
     if args.learning:
         result = learn_history(rows, args.symbol, settings,
-            progress=lambda **status: print(status.get("message", ""), flush=True), daily_rows=daily_rows)
+            progress=lambda **status: print(status.get("message", ""), flush=True), daily_rows=daily_rows,
+            bitcoin_rows=bitcoin_rows)
     else:
         result = research(rows, args.symbol, settings,
             progress=lambda stage, done, total, message: print(f"{done}/{total} {message}", flush=True))

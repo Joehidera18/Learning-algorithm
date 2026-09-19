@@ -1,0 +1,53 @@
+{
+  "source": "learning-results 8.json",
+  "sha256": "353061f7bb42fc547aa50cc991456734ac4f9fbadd0fd1bae78aa3b2f2f07b51",
+  "completed_studies": 42,
+  "total_planned_studies": 120,
+  "scope": "Reviewed during the design of eligible-context-v1. These dates cannot be reused as independent confirmation at another timeframe.",
+  "markets": [
+    {
+      "symbol": "ADA-USD",
+      "reviewed_through_ts": 1789790700000
+    },
+    {
+      "symbol": "AVAX-USD",
+      "reviewed_through_ts": 1789794000000
+    },
+    {
+      "symbol": "BTC-USD",
+      "reviewed_through_ts": 1789784400000
+    },
+    {
+      "symbol": "DOGE-USD",
+      "reviewed_through_ts": 1789792200000
+    },
+    {
+      "symbol": "ETH-USD",
+      "reviewed_through_ts": 1789785300000
+    },
+    {
+      "symbol": "HBAR-USD",
+      "reviewed_through_ts": 1789787700000
+    },
+    {
+      "symbol": "LINK-USD",
+      "reviewed_through_ts": 1789794900000
+    },
+    {
+      "symbol": "LTC-USD",
+      "reviewed_through_ts": 1789796100000
+    },
+    {
+      "symbol": "SOL-USD",
+      "reviewed_through_ts": 1789786800000
+    },
+    {
+      "symbol": "XLM-USD",
+      "reviewed_through_ts": 1789790400000
+    },
+    {
+      "symbol": "XRP-USD",
+      "reviewed_through_ts": 1789788600000
+    }
+  ]
+}

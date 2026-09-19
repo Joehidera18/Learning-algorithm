@@ -234,7 +234,8 @@ class MultiStudyTests(unittest.TestCase):
                 patch('lab.autolearn.learn_history',side_effect=self.learned):
             reports = self.a.study(['BTC-USD','ETH-USD'],self.settings)
             self.assertIn('not currently an available',reports[0]['error'])
-            self.assertEqual({c.args[0] for c in history.call_args_list},{'ETH-USD'})
+            self.assertEqual({c.args[0] for c in history.call_args_list if c.args[1] != '1d'},{'ETH-USD'})
+            self.assertTrue(any(c.args[:2] == ('BTC-USD','1d') for c in history.call_args_list))
             self.products.side_effect = TimeoutError('metadata offline')
             reports = self.a.study(['BTC-USD'],self.settings,retry_failed=True)
             self.assertEqual(reports[0]['market_data']['product_check']['status'],'unavailable')

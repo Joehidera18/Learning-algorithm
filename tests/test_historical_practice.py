@@ -83,9 +83,10 @@ class HistoricalPracticeTests(unittest.TestCase):
         with patch.object(s.autolearn.downloader, "_history", return_value=rows), patch(
                 "lab.learning_research.build_feature_cache", side_effect=fixture_features):
             s.autolearn.start_history(["BTC-USD"], {"fee_rate":.004})
-            # Three variants now run two practice tracks per candidate. This
-            # dense fixture is a completion/persistence gate, not a speed test.
-            s.autolearn.worker.join(timeout=120)
+            # Three variants run two practice tracks per candidate and preserve
+            # extra forecast diagnostics. This is a bounded persistence check;
+            # the real-data reproduction script measures runtime and memory.
+            s.autolearn.worker.join(timeout=180)
         self.assertFalse(s.autolearn.worker.is_alive())
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
@@ -210,7 +211,7 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertEqual([c.args[0] for c in download.call_args_list if c.args[1]=="15m"],
                          ["HBAR-USD", "XRP-USD", "XLM-USD"])
         self.assertEqual([c.args[0] for c in download.call_args_list if c.args[1]=="1d"],
-                         ["XRP-USD", "XLM-USD"])
+                         ["XRP-USD", "BTC-USD", "XLM-USD"])
         results = s.autolearn.status()["results"]
         self.assertIn("error", results[0])
         self.assertNotIn("error", results[1])
@@ -231,10 +232,25 @@ class HistoricalCommandTests(unittest.TestCase):
             self.assertEqual(history.call_args_list[0].args, ("ETH-USD", "1h", 365))
             self.assertEqual(history.call_args_list[0].kwargs["end_ms"], 1735689600000)
             self.assertEqual(history.call_args_list[1].args, ("ETH-USD", "1d", 395))
+            self.assertEqual(history.call_args_list[2].args, ("BTC-USD", "1d", 395))
             self.assertIs(learn.call_args.args[0], rows)
             self.assertEqual(learn.call_args.args[2]["decision_interval"], "1h")
             result = json.loads(out.read_text())
             self.assertEqual(result["market_data"]["kind"], "recorded_market_candles")
+
+    def test_recorded_bitcoin_context_reaches_the_csv_learner_without_a_download(self):
+        with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
+            out = Path(folder)/"report.json"
+            intraday, daily, bitcoin = candles(3000), candles(40), candles(45)
+            with patch("run_research.load_history", side_effect=[intraday,daily,bitcoin]) as load, \
+                 patch("run_research.learn_history", return_value={"validated":False}) as learn, \
+                 patch("run_research.ResearchManager._history") as history:
+                self.assertEqual(main(["--csv","coin.csv","--daily-csv","day.csv","--bitcoin-csv","btc.csv",
+                    "--learning","--symbol","ETH-USD","--out",str(out)]),0)
+            self.assertEqual([call.args[0].name for call in load.call_args_list],["coin.csv","day.csv","btc.csv"])
+            self.assertIs(learn.call_args.kwargs["daily_rows"],daily)
+            self.assertIs(learn.call_args.kwargs["bitcoin_rows"],bitcoin)
+            history.assert_not_called()
 
     def test_command_fails_without_substituting_prices_when_coinbase_is_unreachable(self):
         with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()) as log:
@@ -264,6 +280,8 @@ class HistoricalCommandTests(unittest.TestCase):
             for args in (["--coinbase", "--symbol", "../../BTC-USD"],
                          ["--coinbase", "--end", "2100-01-01"],
                          ["--coinbase", "--days", "29"],
+                         ["--coinbase", "--learning", "--bitcoin-csv", "btc.csv"],
+                         ["--csv", "existing.csv", "--bitcoin-csv", "btc.csv"],
                          ["--csv", "existing.csv", "--end", "2025-01-01"]):
                 with self.subTest(args=args), self.assertRaises(SystemExit) as exc:
                     main(args)

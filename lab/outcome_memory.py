@@ -51,6 +51,10 @@ def validate_detail(result_r, detail):
     if ("gross_r" in detail) != ("fee_r" in detail):
         raise ValueError("Outcome attribution requires both gross return and fees")
     normalized = {"reason":str(detail.get("reason", "UNKNOWN"))}
+    if detail.get("practice_lane") is not None:
+        if detail["practice_lane"] not in ("eligible", "cost_blocked"):
+            raise ValueError("Invalid outcome practice lane")
+        normalized["practice_lane"] = detail["practice_lane"]
     if "gross_r" in detail:
         gross, fee = float(detail["gross_r"]), float(detail["fee_r"])
         if not math.isfinite(gross) or not math.isfinite(fee) or fee < 0:

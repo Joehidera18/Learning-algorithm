@@ -12,7 +12,7 @@ def account_metrics(report, key):
     source = report[key]
     fields = ("complete", "trades", "net_pnl", "ending_balance", "return_pct", "win_rate",
               "profit_factor", "expectancy_r", "max_drawdown_pct", "gross_pnl", "fees_paid",
-              "slippage_notional", "stopped_at_ts", "incomplete_reason", "signal_funnel")
+              "slippage_notional", "stopped_at_ts", "incomplete_reason", "signal_funnel", "regime_performance")
     return {k:source[k] for k in fields if k in source}
 
 
@@ -21,6 +21,7 @@ def comparison_report(baseline, experiment):
     assert experiment["model"]["exit_policy"] == BREAK_EVEN_EXIT
     assert baseline["data_sha256"] == experiment["data_sha256"]
     assert baseline["daily_data"] == experiment["daily_data"]
+    assert baseline.get("bitcoin_data") == experiment.get("bitcoin_data")
     assert baseline["cost_signature"] == experiment["cost_signature"]
     return {
         "rule":"After a candle closes at +1 net R, raise the stop to fee-covered break-even for the next candle; keep the target and time limit.",

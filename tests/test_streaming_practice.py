@@ -59,3 +59,23 @@ class StreamingPracticeTests(unittest.TestCase):
             with self.subTest(training=training), self.assertRaises(ValueError):
                 simulate(candles(),features(),240,260,500,.0075,.004,.001,PARAMS,
                     stream_only=True,training_examples=training,on_resolved=consumer)
+
+    def test_streaming_preserves_daily_halts_when_a_caller_requests_them(self):
+        rows = candles(800)
+        for row in rows:
+            row["low"] = 97.
+        traces = []
+        for stream in (False, True):
+            events, entries = [], []
+            with patch("lab.engine.evaluate_signal", return_value=(70, None)):
+                metrics, _ = simulate(rows, features(len(rows)), 240, len(rows),
+                    500, .02, .004, .001, PARAMS, bar_interval_ms=900000,
+                    training_examples=True, stream_only=stream, daily_loss_limit=.003,
+                    on_entry=lambda t:entries.append(t["entry_ts"]),
+                    on_resolved=lambda t,r,ts:events.append((copy.deepcopy(t),r,ts)))
+            if not stream:
+                self.assertGreater(metrics["halted_utc_days"], 0)
+                self.assertGreater(metrics["signal_funnel"]["rejections"]["daily_loss_limit"], 0)
+            traces.append((events, entries))
+        self.assertGreater(len(traces[0][0]), 1)
+        self.assertEqual(*traces)
