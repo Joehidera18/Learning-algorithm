@@ -19,7 +19,8 @@ class CandleContextTests(unittest.TestCase):
             vwap_distance_atr=2, atr_regime=2, prior_compression=True)
         richer = feature_vector(changed)
         self.assertEqual(base[:19], richer[:19])
-        self.assertTrue(all(a != b for a,b in zip(base[19:],richer[19:])))
+        self.assertTrue(all(a != b for a,b in zip(base[19:27],richer[19:27])))
+        self.assertEqual(base[27:], richer[27:])
         self.assertEqual(len(richer),len(FEATURE_NAMES))
         self.assertTrue(all(math.isfinite(v) and abs(v)<=1 for v in richer))
         # Completed-trade attribution must never sneak into the entry features.

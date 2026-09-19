@@ -17,8 +17,9 @@ from .outcome_memory import (setup_context, empty_memory, update_memory, validat
 from .exit_management import FIXED_EXIT, EXIT_POLICIES
 from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, correction,
     validate_buckets)
+from . import failure_predictions
 
-POLICY_VERSION = "online-net-r-v14-corrected-deadlines"
+POLICY_VERSION = "online-net-r-v15-eligible-context"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -29,7 +30,8 @@ FEATURE_NAMES = (
     "range_expansion", "daily_momentum7", "daily_ma_distance_atr", "daily_atr_pct",
     "cost_r", "net_rr", "time_stop_hours", "upper_wick", "lower_wick", "rsi_change",
     "distance_to_resistance_atr", "distance_to_support_atr", "vwap_distance_atr",
-    "atr_regime", "prior_compression")
+    "atr_regime", "prior_compression", "bitcoin_context_ready", "bitcoin_momentum7",
+    "bitcoin_trend", "bitcoin_atr_pct", "relative_momentum7")
 DIMENSIONS = len(FEATURE_NAMES)
 
 
@@ -69,7 +71,12 @@ def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
         bounded(f.get("distance_to_support_atr", 0)/3),
         bounded(f.get("vwap_distance_atr", 0)/3),
         bounded((f.get("atr_regime", 1)-1)/1.5),
-        float(bool(f.get("prior_compression", False)))]
+        float(bool(f.get("prior_compression", False))),
+        float(bool(f.get("market_context", {}).get("ready"))),
+        bounded(f.get("market_context", {}).get("momentum7", 0)/.2),
+        bounded(f.get("market_context", {}).get("trend", 0)),
+        bounded(f.get("market_context", {}).get("atr_pct", 0)/.1, 0, 1),
+        bounded(f.get("market_context", {}).get("relative_momentum7", 0)/.2)]
 
 
 def action_key(p):
@@ -92,6 +99,13 @@ def cost_context(vector):
     """Fixed buckets; do not let expensive exploration swamp feasible setups."""
     cost_r = vector[16]*2
     return "low" if cost_r <= .25 else ("moderate" if cost_r <= .5 else "high")
+
+
+def signal_eligible(params, vector):
+    # Vectors without economics are supported for offline mathematical fixtures.
+    # Production vectors always carry a positive holding period and actual costs.
+    return (vector[16]*2 <= params.get("max_cost_r", .8) and
+            (vector[18] == 0 or vector[17]*3 >= params.get("min_net_rr", 0)))
 
 
 def update_model(model, vector, result_r, forecast=None):
@@ -119,7 +133,7 @@ class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
                  legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT,
-                 recent_return_veto=True, forecast_correction=False):
+                 recent_return_veto=True, forecast_correction=False, market_context_required=None):
         if exit_policy not in EXIT_POLICIES:
             raise ValueError("Unknown exit policy")
         if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
@@ -147,12 +161,27 @@ class AdaptivePolicy:
         self.state = copy.deepcopy(state) if state else {
             "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
             "exit_policy":exit_policy, "selection_rule":self.selection_rule,
-            "forecast_correction":self.forecast_correction}
+            "forecast_correction":self.forecast_correction,
+            "market_context_required":bool(market_context_required)}
+        if (market_context_required is not None and
+                self.state.get("market_context_required", False) != market_context_required):
+            raise ValueError("Learning models with different Bitcoin context requirements cannot be mixed")
+        if type(self.state.get("market_context_required", False)) is not bool:
+            raise ValueError("Invalid Bitcoin context requirement")
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
             raise ValueError("Unknown strategy in learning model")
+        groups = []
         for model in self.state["models"].values():
+            groups.append(model)
+            eligible = model.get("eligible_model")
+            if eligible is not None:
+                if not 0 <= eligible["samples"] <= model["samples"]:
+                    raise ValueError("Invalid eligible evidence count")
+                groups.append(eligible)
+        for model in groups:
+            failure_predictions.validate(model.get("failure_models", {}), DIMENSIONS, model["samples"])
             validate_buckets(model.get("forecast_bands",{}), model["entry_error_samples"],
                              self.state["last_label_ts"])
             if "outcomes" in model:
@@ -209,12 +238,18 @@ class AdaptivePolicy:
     def calibrated_estimate(self, params, vector):
         raw = self.raw_predict(params, vector)
         key = bucket_key(cost_context(vector), raw)
-        model = self.state["models"].get(action_key(params), {})
+        model = self._group(params, vector) or {}
         adjustment = correction(model.get("forecast_bands",{}).get(key))
         trial = bounded(raw+adjustment["adjustment_r"],-3,3)
-        return {"estimated_net_r":trial if self.forecast_correction else raw,
+        # The normal policy may only reduce an optimistic eligible estimate.
+        # A two-sided correction remains a separate research-only policy.
+        selected = trial if self.forecast_correction else (
+            min(raw, trial) if signal_eligible(params, vector) and raw > 0 else raw)
+        return {"estimated_net_r":selected,
             "raw_estimated_net_r":raw, "trial_estimated_net_r":trial,
-            "calibration_applied":self.forecast_correction,
+            "calibration_applied":selected != raw,
+            "calibration_policy":"two_sided_experiment" if self.forecast_correction else "eligible_downside_only",
+            "selected_adjustment_r":selected-raw,
             "calibration_adjustment_r":trial-raw, "calibration_key":key,
             "calibration_samples":adjustment["samples"],
             "calibration_effective_samples":adjustment["effective_samples"],
@@ -227,11 +262,18 @@ class AdaptivePolicy:
     def context_evidence(self, params, vector):
         if not self.failure_adaptation:
             return None
-        model = self.state["models"].get(action_key(params), {})
+        model = self._group(params, vector) or {}
         return context_estimate(model.get("setup_contexts", {}).get(setup_context(vector)))
 
-    def evidence(self, params, vector):
+    def _group(self, params, vector):
         model = self.state["models"].get(action_key(params))
+        if model and signal_eligible(params, vector):
+            # Never substitute expensive rejected examples for feasible evidence.
+            return model.get("eligible_model")
+        return model
+
+    def evidence(self, params, vector):
+        model = self._group(params, vector)
         if model and self.cost_filter:
             context = model.get("cost_contexts", {}).get(cost_context(vector))
             if context and context["samples"] >= MIN_SAMPLES:
@@ -261,7 +303,10 @@ class AdaptivePolicy:
         samples = model["samples"] if model else 0
         return {**estimate, "error_penalty_r":penalty,
             "conservative_net_r":estimate["estimated_net_r"]-penalty, "samples":samples,
-            "ready":samples >= MIN_SAMPLES, "model_last_label_ts":self.state["last_label_ts"]}
+            "ready":samples >= MIN_SAMPLES, "model_last_label_ts":self.state["last_label_ts"],
+            "evidence_scope":"cost_eligible" if signal_eligible(params, vector) else "all_candidates",
+            "failure_predictions":failure_predictions.predict(
+                (self._group(params, vector) or {}).get("failure_models", {}), vector)}
 
     def observe(self, params, vector, result_r, available_ts, outcome=None):
         if not self.learn:
@@ -286,22 +331,30 @@ class AdaptivePolicy:
         if (forecast and "raw_estimated_net_r" in forecast
                 and forecast["calibration_key"] != bucket_key(cost_context(vector),forecast["raw_estimated_net_r"])):
             raise ValueError("Entry calibration does not match its cost and forecast context")
-        if (forecast and forecast.get("calibration_applied",False) != self.forecast_correction):
+        if (forecast and forecast.get("calibration_policy", "two_sided_experiment" if self.forecast_correction else "eligible_downside_only")
+                != ("two_sided_experiment" if self.forecast_correction else "eligible_downside_only")):
             raise ValueError("Entry forecast belongs to a different correction policy")
         model = self.state["models"].setdefault(key, empty_model())
-        update_memory(model.setdefault("outcomes", empty_memory()), result_r, available_ts, detail)
-        memory = model.setdefault("setup_contexts", {}).setdefault(setup_context(vector), empty_memory())
-        update_memory(memory, result_r, available_ts, detail)
-        local = model.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
-        update_model(model, vector, result_r, forecast)
-        update_model(local, vector, result_r, forecast)
-        context = model.setdefault("cost_contexts", {}).setdefault(cost_context(vector), empty_model())
-        contextual_regime = context.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
-        update_model(context, vector, result_r, forecast)
-        update_model(contextual_regime, vector, result_r, forecast)
-        if forecast and forecast["ready"] and "raw_estimated_net_r" in forecast:
-            bucket = model.setdefault("forecast_bands",{}).setdefault(forecast["calibration_key"],empty_bucket())
-            update_bucket(bucket,forecast["raw_estimated_net_r"],result_r,available_ts)
+        eligible = detail.get("practice_lane") != "cost_blocked" and signal_eligible(params, vector)
+        groups = [model]
+        if eligible:
+            groups.append(model.setdefault("eligible_model", empty_model()))
+        for group in groups:
+            update_memory(group.setdefault("outcomes", empty_memory()), result_r, available_ts, detail)
+            memory = group.setdefault("setup_contexts", {}).setdefault(setup_context(vector), empty_memory())
+            update_memory(memory, result_r, available_ts, detail)
+            local = group.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
+            update_model(group, vector, result_r, forecast)
+            update_model(local, vector, result_r, forecast)
+            context = group.setdefault("cost_contexts", {}).setdefault(cost_context(vector), empty_model())
+            contextual_regime = context.setdefault("regimes", {}).setdefault(vector_regime(vector), empty_model())
+            update_model(context, vector, result_r, forecast)
+            update_model(contextual_regime, vector, result_r, forecast)
+            if forecast and forecast["ready"] and "raw_estimated_net_r" in forecast:
+                bucket = group.setdefault("forecast_bands",{}).setdefault(forecast["calibration_key"],empty_bucket())
+                update_bucket(bucket,forecast["raw_estimated_net_r"],result_r,available_ts)
+        if eligible:
+            failure_predictions.update(groups[-1].setdefault("failure_models", {}), vector, detail)
         # Multiple estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1
         self.state["last_label_ts"] = int(available_ts)
@@ -317,6 +370,9 @@ class AdaptivePolicy:
             counts = self.last_diagnostics["rejections"]
             counts[reason] = counts.get(reason, 0) + 1
         for p in candidates:
+            if self.state.get("market_context_required") and not f.get("market_context", {}).get("ready"):
+                reject("bitcoin_context_unavailable")
+                continue
             score, reason = simple_signal(f, p)
             if score is None:
                 reject(reason or "no_setup")

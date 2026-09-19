@@ -1,0 +1,1732 @@
+{
+  "design": "eligible-context-v1, fixed before the paired results were inspected",
+  "baseline_git_commit": "b0725849f7b2c86d0e2a9823dddcff33446fc161",
+  "baseline_git_tree": "412d198ae5d05a914989bb615bb62d3853660e3d",
+  "reviewed_report_sha256": "353061f7bb42fc547aa50cc991456734ac4f9fbadd0fd1bae78aa3b2f2f07b51",
+  "final_lab_source_sha256": "7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27",
+  "source_note": "All three revised replays use 506c5d8a1fbdc7403b5fb4b80734e8c6ea0fe96cace3898ed4552e049b110949. The only subsequent lab change replaces one explanatory scope string in prediction_audit.py. Reversing that exact string reproduces the replay source hash; all calculations are unchanged. The final tests include the corrected wording and CLI context wiring.",
+  "matched_inputs": [
+    "intraday data and archive hashes",
+    "daily data and hash",
+    "modeled costs",
+    "reviewed boundary",
+    "development label count",
+    "training signal funnels",
+    "holdout start",
+    "last training label timestamp"
+  ],
+  "scope": "Independent $500 historical simulations on reviewed prices, not a combined portfolio or fresh validation. Missing Bitcoin inputs are not synthesized. No tuning or policy promotion after inspection. Selected entries and scored development examples can differ, so their error summaries are not matched-entry causal improvement estimates.",
+  "bitcoin_market_performance_tested": false,
+  "studies": [
+    {
+      "symbol": "XRP-USD",
+      "interval": "15m",
+      "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+      "daily_data_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+      "bitcoin_data_sha256": null,
+      "candles": 105062,
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "reviewed_through_ts": 1789788600000,
+      "training_label_end_ts": 1770506100000,
+      "holdout_start_ts": 1770600600000,
+      "historical_examples": 11308,
+      "model_observations": 13832,
+      "comparison": {
+        "baseline_source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+        "ordinary_net_difference": -7.773518805671813,
+        "higher_cost_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "variants": {
+        "baseline": {
+          "source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+          "complete_replay_record_sha256": "e74583a392b055e0e7833e2fa5242bfc6d88e5be4b28961af47625da9c07db81",
+          "engine_version": "market-structure-v11.10-corrected-deadlines",
+          "policy_version": "online-net-r-v14-corrected-deadlines",
+          "learning_report_version": 16,
+          "runtime_seconds": 128.85753521199513,
+          "peak_rss_mib": 420.1953125,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 4,
+            "net_pnl": -4.976138523505199,
+            "ending_balance": 495.0238614764948,
+            "win_rate": 25.0,
+            "profit_factor": 0.5543425005204465,
+            "expectancy_r": -0.3279279307761702,
+            "max_drawdown_pct": 2.825854172130569,
+            "gross_pnl": -1.967430275676279,
+            "fees_paid": 3.0087082478289067
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 4,
+            "mean_predicted_net_r": 0.33500433423144726,
+            "mean_actual_net_r": -0.3279279307761702,
+            "optimism_bias_r": 0.6629322650076173,
+            "rmse_r": 1.3549426645886113,
+            "zero_forecast_rmse_r": 1.2093714592611906,
+            "positive_forecasts": 4,
+            "positive_forecasts_that_lost": 3,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 9901,
+              "mean_predicted_net_r": -0.5895486557078269,
+              "mean_actual_net_r": -0.5825908116354049,
+              "optimism_bias_r": -0.006957844072418937,
+              "mae_r": 0.5750644305464675,
+              "rmse_r": 0.6980147412230254,
+              "zero_forecast_rmse_r": 0.9073633409278415,
+              "positive_forecasts": 32,
+              "positive_forecasts_that_lost": 24,
+              "near_break_even": 306
+            },
+            "eligible": {
+              "samples": 747,
+              "mean_predicted_net_r": -0.14765697243801615,
+              "mean_actual_net_r": -0.1493632266434516,
+              "optimism_bias_r": 0.0017062542054356066,
+              "mae_r": 0.9621995159518236,
+              "rmse_r": 1.1339840564801456,
+              "zero_forecast_rmse_r": 1.124446083420008,
+              "positive_forecasts": 213,
+              "positive_forecasts_that_lost": 132,
+              "near_break_even": 22
+            }
+          },
+          "development_forecasts_by_lane_and_band": {},
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": false,
+                "trades": 10,
+                "net_pnl": null,
+                "ending_balance": null,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": null,
+                "gross_pnl": 20.23373652973759,
+                "fees_paid": 3.5292387657370208,
+                "incomplete_reason": "A position was open when market candles went missing. The account test stopped; no exit or later account return was assumed."
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 5,
+                "net_pnl": -8.290280474806082,
+                "ending_balance": 491.7097195251939,
+                "win_rate": 20.0,
+                "profit_factor": 0.4447729691924575,
+                "expectancy_r": -0.44043724038304344,
+                "max_drawdown_pct": 2.25869610622623,
+                "gross_pnl": -4.846653909943525,
+                "fees_paid": 3.443626564862586
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 5,
+                "net_pnl": -1.0137544066001851,
+                "ending_balance": 498.9862455933998,
+                "win_rate": 40.0,
+                "profit_factor": 0.8898058717646233,
+                "expectancy_r": -0.050361911840378935,
+                "max_drawdown_pct": 1.683854177922377,
+                "gross_pnl": 3.2498167330745744,
+                "fees_paid": 4.263571139674726
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "A later test period stopped at a data gap while holding a position; its return is unknown.",
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        },
+        "revised": {
+          "source_code_sha256": "506c5d8a1fbdc7403b5fb4b80734e8c6ea0fe96cace3898ed4552e049b110949",
+          "complete_replay_record_sha256": "c2c5b934fd3b1896060dff3efcb4b5d9283e454acba3f55a23fb8b4fecfb2f6e",
+          "engine_version": "market-structure-v11.11-eligible-context",
+          "policy_version": "online-net-r-v15-eligible-context",
+          "learning_report_version": 17,
+          "runtime_seconds": 231.87816743800067,
+          "peak_rss_mib": 451.64453125,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 6,
+            "net_pnl": -12.749657329177012,
+            "ending_balance": 487.250342670823,
+            "win_rate": 16.666666666666664,
+            "profit_factor": 0.3113536235645937,
+            "expectancy_r": -0.5693043579061435,
+            "max_drawdown_pct": 3.5110542924745385,
+            "gross_pnl": -8.187137461096537,
+            "fees_paid": 4.562519868080525
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 6,
+            "mean_predicted_net_r": 0.3483762004838625,
+            "mean_actual_net_r": -0.5693043579061436,
+            "optimism_bias_r": 0.9176805583900061,
+            "rmse_r": 1.325279034943511,
+            "zero_forecast_rmse_r": 1.1187498078319935,
+            "positive_forecasts": 6,
+            "positive_forecasts_that_lost": 5,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 9901,
+              "mean_predicted_net_r": -0.5895486557078269,
+              "mean_actual_net_r": -0.5825908116354049,
+              "optimism_bias_r": -0.006957844072418937,
+              "mae_r": 0.5750644305464675,
+              "rmse_r": 0.6980147412230254,
+              "zero_forecast_rmse_r": 0.9073633409278415,
+              "positive_forecasts": 32,
+              "positive_forecasts_that_lost": 24,
+              "near_break_even": 306
+            },
+            "eligible": {
+              "samples": 485,
+              "mean_predicted_net_r": -0.07653239365045679,
+              "mean_actual_net_r": -0.11327336789912283,
+              "optimism_bias_r": 0.036740974248665986,
+              "mae_r": 0.9820675532499726,
+              "rmse_r": 1.1569982019325624,
+              "zero_forecast_rmse_r": 1.1332660095864215,
+              "positive_forecasts": 169,
+              "positive_forecasts_that_lost": 103,
+              "near_break_even": 17
+            }
+          },
+          "development_forecasts_by_lane_and_band": {
+            "cost_blocked/nonpositive": {
+              "samples": 9869,
+              "mean_predicted_net_r": -0.5917094695448383,
+              "mean_actual_net_r": -0.5833655029668393,
+              "optimism_bias_r": -0.008343966577996013,
+              "mae_r": 0.5733337670528562,
+              "rmse_r": 0.6961335864469284,
+              "zero_forecast_rmse_r": 0.9066913841335361,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 306
+            },
+            "cost_blocked/0_to_0.5R": {
+              "samples": 32,
+              "mean_predicted_net_r": 0.0768598367129891,
+              "mean_actual_net_r": -0.34367116320022784,
+              "optimism_bias_r": 0.4205309999132169,
+              "mae_r": 1.108811868623131,
+              "rmse_r": 1.138443463515187,
+              "zero_forecast_rmse_r": 1.0951004922220018,
+              "positive_forecasts": 32,
+              "positive_forecasts_that_lost": 24,
+              "near_break_even": 0
+            },
+            "eligible/nonpositive": {
+              "samples": 316,
+              "mean_predicted_net_r": -0.24010307426050545,
+              "mean_actual_net_r": -0.17440021651240212,
+              "optimism_bias_r": -0.06570285774810324,
+              "mae_r": 0.8702458701875864,
+              "rmse_r": 1.0625298423782685,
+              "zero_forecast_rmse_r": 1.0569814786183005,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 12
+            },
+            "eligible/0_to_0.5R": {
+              "samples": 150,
+              "mean_predicted_net_r": 0.17544475079920405,
+              "mean_actual_net_r": 0.013157224948093576,
+              "optimism_bias_r": 0.16228752585111045,
+              "mae_r": 1.1238370791668308,
+              "rmse_r": 1.2524102788373361,
+              "zero_forecast_rmse_r": 1.226668753548203,
+              "positive_forecasts": 150,
+              "positive_forecasts_that_lost": 89,
+              "near_break_even": 5
+            },
+            "eligible/above_0.5R": {
+              "samples": 19,
+              "mean_predicted_net_r": 0.6546130487351346,
+              "mean_actual_net_r": -0.09477361870365848,
+              "optimism_bias_r": 0.749386667438793,
+              "mae_r": 1.7226056037860484,
+              "rmse_r": 1.7352173628354066,
+              "zero_forecast_rmse_r": 1.5241183904503164,
+              "positive_forecasts": 19,
+              "positive_forecasts_that_lost": 14,
+              "near_break_even": 0
+            }
+          },
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": false,
+                "trades": 11,
+                "net_pnl": null,
+                "ending_balance": null,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": null,
+                "gross_pnl": 17.48832691717253,
+                "fees_paid": 3.72967202482344,
+                "incomplete_reason": "A position was open when market candles went missing. The account test stopped; no exit or later account return was assumed."
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 5,
+                "net_pnl": -8.290280474806082,
+                "ending_balance": 491.7097195251939,
+                "win_rate": 20.0,
+                "profit_factor": 0.4447729691924575,
+                "expectancy_r": -0.44043724038304344,
+                "max_drawdown_pct": 2.25869610622623,
+                "gross_pnl": -4.846653909943525,
+                "fees_paid": 3.443626564862586
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 5,
+                "net_pnl": -1.0137544066001851,
+                "ending_balance": 498.9862455933998,
+                "win_rate": 40.0,
+                "profit_factor": 0.8898058717646233,
+                "expectancy_r": -0.050361911840378935,
+                "max_drawdown_pct": 1.683854177922377,
+                "gross_pnl": 3.2498167330745744,
+                "fees_paid": 4.263571139674726
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "A later test period stopped at a data gap while holding a position; its return is unknown.",
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        }
+      },
+      "learning_evidence": {
+        "by_family": {
+          "trend_pullback_simple": {
+            "examples": 5485,
+            "eligible_examples": 294,
+            "cost_blocked_examples": 5191,
+            "eligible_ready_candidates": 3,
+            "candidates": 4
+          },
+          "breakout_volume_simple": {
+            "examples": 2833,
+            "eligible_examples": 121,
+            "cost_blocked_examples": 2712,
+            "eligible_ready_candidates": 2,
+            "candidates": 4
+          },
+          "signal_consensus_simple": {
+            "examples": 3732,
+            "eligible_examples": 142,
+            "cost_blocked_examples": 3590,
+            "eligible_ready_candidates": 2,
+            "candidates": 4
+          },
+          "range_reclaim_simple": {
+            "examples": 1294,
+            "eligible_examples": 24,
+            "cost_blocked_examples": 1270,
+            "eligible_ready_candidates": 0,
+            "candidates": 4
+          },
+          "volatility_expansion_simple": {
+            "examples": 134,
+            "eligible_examples": 132,
+            "cost_blocked_examples": 2,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 192,
+            "eligible_examples": 186,
+            "cost_blocked_examples": 6,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 162,
+            "eligible_examples": 160,
+            "cost_blocked_examples": 2,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          }
+        },
+        "eligible_examples": 1059,
+        "cost_blocked_examples": 12773,
+        "minimum_eligible_examples": 30,
+        "rule": "An affordable entry uses only completed cost-eligible evidence for its return estimate, recent outcomes and error margin. Sparse cost subgroups can borrow from eligible examples of the same candidate, never from cost-blocked practice. Examples overlap and do not count as independent bets."
+      },
+      "forecast_calibration": {
+        "scored_outcomes": 603,
+        "buckets": 55,
+        "ready_buckets": 2,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+        "enabled_for_selection": true,
+        "policy": "eligible_downside_only",
+        "scope": "The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."
+      },
+      "failure_prediction_scores": {
+        "targets": {
+          "fees_erased_gain": {
+            "samples": 1059,
+            "positives": 48,
+            "scored": 603,
+            "brier_sum": 42.83150470834301,
+            "baseline_brier_sum": 30.135756942414147,
+            "brier_score": 0.07103068774186237,
+            "prior_frequency_brier": 0.049976379672328604
+          },
+          "near_break_even": {
+            "samples": 1059,
+            "positives": 44,
+            "scored": 603,
+            "brier_sum": 37.83419293188098,
+            "baseline_brier_sum": 22.42026203723863,
+            "brier_score": 0.06274327186049913,
+            "prior_frequency_brier": 0.03718119740835594
+          },
+          "target_reached": {
+            "samples": 1059,
+            "positives": 179,
+            "scored": 603,
+            "brier_sum": 89.5491937240185,
+            "baseline_brier_sum": 81.86319879176244,
+            "brier_score": 0.14850612557880347,
+            "prior_frequency_brier": 0.13575986532630588
+          },
+          "time_exit": {
+            "samples": 1059,
+            "positives": 316,
+            "scored": 603,
+            "brier_sum": 124.47408565655113,
+            "baseline_brier_sum": 129.20126434895087,
+            "brier_score": 0.20642468599759722,
+            "prior_frequency_brier": 0.2142641199816764
+          },
+          "gave_back_gains": {
+            "samples": 1059,
+            "positives": 161,
+            "scored": 603,
+            "brier_sum": 84.42137964757603,
+            "baseline_brier_sum": 76.14876799296538,
+            "brier_score": 0.1400022879727629,
+            "prior_frequency_brier": 0.1262831973349343
+          },
+          "little_follow_through": {
+            "samples": 1059,
+            "positives": 372,
+            "scored": 603,
+            "brier_sum": 138.57153382390163,
+            "baseline_brier_sum": 137.91623188623868,
+            "brier_score": 0.22980353867977055,
+            "prior_frequency_brier": 0.22871680246474077
+          }
+        },
+        "selection_uses_predictions": false,
+        "scope": "Predict specific failure patterns from entry features; train only on completed cost-eligible trades. Score the saved entry prediction against the later outcome and an entry-time historical-frequency baseline. Overlapping examples are not independent. These estimates are uncalibrated diagnostics, not trading filters."
+      },
+      "regime_performance": {
+        "by_entry_regime": {
+          "BULL": {
+            "candles": 4568,
+            "trades": 5,
+            "net_pnl": -9.027782329177061,
+            "wins": 1,
+            "losses": 4
+          },
+          "BEAR": {
+            "candles": 6779,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "CHOP": {
+            "candles": 9426,
+            "trades": 1,
+            "net_pnl": -3.721875,
+            "wins": 0,
+            "losses": 1
+          },
+          "UNKNOWN": {
+            "candles": 240,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "scope": "Candles describe the full test window; trades and net P&L use the regime known at entry. End marks are account valuations. No-trade regimes have no demonstrated trading edge."
+      },
+      "experiment_registry": {
+        "hypothesis": "eligible-context-v1",
+        "policy_version": "online-net-r-v15-eligible-context",
+        "engine_version": "market-structure-v11.11-eligible-context",
+        "symbol": "XRP-USD",
+        "interval": "15m",
+        "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+        "daily_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+        "bitcoin_sha256": null,
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "reviewed_through_ts": 1789788600000,
+        "variants": [
+          "primary",
+          "higher_cost",
+          "frozen",
+          "pooled_control",
+          "pooled_control_higher_cost",
+          "original_strategies",
+          "original_strategies_higher_cost",
+          "account_feedback",
+          "account_feedback_higher_cost",
+          "memory_disabled",
+          "memory_disabled_higher_cost",
+          "two_sided_forecast_diagnostic",
+          "fee_covered_break_even_exit"
+        ],
+        "forecast_correction": false,
+        "trial_id": "4068d2b2c15ba775bfe42ba22e3c32c8b693f0a0bf4b2e9b09bd8a91af66cd9f",
+        "selection_uses_comparisons": false,
+        "scope": "Record every declared variant in this run, including losing results. This is a reproducibility ledger, not a multiple-testing-adjusted significance claim. Repeated candles and overlapping strategies are not independent trials."
+      },
+      "revised_break_even_exit_experiment": {
+        "ordinary": {
+          "complete": true,
+          "trades": 7,
+          "net_pnl": 13.419072487608332,
+          "ending_balance": 513.4190724876083,
+          "win_rate": 57.14285714285714,
+          "profit_factor": 2.162738821289801,
+          "expectancy_r": 0.5118426385059951,
+          "max_drawdown_pct": 1.8767808444372975,
+          "gross_pnl": 19.058319956095612,
+          "fees_paid": 5.6392474684872065
+        },
+        "higher_cost": {
+          "complete": true,
+          "trades": 2,
+          "net_pnl": -7.471875000000011,
+          "ending_balance": 492.528125,
+          "win_rate": 0.0,
+          "profit_factor": 0.0,
+          "expectancy_r": -1.0,
+          "max_drawdown_pct": 1.4943750000000022,
+          "gross_pnl": -5.929873463754288,
+          "fees_paid": 1.5420015362457118
+        },
+        "eligible_for_trading": false,
+        "research_checks_passed": false,
+        "rejection_reasons": [
+          "A later test period stopped at a data gap while holding a position; its return is unknown.",
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "regime_performance": {
+          "by_entry_regime": {
+            "BULL": {
+              "candles": 4568,
+              "trades": 7,
+              "net_pnl": 13.419072487608407,
+              "wins": 4,
+              "losses": 3
+            },
+            "BEAR": {
+              "candles": 6779,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "wins": 0,
+              "losses": 0
+            },
+            "CHOP": {
+              "candles": 9426,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "wins": 0,
+              "losses": 0
+            },
+            "UNKNOWN": {
+              "candles": 240,
+              "trades": 0,
+              "net_pnl": 0.0,
+              "wins": 0,
+              "losses": 0
+            }
+          },
+          "scope": "Candles describe the full test window; trades and net P&L use the regime known at entry. End marks are account valuations. No-trade regimes have no demonstrated trading edge."
+        },
+        "folds": [
+          {
+            "fold": 1,
+            "metrics": {
+              "complete": false,
+              "trades": 11,
+              "net_pnl": null,
+              "ending_balance": null,
+              "win_rate": null,
+              "profit_factor": null,
+              "expectancy_r": null,
+              "max_drawdown_pct": null,
+              "gross_pnl": 3.929112029907517,
+              "fees_paid": 4.189040109986005,
+              "incomplete_reason": "A position was open when market candles went missing. The account test stopped; no exit or later account return was assumed."
+            }
+          },
+          {
+            "fold": 2,
+            "metrics": {
+              "complete": true,
+              "trades": 6,
+              "net_pnl": 12.28350073700608,
+              "ending_balance": 512.2835007370061,
+              "win_rate": 50.0,
+              "profit_factor": 2.611762620024615,
+              "expectancy_r": 0.5463546155285088,
+              "max_drawdown_pct": 1.61905187854093,
+              "gross_pnl": 16.401921738970067,
+              "fees_paid": 4.1184210019639655
+            }
+          },
+          {
+            "fold": 3,
+            "metrics": {
+              "complete": true,
+              "trades": 5,
+              "net_pnl": -3.3348300694096906,
+              "ending_balance": 496.6651699305903,
+              "win_rate": 20.0,
+              "profit_factor": 0.6358100317703776,
+              "expectancy_r": -0.1749798933251164,
+              "max_drawdown_pct": 2.046889202961416,
+              "gross_pnl": 0.8756233343511071,
+              "fees_paid": 4.210453403760761
+            }
+          }
+        ]
+      }
+    },
+    {
+      "symbol": "DOT-USD",
+      "interval": "15m",
+      "bundle_sha256": "34d0812c56f07a64447ba327583fa5f5fe4a6c0e47cfe4b107d8d24a1e33baa6",
+      "data_sha256": "9bc18b653098ceed6aaf03aaa85f2991c5e6b9aa63bd54d4371c80d29200d14d",
+      "daily_data_sha256": "64e42956dfa87de5c84440596d2ed09ba0a7639196c3b067e73bd1543a3dac00",
+      "bitcoin_data_sha256": null,
+      "candles": 105049,
+      "cost_signature": {
+        "decision_interval": "15m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "reviewed_through_ts": 1789725600000,
+      "training_label_end_ts": 1770569100000,
+      "holdout_start_ts": 1770781500000,
+      "historical_examples": 11047,
+      "model_observations": 13068,
+      "comparison": {
+        "baseline_source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+        "ordinary_net_difference": 0.0,
+        "higher_cost_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "variants": {
+        "baseline": {
+          "source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+          "complete_replay_record_sha256": "aa029664e8c9f499f42b3dbca655c2429b169e046505ec8de3ca8667f2b71554",
+          "engine_version": "market-structure-v11.10-corrected-deadlines",
+          "policy_version": "online-net-r-v14-corrected-deadlines",
+          "learning_report_version": 16,
+          "runtime_seconds": 118.31672882500425,
+          "peak_rss_mib": 421.21875,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 9709,
+              "mean_predicted_net_r": -0.5543994504306918,
+              "mean_actual_net_r": -0.5632185041637023,
+              "optimism_bias_r": 0.008819053733011617,
+              "mae_r": 0.6182731264524192,
+              "rmse_r": 0.7311759010213194,
+              "zero_forecast_rmse_r": 0.9159808608046528,
+              "positive_forecasts": 7,
+              "positive_forecasts_that_lost": 6,
+              "near_break_even": 266
+            },
+            "eligible": {
+              "samples": 678,
+              "mean_predicted_net_r": -0.273406078443919,
+              "mean_actual_net_r": -0.27026739602691685,
+              "optimism_bias_r": -0.003138682417001944,
+              "mae_r": 0.9325539706530088,
+              "rmse_r": 1.1039042732223603,
+              "zero_forecast_rmse_r": 1.1041032914846844,
+              "positive_forecasts": 74,
+              "positive_forecasts_that_lost": 55,
+              "near_break_even": 19
+            }
+          },
+          "development_forecasts_by_lane_and_band": {},
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": true,
+                "trades": 3,
+                "net_pnl": -1.565676862431019,
+                "ending_balance": 498.434323137569,
+                "win_rate": 33.33333333333333,
+                "profit_factor": 0.7917015144314119,
+                "expectancy_r": -0.13370685852765787,
+                "max_drawdown_pct": 1.4941025004661945,
+                "gross_pnl": -0.7165643466044687,
+                "fees_paid": 0.8491125158265526
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        },
+        "revised": {
+          "source_code_sha256": "506c5d8a1fbdc7403b5fb4b80734e8c6ea0fe96cace3898ed4552e049b110949",
+          "complete_replay_record_sha256": "528ad031b45d889a0c904f31302c4d74e7b042677a91e17ab3f4aa84f911a23b",
+          "engine_version": "market-structure-v11.11-eligible-context",
+          "policy_version": "online-net-r-v15-eligible-context",
+          "learning_report_version": 17,
+          "runtime_seconds": 109.46577159799926,
+          "peak_rss_mib": 429.87890625,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 9709,
+              "mean_predicted_net_r": -0.5543693424972229,
+              "mean_actual_net_r": -0.5632185041637023,
+              "optimism_bias_r": 0.008849161666480643,
+              "mae_r": 0.6182430185189501,
+              "rmse_r": 0.7311122820993656,
+              "zero_forecast_rmse_r": 0.9159808608046528,
+              "positive_forecasts": 8,
+              "positive_forecasts_that_lost": 6,
+              "near_break_even": 266
+            },
+            "eligible": {
+              "samples": 402,
+              "mean_predicted_net_r": -0.23007175273118746,
+              "mean_actual_net_r": -0.30314998479987343,
+              "optimism_bias_r": 0.07307823206868594,
+              "mae_r": 0.9205605680644164,
+              "rmse_r": 1.080479563657932,
+              "zero_forecast_rmse_r": 1.09760675490159,
+              "positive_forecasts": 51,
+              "positive_forecasts_that_lost": 41,
+              "near_break_even": 10
+            }
+          },
+          "development_forecasts_by_lane_and_band": {
+            "cost_blocked/nonpositive": {
+              "samples": 9701,
+              "mean_predicted_net_r": -0.554908374947599,
+              "mean_actual_net_r": -0.5633554124006719,
+              "optimism_bias_r": 0.00844703745307406,
+              "mae_r": 0.6177889428860786,
+              "rmse_r": 0.7306359012264407,
+              "zero_forecast_rmse_r": 0.9157959130143115,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 266
+            },
+            "cost_blocked/0_to_0.5R": {
+              "samples": 8,
+              "mean_predicted_net_r": 0.09927488264006733,
+              "mean_actual_net_r": -0.39720015330857084,
+              "optimism_bias_r": 0.4964750359486382,
+              "mae_r": 1.168866482829851,
+              "rmse_r": 1.1742807263484631,
+              "zero_forecast_rmse_r": 1.1179614276160041,
+              "positive_forecasts": 8,
+              "positive_forecasts_that_lost": 6,
+              "near_break_even": 0
+            },
+            "eligible/0_to_0.5R": {
+              "samples": 48,
+              "mean_predicted_net_r": 0.1601902262327328,
+              "mean_actual_net_r": -0.3284193289755322,
+              "optimism_bias_r": 0.48860955520826493,
+              "mae_r": 1.2672831757805163,
+              "rmse_r": 1.3226014962458224,
+              "zero_forecast_rmse_r": 1.2984161926564604,
+              "positive_forecasts": 48,
+              "positive_forecasts_that_lost": 38,
+              "near_break_even": 0
+            },
+            "eligible/nonpositive": {
+              "samples": 351,
+              "mean_predicted_net_r": -0.29047281658208335,
+              "mean_actual_net_r": -0.29373836495362843,
+              "optimism_bias_r": 0.0032655483715449463,
+              "mae_r": 0.8674010619978004,
+              "rmse_r": 1.0373670593338506,
+              "zero_forecast_rmse_r": 1.0680323192743835,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 10
+            },
+            "eligible/above_0.5R": {
+              "samples": 3,
+              "mean_predicted_net_r": 0.5926610544009151,
+              "mean_actual_net_r": -1.0,
+              "optimism_bias_r": 1.5926610544009152,
+              "mae_r": 1.5926610544009152,
+              "rmse_r": 1.593982932517476,
+              "zero_forecast_rmse_r": 0.9999999999999999,
+              "positive_forecasts": 3,
+              "positive_forecasts_that_lost": 3,
+              "near_break_even": 0
+            }
+          },
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": true,
+                "trades": 4,
+                "net_pnl": -5.303934285962782,
+                "ending_balance": 494.6960657140372,
+                "win_rate": 25.0,
+                "profit_factor": 0.5268624771256915,
+                "expectancy_r": -0.35028014389574347,
+                "max_drawdown_pct": 1.7538700519981638,
+                "gross_pnl": -4.157478464786514,
+                "fees_paid": 1.146455821176275
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        }
+      },
+      "learning_evidence": {
+        "by_family": {
+          "signal_consensus_simple": {
+            "examples": 3543,
+            "eligible_examples": 156,
+            "cost_blocked_examples": 3387,
+            "eligible_ready_candidates": 2,
+            "candidates": 4
+          },
+          "breakout_volume_simple": {
+            "examples": 2886,
+            "eligible_examples": 125,
+            "cost_blocked_examples": 2761,
+            "eligible_ready_candidates": 2,
+            "candidates": 4
+          },
+          "trend_pullback_simple": {
+            "examples": 4918,
+            "eligible_examples": 257,
+            "cost_blocked_examples": 4661,
+            "eligible_ready_candidates": 2,
+            "candidates": 4
+          },
+          "range_reclaim_simple": {
+            "examples": 1308,
+            "eligible_examples": 58,
+            "cost_blocked_examples": 1250,
+            "eligible_ready_candidates": 1,
+            "candidates": 4
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 122,
+            "eligible_examples": 121,
+            "cost_blocked_examples": 1,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 190,
+            "eligible_examples": 190,
+            "cost_blocked_examples": 0,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          },
+          "volatility_expansion_simple": {
+            "examples": 101,
+            "eligible_examples": 101,
+            "cost_blocked_examples": 0,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          }
+        },
+        "eligible_examples": 1008,
+        "cost_blocked_examples": 12060,
+        "minimum_eligible_examples": 30,
+        "rule": "An affordable entry uses only completed cost-eligible evidence for its return estimate, recent outcomes and error margin. Sparse cost subgroups can borrow from eligible examples of the same candidate, never from cost-blocked practice. Examples overlap and do not count as independent bets."
+      },
+      "forecast_calibration": {
+        "scored_outcomes": 534,
+        "buckets": 38,
+        "ready_buckets": 6,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+        "enabled_for_selection": true,
+        "policy": "eligible_downside_only",
+        "scope": "The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."
+      },
+      "failure_prediction_scores": {
+        "targets": {
+          "fees_erased_gain": {
+            "samples": 1008,
+            "positives": 21,
+            "scored": 534,
+            "brier_sum": 27.456645569963634,
+            "baseline_brier_sum": 11.864744081116749,
+            "brier_score": 0.05141693926959482,
+            "prior_frequency_brier": 0.022218621874750467
+          },
+          "near_break_even": {
+            "samples": 1008,
+            "positives": 24,
+            "scored": 534,
+            "brier_sum": 29.033473829087537,
+            "baseline_brier_sum": 12.904182699104837,
+            "brier_score": 0.05436980117806655,
+            "prior_frequency_brier": 0.024165136140645763
+          },
+          "target_reached": {
+            "samples": 1008,
+            "positives": 150,
+            "scored": 534,
+            "brier_sum": 72.69951494491669,
+            "baseline_brier_sum": 62.077427314260945,
+            "brier_score": 0.13614141375452563,
+            "prior_frequency_brier": 0.1162498638843838
+          },
+          "time_exit": {
+            "samples": 1008,
+            "positives": 236,
+            "scored": 534,
+            "brier_sum": 95.61644518133154,
+            "baseline_brier_sum": 94.74517451550875,
+            "brier_score": 0.17905701344818642,
+            "prior_frequency_brier": 0.17742542044102763
+          },
+          "little_follow_through": {
+            "samples": 1008,
+            "positives": 346,
+            "scored": 534,
+            "brier_sum": 122.38414029976266,
+            "baseline_brier_sum": 121.02715846763968,
+            "brier_score": 0.22918378333288889,
+            "prior_frequency_brier": 0.22664261885325782
+          },
+          "gave_back_gains": {
+            "samples": 1008,
+            "positives": 183,
+            "scored": 534,
+            "brier_sum": 86.71373370903851,
+            "baseline_brier_sum": 82.39941755310832,
+            "brier_score": 0.16238526911804965,
+            "prior_frequency_brier": 0.15430602538035265
+          }
+        },
+        "selection_uses_predictions": false,
+        "scope": "Predict specific failure patterns from entry features; train only on completed cost-eligible trades. Score the saved entry prediction against the later outcome and an entry-time historical-frequency baseline. Overlapping examples are not independent. These estimates are uncalibrated diagnostics, not trading filters."
+      },
+      "regime_performance": {
+        "by_entry_regime": {
+          "BULL": {
+            "candles": 3774,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "BEAR": {
+            "candles": 6305,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "CHOP": {
+            "candles": 8234,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "UNKNOWN": {
+            "candles": 2697,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "scope": "Candles describe the full test window; trades and net P&L use the regime known at entry. End marks are account valuations. No-trade regimes have no demonstrated trading edge."
+      },
+      "experiment_registry": {
+        "hypothesis": "eligible-context-v1",
+        "policy_version": "online-net-r-v15-eligible-context",
+        "engine_version": "market-structure-v11.11-eligible-context",
+        "symbol": "DOT-USD",
+        "interval": "15m",
+        "data_sha256": "9bc18b653098ceed6aaf03aaa85f2991c5e6b9aa63bd54d4371c80d29200d14d",
+        "daily_sha256": "64e42956dfa87de5c84440596d2ed09ba0a7639196c3b067e73bd1543a3dac00",
+        "bitcoin_sha256": null,
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "reviewed_through_ts": 1789725600000,
+        "variants": [
+          "primary",
+          "higher_cost",
+          "frozen",
+          "pooled_control",
+          "pooled_control_higher_cost",
+          "original_strategies",
+          "original_strategies_higher_cost",
+          "account_feedback",
+          "account_feedback_higher_cost",
+          "memory_disabled",
+          "memory_disabled_higher_cost",
+          "two_sided_forecast_diagnostic"
+        ],
+        "forecast_correction": false,
+        "trial_id": "de44aedaf20b3e2b87fe227947024d204fc5b6e958894f85eac8e89e3ac96ebf",
+        "selection_uses_comparisons": false,
+        "scope": "Record every declared variant in this run, including losing results. This is a reproducibility ledger, not a multiple-testing-adjusted significance claim. Repeated candles and overlapping strategies are not independent trials."
+      }
+    },
+    {
+      "symbol": "LTC-USD",
+      "interval": "5m",
+      "bundle_sha256": "45505dce3a68adb5865613edb0fbff05880ba4736de36415ca4d875a0e38d77d",
+      "data_sha256": "ff420eb50b909af58b095e6b1c33bb8e8eee954f93d34ec912f64f0ccb80be66",
+      "daily_data_sha256": "c8464a7e45ce0dbff4adc935e950721acb88a519e2335ced6b23d9b4993d146f",
+      "bitcoin_data_sha256": null,
+      "candles": 104966,
+      "cost_signature": {
+        "decision_interval": "5m",
+        "fee_rate": 0.004,
+        "slippage_rate": 0.0005,
+        "risk_per_trade": 0.0075,
+        "max_notional_fraction": 0.3,
+        "daily_loss_limit": 0.03
+      },
+      "reviewed_through_ts": 1789796100000,
+      "training_label_end_ts": 1783380000000,
+      "holdout_start_ts": 1783497900000,
+      "historical_examples": 8956,
+      "model_observations": 11461,
+      "comparison": {
+        "baseline_source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+        "ordinary_net_difference": 0.0,
+        "higher_cost_net_difference": 0.0,
+        "selection_uses_comparison": false,
+        "qualification_uses_comparison": false
+      },
+      "variants": {
+        "baseline": {
+          "source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+          "complete_replay_record_sha256": "1650b1b649ad2f906560f4bb2f376ff0014070a81095206cf783b4c76888b7f7",
+          "engine_version": "market-structure-v11.10-corrected-deadlines",
+          "policy_version": "online-net-r-v14-corrected-deadlines",
+          "learning_report_version": 16,
+          "runtime_seconds": 129.67203883000184,
+          "peak_rss_mib": 413.03125,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 8327,
+              "mean_predicted_net_r": -0.7561680689813763,
+              "mean_actual_net_r": -0.7802366646655886,
+              "optimism_bias_r": 0.02406859568420946,
+              "mae_r": 0.3652396867457778,
+              "rmse_r": 0.47233771939466884,
+              "zero_forecast_rmse_r": 0.910048760574016,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 356
+            },
+            "eligible": {
+              "samples": 14,
+              "mean_predicted_net_r": -0.537674847651604,
+              "mean_actual_net_r": -0.5342253770726976,
+              "optimism_bias_r": -0.0034494705789064723,
+              "mae_r": 0.7523422406274497,
+              "rmse_r": 1.017782433727008,
+              "zero_forecast_rmse_r": 1.1097817959742309,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 1
+            }
+          },
+          "development_forecasts_by_lane_and_band": {},
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        },
+        "revised": {
+          "source_code_sha256": "506c5d8a1fbdc7403b5fb4b80734e8c6ea0fe96cace3898ed4552e049b110949",
+          "complete_replay_record_sha256": "5ded6684cbb8091429d5b00bc5cb96bde24f7a3fd538c97557a30b24d3fa49f9",
+          "engine_version": "market-structure-v11.11-eligible-context",
+          "policy_version": "online-net-r-v15-eligible-context",
+          "learning_report_version": 17,
+          "runtime_seconds": 119.77727502500056,
+          "peak_rss_mib": 416.484375,
+          "runtime_scope": "XRP revised also runs the independent exit study; these timings are not a matched performance benchmark.",
+          "ordinary": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "higher_cost": {
+            "complete": true,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "ending_balance": 500.0,
+            "win_rate": null,
+            "profit_factor": null,
+            "expectancy_r": null,
+            "max_drawdown_pct": 0,
+            "gross_pnl": 0,
+            "fees_paid": 0
+          },
+          "selected_forecasts": {
+            "samples": 0,
+            "mean_predicted_net_r": null,
+            "mean_actual_net_r": null,
+            "optimism_bias_r": null,
+            "rmse_r": null,
+            "zero_forecast_rmse_r": null,
+            "positive_forecasts": 0,
+            "positive_forecasts_that_lost": 0,
+            "adjusted_forecasts": 0,
+            "applied_forecasts": 0
+          },
+          "development_forecasts_by_lane": {
+            "cost_blocked": {
+              "samples": 8327,
+              "mean_predicted_net_r": -0.7561680689813763,
+              "mean_actual_net_r": -0.7802366646655886,
+              "optimism_bias_r": 0.02406859568420946,
+              "mae_r": 0.3652396867457778,
+              "rmse_r": 0.47233771939466884,
+              "zero_forecast_rmse_r": 0.910048760574016,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 356
+            }
+          },
+          "development_forecasts_by_lane_and_band": {
+            "cost_blocked/nonpositive": {
+              "samples": 8327,
+              "mean_predicted_net_r": -0.7561680689813763,
+              "mean_actual_net_r": -0.7802366646655886,
+              "optimism_bias_r": 0.02406859568420946,
+              "mae_r": 0.3652396867457778,
+              "rmse_r": 0.47233771939466884,
+              "zero_forecast_rmse_r": 0.910048760574016,
+              "positive_forecasts": 0,
+              "positive_forecasts_that_lost": 0,
+              "near_break_even": 356
+            }
+          },
+          "folds": [
+            {
+              "fold": 1,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 2,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            },
+            {
+              "fold": 3,
+              "metrics": {
+                "complete": true,
+                "trades": 0,
+                "net_pnl": 0.0,
+                "ending_balance": 500.0,
+                "win_rate": null,
+                "profit_factor": null,
+                "expectancy_r": null,
+                "max_drawdown_pct": 0,
+                "gross_pnl": 0,
+                "fees_paid": 0
+              }
+            }
+          ],
+          "qualified": false,
+          "rejection_reasons": [
+            "Fewer than two later test periods made money after costs.",
+            "Fewer than 30 trades in the final test period.",
+            "The final test did not stay profitable at both ordinary and higher costs.",
+            "The uncertainty in final trade results is too large to qualify.",
+            "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+            "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+          ]
+        }
+      },
+      "learning_evidence": {
+        "by_family": {
+          "signal_consensus_simple": {
+            "examples": 3045,
+            "eligible_examples": 2,
+            "cost_blocked_examples": 3043,
+            "eligible_ready_candidates": 0,
+            "candidates": 4
+          },
+          "breakout_volume_simple": {
+            "examples": 2459,
+            "eligible_examples": 3,
+            "cost_blocked_examples": 2456,
+            "eligible_ready_candidates": 0,
+            "candidates": 4
+          },
+          "trend_pullback_simple": {
+            "examples": 4504,
+            "eligible_examples": 9,
+            "cost_blocked_examples": 4495,
+            "eligible_ready_candidates": 0,
+            "candidates": 4
+          },
+          "range_reclaim_simple": {
+            "examples": 1252,
+            "eligible_examples": 0,
+            "cost_blocked_examples": 1252,
+            "eligible_ready_candidates": 0,
+            "candidates": 4
+          },
+          "volatility_expansion_simple": {
+            "examples": 52,
+            "eligible_examples": 47,
+            "cost_blocked_examples": 5,
+            "eligible_ready_candidates": 0,
+            "candidates": 2
+          },
+          "support_rsi_reclaim_simple": {
+            "examples": 85,
+            "eligible_examples": 79,
+            "cost_blocked_examples": 6,
+            "eligible_ready_candidates": 2,
+            "candidates": 2
+          },
+          "daily_trend_momentum_simple": {
+            "examples": 64,
+            "eligible_examples": 53,
+            "cost_blocked_examples": 11,
+            "eligible_ready_candidates": 0,
+            "candidates": 2
+          }
+        },
+        "eligible_examples": 193,
+        "cost_blocked_examples": 11268,
+        "minimum_eligible_examples": 30,
+        "rule": "An affordable entry uses only completed cost-eligible evidence for its return estimate, recent outcomes and error margin. Sparse cost subgroups can borrow from eligible examples of the same candidate, never from cost-blocked practice. Examples overlap and do not count as independent bets."
+      },
+      "forecast_calibration": {
+        "scored_outcomes": 19,
+        "buckets": 3,
+        "ready_buckets": 0,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "rule": "Match strategy parameters, cost burden and raw forecast band. After at least 30 observations and 30 effective samples, apply a shrunk recent mean of actual net return minus raw entry prediction. Corrections can raise or lower estimates. Raw forecasts are stored before entry; unresolved trades never train the correction. Final estimates remain bounded and existing cost, error and risk checks still apply.",
+        "enabled_for_selection": true,
+        "policy": "eligible_downside_only",
+        "scope": "The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."
+      },
+      "failure_prediction_scores": {
+        "targets": {
+          "fees_erased_gain": {
+            "samples": 193,
+            "positives": 7,
+            "scored": 19,
+            "brier_sum": 1.2709068591473947,
+            "baseline_brier_sum": 0.016502450836974103,
+            "brier_score": 0.06688983469196814,
+            "prior_frequency_brier": 0.0008685500440512685
+          },
+          "near_break_even": {
+            "samples": 193,
+            "positives": 13,
+            "scored": 19,
+            "brier_sum": 1.4221657303226007,
+            "baseline_brier_sum": 0.06600980334789641,
+            "brier_score": 0.07485082791171582,
+            "prior_frequency_brier": 0.003474200176205074
+          },
+          "target_reached": {
+            "samples": 193,
+            "positives": 17,
+            "scored": 19,
+            "brier_sum": 2.6653317816717297,
+            "baseline_brier_sum": 2.7304756993461603,
+            "brier_score": 0.14028062008798578,
+            "prior_frequency_brier": 0.14370924733400844
+          },
+          "time_exit": {
+            "samples": 193,
+            "positives": 65,
+            "scored": 19,
+            "brier_sum": 4.650897942187205,
+            "baseline_brier_sum": 4.613928643712606,
+            "brier_score": 0.24478410222037922,
+            "prior_frequency_brier": 0.24283834966908455
+          },
+          "gave_back_gains": {
+            "samples": 193,
+            "positives": 46,
+            "scored": 19,
+            "brier_sum": 2.513605754413733,
+            "baseline_brier_sum": 1.8492861656663542,
+            "brier_score": 0.13229503970598594,
+            "prior_frequency_brier": 0.09733085082454496
+          },
+          "little_follow_through": {
+            "samples": 193,
+            "positives": 59,
+            "scored": 19,
+            "brier_sum": 4.173876601077177,
+            "baseline_brier_sum": 3.8456641610187683,
+            "brier_score": 0.21967771584616722,
+            "prior_frequency_brier": 0.20240337689572466
+          }
+        },
+        "selection_uses_predictions": false,
+        "scope": "Predict specific failure patterns from entry features; train only on completed cost-eligible trades. Score the saved entry prediction against the later outcome and an entry-time historical-frequency baseline. Overlapping examples are not independent. These estimates are uncalibrated diagnostics, not trading filters."
+      },
+      "regime_performance": {
+        "by_entry_regime": {
+          "BULL": {
+            "candles": 6394,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "BEAR": {
+            "candles": 5366,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "CHOP": {
+            "candles": 9234,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          },
+          "UNKNOWN": {
+            "candles": 0,
+            "trades": 0,
+            "net_pnl": 0.0,
+            "wins": 0,
+            "losses": 0
+          }
+        },
+        "scope": "Candles describe the full test window; trades and net P&L use the regime known at entry. End marks are account valuations. No-trade regimes have no demonstrated trading edge."
+      },
+      "experiment_registry": {
+        "hypothesis": "eligible-context-v1",
+        "policy_version": "online-net-r-v15-eligible-context",
+        "engine_version": "market-structure-v11.11-eligible-context",
+        "symbol": "LTC-USD",
+        "interval": "5m",
+        "data_sha256": "ff420eb50b909af58b095e6b1c33bb8e8eee954f93d34ec912f64f0ccb80be66",
+        "daily_sha256": "c8464a7e45ce0dbff4adc935e950721acb88a519e2335ced6b23d9b4993d146f",
+        "bitcoin_sha256": null,
+        "cost_signature": {
+          "decision_interval": "5m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "reviewed_through_ts": 1789796100000,
+        "variants": [
+          "primary",
+          "higher_cost",
+          "frozen",
+          "pooled_control",
+          "pooled_control_higher_cost",
+          "original_strategies",
+          "original_strategies_higher_cost",
+          "account_feedback",
+          "account_feedback_higher_cost",
+          "memory_disabled",
+          "memory_disabled_higher_cost",
+          "two_sided_forecast_diagnostic"
+        ],
+        "forecast_correction": false,
+        "trial_id": "383d8849be3c795b0d21928a994d22dfe3f246435d407bb48d8388b698e37e84",
+        "selection_uses_comparisons": false,
+        "scope": "Record every declared variant in this run, including losing results. This is a reproducibility ledger, not a multiple-testing-adjusted significance claim. Repeated candles and overlapping strategies are not independent trials."
+      }
+    }
+  ]
+}

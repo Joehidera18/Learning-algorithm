@@ -5,6 +5,7 @@ from .exit_research import account_metrics, difference
 def comparison_report(baseline, experiment):
     assert baseline["model"]["selection_rule"] == "recent_return_veto"
     assert experiment["model"]["selection_rule"] == "conditional_net_return"
+    assert baseline.get("bitcoin_data") == experiment.get("bitcoin_data")
     for key in ("data_sha256", "daily_data", "cost_signature", "training_diagnostics"):
         assert baseline[key] == experiment[key], key
     return {"rule":"Remove the blanket recent-return veto. Keep the same context-adjusted net estimate, error margin, sample minimum, costs and account risk checks.",

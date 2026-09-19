@@ -1,3 +1,13 @@
+# V11.11 relevant learning evidence and Bitcoin context — 19 September 2026 UTC
+
+- Separate cost-eligible models from overall practice memory so rejected expensive examples cannot supply affordable entries' weights, minimum evidence, recent outcomes or errors.
+- Apply the declared residual correction only downward to positive eligible forecasts once matching evidence is sufficient. Keep two-sided corrections experimental and actual net rewards unchanged.
+- Learn six specific outcome diagnostics from completed eligible trades, retain their entry-time forecasts and score them against a historical-frequency baseline. Unknown price paths remain unknown.
+- Join completed Bitcoin daily context in historical and forward learning, preserve exact input hashes and exports, and block new entries when a context-dependent model lacks current inputs. Add CLI Bitcoin CSV support.
+- Show relevant evidence, positive affordable forecast errors, price-regime coverage, account results by entry regime, failure scores and experiment records. Record interrupted, failed and completed attempts and protect the latest reviewed report's prices from reuse as fresh validation.
+- Retain the independent break-even exit study. The paired XRP revision loses more, DOT/LTC still select no final trades, and all remain unqualified. See ELIGIBLE_CONTEXT_RESEARCH.md and VERIFICATION.md. No parameters were tuned to rescue these results.
+- Versions: engine `market-structure-v11.11-eligible-context`, policy `online-net-r-v15-eligible-context`, report 17. Fresh practice is required. No merge, deployment or order is included in this change.
+
 # Predeployment corrections to V11.10 — 19 September 2026 UTC
 
 - Close time-limited historical positions at the intended candle close, including when that close ends the test window. Preserve the exit-bar identifier and record the known close time for accurate holding-duration reviews. Advance the policy to v14 and report to 16 so prior labels/models are not reused.

@@ -237,6 +237,9 @@ class ReviewPersistenceTests(unittest.TestCase):
                 self.learner.study(["BTC-USD"], self.settings)
         job = load_state(self.learner.db_path, "learning_job_BTC-USD")
         self.assertIsNotNone(job)
+        trial = load_state(self.learner.db_path, "learning_trial_"+job["fingerprint"])
+        self.assertEqual(trial["status"], "interrupted")
+        self.assertEqual(trial["attempts"], 1)
         restored = AutoLearner(self.learner.db_path, self.base/"data",
                                self.learner.agent, self.learner.research_manager)
         def resumed(*args, checkpoint, **kwargs):
@@ -249,6 +252,9 @@ class ReviewPersistenceTests(unittest.TestCase):
         self.assertEqual(ends[0], ends[1])
         self.assertIsNone(load_state(restored.db_path, "learning_job_BTC-USD"))
         self.assertIsNone(load_state(restored.db_path, "learning_candidate_"+job["fingerprint"]+"_0"))
+        trial = load_state(restored.db_path, "learning_trial_"+job["fingerprint"])
+        self.assertEqual(trial["status"], "completed")
+        self.assertEqual(trial["attempts"], 2)
 
     def test_unqualified_market_reviews_daily_without_retraining_qualified_market(self):
         stamp = time.time()
@@ -270,8 +276,8 @@ class ReviewPersistenceTests(unittest.TestCase):
                 self.learner.study(["BTC-USD", "ETH-USD"], self.settings)
             self.assertEqual([c.args[:2] for c in history.call_args_list], [
                 ("BTC-USD","15m"),("BTC-USD","1d"),("ETH-USD","15m"),("ETH-USD","1d"),
-                ("ETH-USD","15m"),("ETH-USD","1d")])
-            self.assertEqual(history.call_args.args[0], "ETH-USD")
+                ("ETH-USD","15m"),("ETH-USD","1d"),("BTC-USD","1d")])
+            self.assertEqual([c.args[0] for c in history.call_args_list if c.args[1]=='15m'][-1], "ETH-USD")
             self.assertEqual(train.call_count, 2)  # identical prices reuse the completed result
 
     def test_changed_daily_risk_limit_invalidates_job_and_qualified_policy(self):

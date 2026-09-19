@@ -193,12 +193,14 @@ class AutoLearner:
         self._update(enabled=False, phase="stopping" if stopping else "stopped",
             message="Stopping learning; completed work is saved." if stopping else "Automatic learning stopped. Models are saved.")
 
-    def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None, daily_rows=None, history_days=None):
+    def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None, daily_rows=None, history_days=None,
+                     bitcoin_rows=None):
         from .evaluation import dataset_digest
         digest = hashlib.sha256(json.dumps({"symbol":symbol,"engine":ENGINE_VERSION,
             "policy":POLICY_VERSION, "report_version":LEARNING_REPORT_VERSION,
             "reviewed_through_ts":reviewed_boundary(symbol, reviewed_through_ts),
             "daily_data_sha256":dataset_digest(daily_rows) if daily_rows is not None else None,
+            "bitcoin_data_sha256":dataset_digest(bitcoin_rows) if bitcoin_rows is not None else None,
             "requested_history_days":history_days,
             "costs":cost_signature(settings)}, sort_keys=True).encode())
         for row in rows:
@@ -277,6 +279,7 @@ class AutoLearner:
         queue = [(symbol, interval) for symbol in symbols for interval in intervals]
         queue_set = set(queue)
         completed = set()
+        bitcoin_cache = {}
         def publish():
             self._update(results=[updated[k] for k in queue if k in updated]+
                 [r for k,r in updated.items() if k not in queue_set],
@@ -309,6 +312,7 @@ class AutoLearner:
                 publish()
                 continue
             job = self._job(symbol, settings, history_days)
+            trial_key = None
             try:
                 product = catalog.get(symbol) if catalog is not None else None
                 if catalog is not None and (not product or product.get("quote_currency") != "USD"
@@ -332,19 +336,38 @@ class AutoLearner:
                     end_ms=job["end_ms"])
                 coverage = history_coverage(rows, interval, history_days, job["end_ms"])
                 daily_rows, daily_source = self.downloader.daily_history(symbol, days, job["end_ms"])
-                fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows, history_days)
+                benchmark_key = (days, job["end_ms"]//86400000)
+                if symbol == "BTC-USD":
+                    bitcoin_cache[benchmark_key] = (daily_rows, daily_source)
+                elif benchmark_key not in bitcoin_cache:
+                    bitcoin_cache[benchmark_key] = self.downloader.daily_history("BTC-USD", days, job["end_ms"])
+                bitcoin_rows, bitcoin_source = bitcoin_cache[benchmark_key]
+                fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows, history_days, bitcoin_rows)
                 if job.get("fingerprint") and job["fingerprint"] != fingerprint:
                     self._finish_job(symbol, job)
                 job["fingerprint"] = fingerprint
                 save_state(self.db_path, self._job_key(symbol, interval), job)
                 result = load_state(self.db_path, "learning_result_"+fingerprint)
+                trial_key = "learning_trial_"+fingerprint
                 if result is None:
+                    trial = load_state(self.db_path, trial_key, {})
+                    save_state(self.db_path, trial_key, {"status":"running", "symbol":symbol, "interval":interval,
+                        "fingerprint":fingerprint, "started_at":int(time.time()),
+                        "attempts":trial.get("attempts",0)+1, "cost_signature":cost_signature(settings),
+                        "reviewed_through_ts":boundary})
                     prefix = "learning_candidate_"+fingerprint+"_"
                     checkpoint = {
                         "load":lambda index:load_state(self.db_path, prefix+str(index)),
                         "save":lambda index, value:save_state(self.db_path, prefix+str(index), value)}
                     result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
-                        checkpoint=checkpoint, reviewed_through_ts=boundary, daily_rows=daily_rows)
+                        checkpoint=checkpoint, reviewed_through_ts=boundary, daily_rows=daily_rows,
+                        bitcoin_rows=bitcoin_rows)
+                trial = load_state(self.db_path, trial_key, {})
+                save_state(self.db_path, trial_key, {**trial, "status":"completed",
+                    "completed_at":int(time.time()), "manifest":result.get("experiment_registry"),
+                    "ordinary_net_pnl":result.get("holdout", {}).get("net_pnl"),
+                    "higher_cost_net_pnl":result.get("holdout_stressed", {}).get("net_pnl"),
+                    "validated":result.get("validated",False), "rejection_reasons":result.get("rejection_reasons",[])})
                 # Retrieval metadata is refreshed even if identical observations
                 # reuse the learned result; no stale date range is claimed.
                 result.setdefault("interval", interval)
@@ -356,6 +379,7 @@ class AutoLearner:
                     "retrieval":"Public candle API with saved local download chunks",
                     "gap_repair":self.downloader.data_reports.get((symbol, interval)),
                     "daily_context":daily_source,
+                    "bitcoin_context":bitcoin_source,
                     "product_check":{"status":"checked" if catalog is not None else "unavailable",
                         "message":catalog_error, "product_status":(product or {}).get("status")},
                     "synthetic_fallback":False}
@@ -373,8 +397,14 @@ class AutoLearner:
                 self._finish_job(symbol, job)
                 del rows
             except InterruptedError:
+                if trial_key:
+                    save_state(self.db_path, trial_key, {**load_state(self.db_path, trial_key, {}),
+                        "status":"interrupted", "stopped_at":int(time.time())})
                 raise
             except Exception as exc:
+                if trial_key:
+                    save_state(self.db_path, trial_key, {**load_state(self.db_path, trial_key, {}),
+                        "status":"failed", "error":str(exc)[:500], "stopped_at":int(time.time())})
                 results.append({"symbol":symbol, "interval":interval, "validated":False, "error":str(exc),
                     "history_request":{"requested_days":history_days, "effective_days":study_days(interval, history_days)},
                     "review_scope":scope, "next_review_at":time.time()+3600,

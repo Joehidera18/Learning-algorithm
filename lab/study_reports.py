@@ -14,6 +14,10 @@ def compact_report(report):
         result[key] = {k:v for k,v in (report.get(key) or {}).items()
             if not isinstance(v,(dict,list))}
     result['daily_goal'] = {'mean_net_per_day':(report.get('daily_goal') or {}).get('mean_net_per_day')}
+    result['learning_evidence'] = {k:v for k,v in report.get('learning_evidence', {}).items()
+        if k in ('eligible_examples','cost_blocked_examples','minimum_eligible_examples')}
+    result['bitcoin_data'] = {k:v for k,v in report.get('bitcoin_data', {}).items()
+        if k in ('symbol','source','holdout_ready_candles','holdout_candles')}
     result['evaluation'] = {key:report['evaluation'][key]
         for key in ('reuses_reviewed_history','reviewed_through_ts','basis')
         if key in (report.get('evaluation') or {})}
