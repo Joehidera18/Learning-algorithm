@@ -4,6 +4,14 @@ This repository contains the Python web app and its Render Blueprint. If the pro
 
 This setup creates a paid Render web service and persistent disk. Review the price Render displays before deploying. Hosting is an additional account expense and is not included in the app's trading returns. Check [current Render pricing](https://render.com/pricing).
 
+## Capacity before broad studies
+
+The included 512 MB service is intended for smaller runs. Begin with **one year, 15m and 1h**, on a few coins, and inspect Render's memory and disk usage before expanding. A one-year 6h study cannot meet the existing 3,000-candle minimum, so omit 6h from that initial plan.
+
+The predeployment capacity fixture used **412 MiB just to build five years of 15m features**, even after the memory reduction. That excludes web requests, model training and retained reports. For the full five-year/many-coin plan, choose more memory after checking the displayed price; Render lists **1c-2g (2 GB)** as its next web-service size. This is a capacity recommendation, not a verified hosted load limit. See [Render's compute definitions](https://render.com/docs/blueprint-spec) and [the measured review](PREDEPLOY_REVIEW.md). The existing Blueprint's paid plan has not been increased automatically.
+
+Check disk headroom as well. At the observed LTC CSV size, a fully covered five-year 15m/1h/6h plan across 60 coins would require about **949 MiB of candle CSVs**, before reports, candidate checkpoints, temporary rewrites and backups. Actual listing histories and row sizes vary. The template's 1 GB disk does not establish that this maximum plan will fit. Keep both persistence paths under `/var/data`; [Render persists only files under the disk mount](https://render.com/docs/disks).
+
 ## Update an existing Render service
 
 1. Merge the reviewed changes into the branch your existing Render service deploys, usually `main`. Changes that remain only in a pull request do not update that branch.
@@ -47,7 +55,7 @@ Research and paper trading do not require a Coinbase key. Start with these modes
 | Setting | Included value | Purpose |
 | --- | --- | --- |
 | Runtime | Python 3.12 series via `.python-version` | Matches the major/minor version used for tests and local Gunicorn verification |
-| Compute | 0.5c-512mb paid service | Initial small instance; monitor memory during larger research runs |
+| Compute | 0.5c-512mb paid service | Smaller initial runs; see the capacity limits above before broad studies |
 | Persistent disk | 1 GB at /var/data | Retain the database, candles, and backups across ordinary restarts |
 | RESEARCH_DB_PATH | /var/data/research.sqlite3 | Account state and order journal |
 | RESEARCH_DATA_DIR | /var/data/research-data | Candle downloads and database backups |
@@ -67,7 +75,7 @@ The configuration follows the [Blueprint reference](https://render.com/docs/blue
 
 Set your actual fee rate and click **Practice on real market history** for accelerated replay, initially on BTC, ETH and SOL. This control does not start a paper or exchange runner. A failed download shows an error and can be retried immediately with the same button; it never substitutes generated prices. Completed studies retain their scheduled review dates and saved results.
 
-**Start learning & paper trading** additionally starts market monitoring and the simulated account. Automatic mode studies up to three years for five liquid markets; progress and completed work are saved. Monitor the small server's memory during the first real run and select a larger compute plan if needed. Advanced research remains available for smaller manual diagnostics. A successful website deployment establishes that the app is running, not that its strategy is profitable.
+**Start learning & paper trading** additionally starts market monitoring and the simulated account. Automatic mode studies up to ten liquid markets at the configured decision interval, using the last selected lookback (five years by default, subject to timeframe limits). Historical practice supports a separate multi-timeframe plan and longer hourly/6-hour history. Progress and completed work are saved. Monitor the small server's memory during the first real run and select a larger compute plan if needed. Advanced research remains available for smaller manual diagnostics. A successful website deployment establishes that the app is running, not that its strategy is profitable.
 
 Closing your phone browser leaves a running server process alone. Server restarts and deployments are different: the app retains its stored state but starts its runners stopped. Reopen the dashboard and inspect the account before restarting them. A healthy website does not prove that quotes are fresh or the paper trader is running.
 

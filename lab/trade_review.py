@@ -43,7 +43,7 @@ def close_review(trade):
     reason = str(trade.get("reason", "UNKNOWN")).upper()
     result = {"outcome":outcome_band(net_r, reason), "net_r":net_r,
         "gross_r":trade["gross_pnl"]/risk, "fee_r":trade["fees_paid"]/risk,
-        "holding_hours":max(0., (trade["exit_ts"]-trade["entry_ts"])/3600000),
+        "holding_hours":max(0., (trade.get("exit_time_ts", trade["exit_ts"])-trade["entry_ts"])/3600000),
         "best_net_r":None, "worst_net_r":None, "giveback_r":None,
         "findings":[], "path_basis":"unavailable"}
     if all(k in trade for k in ("mfe_price", "mae_price", "fee_rate", "slippage_rate", "qty_initial")):

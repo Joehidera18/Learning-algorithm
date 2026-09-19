@@ -12,8 +12,8 @@ from .paper_store import load_state
 
 def market_bundle(learner, symbol, interval):
     if (not isinstance(symbol,str) or not re.fullmatch(r"[A-Z0-9]{2,16}-USD",symbol)
-            or interval not in ("5m","15m","1h")):
-        raise ValueError("Choose a Coinbase USD market and a 5m, 15m or 1h interval")
+            or interval not in ("5m","15m","1h","6h")):
+        raise ValueError("Choose a Coinbase USD market and a 5m, 15m, 1h or 6h interval")
     with learner.lock:
         report = next((dict(r) for r in learner.state.get("results", [])
                        if r.get("symbol")==symbol and r.get("interval")==interval), None)
@@ -51,6 +51,7 @@ def market_bundle(learner, symbol, interval):
         "start_ts":quality["start_ts"],"end_ts":quality["end_ts"],"data_sha256":digest,
         "matches_report_data_sha256":True if report.get("data_sha256") else None,
         "market_data":report.get("market_data"),
+        "history_request":report.get("history_request"),
         "daily_data":daily,
         "scope":"Recorded candle data and one historical report. Old reports without a data hash can verify dates and count only. No API keys, account database or exchange journal is included."}
     output = io.BytesIO()

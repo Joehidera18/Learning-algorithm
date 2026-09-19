@@ -93,7 +93,10 @@ class Service:
                     settings = self.agent.configure({"fee_rate":float(snapshot["taker_fee_rate"])})
                     return 200,{"ok":True,"settings":settings},{}
             if path == "/api/learning/status" and method == "GET":
-                return 200, self.autolearn.status(), {}
+                return 200, self.autolearn.status(compact=True), {}
+            if path == "/api/learning/report" and method == "GET":
+                return 200, self.autolearn.report_details(query.get("symbol"),
+                    query.get("interval"), query.get("fingerprint")), {}
             if path == "/api/learning/start" and method == "POST":
                 if set(body)-{"fee_rate"}:
                     raise ValueError("Automatic start accepts only the fee_rate setting")
@@ -101,10 +104,12 @@ class Service:
                 self.autolearn.start(fees)
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/practice" and method == "POST":
-                if set(body)-{"fee_rate", "symbols"}:
-                    raise ValueError("Historical practice accepts only fee_rate and symbols")
+                if set(body)-{"fee_rate", "symbols", "intervals", "history_days"}:
+                    raise ValueError("Historical practice accepts only fee_rate, symbols, intervals and history_days")
                 fees = {"fee_rate":body["fee_rate"]} if "fee_rate" in body else None
-                self.autolearn.start_history(body.get("symbols"), fees)
+                from .study_plan import HISTORY_DAYS
+                self.autolearn.start_history(body.get("symbols"), fees, body.get("intervals"),
+                    body.get("history_days", HISTORY_DAYS))
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/stop" and method == "POST":
                 self.autolearn.stop()

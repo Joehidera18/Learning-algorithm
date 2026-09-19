@@ -22,7 +22,7 @@ from .chronological_learning import ChronologicalTrainer
 from .forecast_calibration import summarize as summarize_calibration
 from .practice import PRACTICE_LANES, merge_counts, outcome_totals
 
-LEARNING_REPORT_VERSION = 14
+LEARNING_REPORT_VERSION = 16
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -154,15 +154,23 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         return trainer.advance(cut_ts)
 
     def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True,
-             failure_adaptation=True):
+             failure_adaptation=True, practice_start=None):
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
             legacy_candidates_only=legacy, failure_adaptation=failure_adaptation and not baseline,
             exit_policy=exit_policy, recent_return_veto=recent_return_veto,
             forecast_correction=forecast_correction)
-        feedback = (HistoricalFeedback(rows, features, start, end, settings, policy, step, cancelled)
+        feedback = (HistoricalFeedback(rows, features,
+                    start if practice_start is None else practice_start, end, settings, policy, step, cancelled)
                     if learn and shadow else None)
+        if practice_start is not None:
+            if feedback is None or not 240 <= practice_start <= start:
+                raise ValueError("Confirmation requires an earlier continuous practice stream")
+            # Warm up the SAME stream that will continue after the boundary.
+            # Truncating a prefix would END-mark and discard pending outcomes.
+            feedback.begin_reporting(rows[start]["ts"])
+        starting_state = policy.export()
         metrics, trades = simulate(rows, features, start, end, 500,
             settings["risk_per_trade"], fee*stress, slip*stress,
             {"family":"adaptive_policy", "direction":"LONG"},
@@ -170,9 +178,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             bar_interval_ms=step, feedback=feedback)
         metrics["feedback"] = feedback.summary() if feedback else {
             "mode":"selected_account_trades" if learn else "frozen",
-            "resolved_examples":policy.state["observations"]-initial["observations"]}
+            "resolved_examples":policy.state["observations"]-starting_state["observations"]}
         metrics["prediction_audit"] = summarize_predictions(trades)
-        return metrics, trades, policy.export()
+        return metrics, trades, policy.export(), starting_state
 
     starts = [int(development*f) for f in (.45,.63,.81)]
     ends = starts[1:]+[development]
@@ -180,7 +188,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     for index,(start,end) in enumerate(zip(starts,ends),1):
         initial = train_until(rows[start-purge]["ts"])
         progress(phase="testing", message=f"{symbol}: checking later period {index}/3")
-        metrics, _, _ = test(initial,start,end)
+        metrics, _, _, _ = test(initial,start,end)
         folds.append({"fold":index, "training_labels":initial["observations"],
             "training_label_end_ts":initial["last_label_ts"], "test_start_ts":rows[start]["ts"],
             "test_end_ts":rows[end-1]["ts"]+step,
@@ -188,20 +196,20 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
 
     initial = train_until(rows[development]["ts"])
     progress(phase="testing", message=f"{symbol}: checking the later period and higher costs")
-    holdout, trades, trained = test(initial,holdout_start,len(rows))
-    stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5)
-    frozen, _, _ = test(initial,holdout_start,len(rows),learn=False)
-    baseline, _, _ = test(initial,holdout_start,len(rows),baseline=True)
-    baseline_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,baseline=True)
+    holdout, trades, trained, _ = test(initial,holdout_start,len(rows))
+    stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5)
+    frozen, _, _, _ = test(initial,holdout_start,len(rows),learn=False)
+    baseline, _, _, _ = test(initial,holdout_start,len(rows),baseline=True)
+    baseline_stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5,baseline=True)
     # A diagnostic, never a second chance to choose a winning holdout policy.
-    legacy, _, _ = test(initial,holdout_start,len(rows),legacy=True)
-    legacy_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,legacy=True)
-    account_only, _, _ = test(initial,holdout_start,len(rows),shadow=False)
-    account_only_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,shadow=False)
+    legacy, _, _, _ = test(initial,holdout_start,len(rows),legacy=True)
+    legacy_stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5,legacy=True)
+    account_only, _, _, _ = test(initial,holdout_start,len(rows),shadow=False)
+    account_only_stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5,shadow=False)
     # Declared ablation: same observations and candidates, memory adjustment off.
     # Its performance is reported; it cannot select or qualify another policy.
-    no_memory, _, _ = test(initial,holdout_start,len(rows),failure_adaptation=False)
-    no_memory_stressed, _, _ = test(initial,holdout_start,len(rows),stress=1.5,failure_adaptation=False)
+    no_memory, _, _, _ = test(initial,holdout_start,len(rows),failure_adaptation=False)
+    no_memory_stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5,failure_adaptation=False)
     # This release was designed after the supplied report was reviewed. Reusing
     # its test window is useful research, but cannot provide fresh qualification.
     boundary = reviewed_boundary(symbol, reviewed_through_ts)
@@ -209,22 +217,23 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     reused = rows[holdout_start]["ts"] < boundary
     confirmation = None
     if reused and fresh_start < len(rows)-1:
-        confirmation_seed = AdaptivePolicy(initial, settings["max_notional_fraction"],
-            fee_rate=fee, slippage_rate=slip, exit_policy=exit_policy, recent_return_veto=recent_return_veto,
-            forecast_correction=forecast_correction)
-        prefix = HistoricalFeedback(rows, features, holdout_start, fresh_start,
-            settings, confirmation_seed, step, cancelled)
-        prefix.advance(rows[fresh_start]["ts"])
-        confirmation_initial = confirmation_seed.export()
         progress(phase="testing", message=f"{symbol}: checking prices after the reviewed report")
-        fresh, fresh_trades, trained = test(confirmation_initial,fresh_start,len(rows))
-        fresh_stress, _, _ = test(confirmation_initial,fresh_start,len(rows),stress=1.5)
-        fresh_account, _, _ = test(confirmation_initial,fresh_start,len(rows),shadow=False)
-        fresh_account_stress, _, _ = test(confirmation_initial,fresh_start,len(rows),stress=1.5,shadow=False)
+        fresh, fresh_trades, _, confirmation_initial = test(initial,fresh_start,len(rows),
+            practice_start=holdout_start)
+        fresh_stress, _, _, stressed_initial = test(initial,fresh_start,len(rows),stress=1.5,
+            practice_start=holdout_start)
+        fresh_account, _, _, _ = test(confirmation_initial,fresh_start,len(rows),shadow=False)
+        fresh_account_stress, _, _, _ = test(stressed_initial,fresh_start,len(rows),stress=1.5,shadow=False)
         confirmation = {"start_ts":rows[fresh_start]["ts"], "end_ts":rows[-1]["ts"]+step,
             "metrics":fresh, "stressed":fresh_stress,
             "account_feedback_control":{"metrics":fresh_account, "stressed":fresh_account_stress},
             "training_label_end_ts":confirmation_initial["last_label_ts"],
+            "stressed_training_label_end_ts":stressed_initial["last_label_ts"],
+            "practice_continuity":{"start_ts":rows[holdout_start]["ts"],
+                "rule":"Continue open practice positions, cooldowns and saved entry forecasts across the review boundary. "
+                    "Only outcomes available after the boundary appear in confirmation feedback. "
+                    "Ordinary and stressed tests each preserve their own costed practice history. "
+                    "Account tests start with a separate $500 balance at the confirmation boundary."},
             "expectancy_interval":bootstrap_interval([t["r_multiple"] for t in fresh_trades])}
     first, last = rows[holdout_start+1]["open"], rows[-1]["close"]
     buy_hold = 500/(first*(1+slip)*(1+fee))*last*(1-slip)*(1-fee)-500
@@ -298,11 +307,17 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "test_start_ts":rows[holdout_start]["ts"], "test_end_ts":rows[-1]["ts"]+step,
             "daily_context_rule":"Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
             "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
+            "time_exit_rule":"Evaluate time limits at the execution candle close. Fixed learning deadlines align with supported intervals; other deadlines use the first available close at or after the limit. Intrabar stop/target ordering remains stop-first.",
             "feedback_rule":"Learn a trade result only after its exit candle closes."},
         "evaluation":{"reviewed_through_ts":boundary, "reuses_reviewed_history":reused,
             "basis":"reused_research" if reused else "chronological_test",
             "confirmation":confirmation,
             "note":"Decision-time causality does not erase research reuse. Known reviewed history cannot independently qualify a revised learner."},
+        "model_provenance":{"source":"primary_continuous_practice_replay",
+            "last_label_ts":trained["last_label_ts"],
+            "rule":"The saved model comes from the primary chronological replay. "
+                "Changing a report review boundary cannot replace it with a restarted confirmation model. "
+                "Confirmation and higher-cost simulations remain separate evaluation accounts."},
         "data_quality":quality, "data_sha256":dataset_digest(rows), "data_hours":len(rows)*step/3600000,
         "daily_data":{"source":"independent_daily_candles" if daily_rows is not None else "complete_intraday_aggregation",
             "rows":len(daily_rows) if daily_rows is not None else None,

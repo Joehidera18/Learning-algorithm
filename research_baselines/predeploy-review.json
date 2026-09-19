@@ -1,0 +1,478 @@
+{
+  "date_utc": "2026-09-19",
+  "final_source_code_sha256": "2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676",
+  "scope": "Predeployment engineering review. Supplied prices remain reviewed; no independent confirmation, new candle download, parameter search, deployment or orders. Outcome counts overlap across candidates and timeframes.",
+  "replay_final_source_difference": [
+    "lab/autolearn.py: compact status and per-study detail retrieval",
+    "lab/service.py: compact status/detail routes",
+    "lab/study_reports.py: new summary formatter"
+  ],
+  "replay_final_source_note": "Replay source is pinned separately. Subsequent changes only affect status/report delivery; execution, features, learning, costs and aggregation files are unchanged.",
+  "replays": [
+    {
+      "symbol": "LTC-USD",
+      "interval": "15m",
+      "before": {
+        "source_code_sha256": "3670f2704c3efcef824dbca17e77d6e3a85fe54bcc88a162e3cae20cdd775bc7",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "source_end_ts": 1789774200000,
+        "candles": 105063,
+        "runtime_seconds": 425.0295270349998,
+        "peak_rss_mib": 276.3515625,
+        "engine_version": "market-structure-v11.10-continuous-confirmation",
+        "policy_version": "online-net-r-v13-continuous-confirmation",
+        "learning_report_version": 15,
+        "historical_examples": 12282,
+        "holdout_learning_updates": 2836,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695382200000,
+          "training_end_ts": 1770753600000,
+          "test_start_ts": 1770840000000,
+          "test_end_ts": 1789774200000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 15118,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 2836,
+          "rmse_r": 0.5832173464334408,
+          "zero_forecast_rmse_r": 0.8909389487692266
+        }
+      },
+      "after": {
+        "source_code_sha256": "c322b6b433682559c0ea304238acfc02dd758788a6e32cc20f61b7c1cf01fe82",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "source_end_ts": 1789774200000,
+        "candles": 105063,
+        "runtime_seconds": 400.37934476100054,
+        "peak_rss_mib": 253.06640625,
+        "engine_version": "market-structure-v11.10-corrected-deadlines",
+        "policy_version": "online-net-r-v14-corrected-deadlines",
+        "learning_report_version": 16,
+        "historical_examples": 12317,
+        "holdout_learning_updates": 2848,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "15m",
+          "training_start_ts": 1695382200000,
+          "training_end_ts": 1770753600000,
+          "test_start_ts": 1770840000000,
+          "test_end_ts": 1789774200000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "time_exit_rule": "Evaluate time limits at the execution candle close. Fixed learning deadlines align with supported intervals; other deadlines use the first available close at or after the limit. Intrabar stop/target ordering remains stop-first.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 15165,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 2848,
+          "rmse_r": 0.5845288294702511,
+          "zero_forecast_rmse_r": 0.8897483881690592
+        }
+      }
+    },
+    {
+      "symbol": "LTC-USD",
+      "interval": "1h",
+      "before": {
+        "source_code_sha256": "3670f2704c3efcef824dbca17e77d6e3a85fe54bcc88a162e3cae20cdd775bc7",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "5c482a99227a6712c8e45c924c5679e67f908d6d16c05b4ab0505a239dbc9460",
+        "source_end_ts": 1789774200000,
+        "candles": 26261,
+        "runtime_seconds": 110.07963119400301,
+        "peak_rss_mib": 111.125,
+        "engine_version": "market-structure-v11.10-continuous-confirmation",
+        "policy_version": "online-net-r-v13-continuous-confirmation",
+        "learning_report_version": 15,
+        "historical_examples": 3623,
+        "holdout_learning_updates": 819,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "1h",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "1h",
+          "training_start_ts": 1696032000000,
+          "training_end_ts": 1770750000000,
+          "test_start_ts": 1770836400000,
+          "test_end_ts": 1789772400000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 4442,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 800,
+          "rmse_r": 0.6676415418329871,
+          "zero_forecast_rmse_r": 0.8174503723734168
+        }
+      },
+      "after": {
+        "source_code_sha256": "c322b6b433682559c0ea304238acfc02dd758788a6e32cc20f61b7c1cf01fe82",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "5c482a99227a6712c8e45c924c5679e67f908d6d16c05b4ab0505a239dbc9460",
+        "source_end_ts": 1789774200000,
+        "candles": 26261,
+        "runtime_seconds": 105.1963325129982,
+        "peak_rss_mib": 111.12109375,
+        "engine_version": "market-structure-v11.10-corrected-deadlines",
+        "policy_version": "online-net-r-v14-corrected-deadlines",
+        "learning_report_version": 16,
+        "historical_examples": 3657,
+        "holdout_learning_updates": 833,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "1h",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "1h",
+          "training_start_ts": 1696032000000,
+          "training_end_ts": 1770750000000,
+          "test_start_ts": 1770836400000,
+          "test_end_ts": 1789772400000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "time_exit_rule": "Evaluate time limits at the execution candle close. Fixed learning deadlines align with supported intervals; other deadlines use the first available close at or after the limit. Intrabar stop/target ordering remains stop-first.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 4490,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 814,
+          "rmse_r": 0.6488481332475253,
+          "zero_forecast_rmse_r": 0.8049411014797505
+        }
+      }
+    },
+    {
+      "symbol": "LTC-USD",
+      "interval": "6h",
+      "before": {
+        "source_code_sha256": "3670f2704c3efcef824dbca17e77d6e3a85fe54bcc88a162e3cae20cdd775bc7",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "88f284d6a756688ed4135d0f9e33aa167b659b61b0db20f654b1613f6a591a51",
+        "source_end_ts": 1789774200000,
+        "candles": 4372,
+        "runtime_seconds": 20.56109029900108,
+        "peak_rss_mib": 111.00390625,
+        "engine_version": "market-structure-v11.10-continuous-confirmation",
+        "policy_version": "online-net-r-v13-continuous-confirmation",
+        "learning_report_version": 15,
+        "historical_examples": 463,
+        "holdout_learning_updates": 117,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "6h",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "6h",
+          "training_start_ts": 1700352000000,
+          "training_end_ts": 1770724800000,
+          "test_start_ts": 1770811200000,
+          "test_end_ts": 1789754400000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 580,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 53,
+          "rmse_r": 0.6217565626449715,
+          "zero_forecast_rmse_r": 0.6171308352960909
+        }
+      },
+      "after": {
+        "source_code_sha256": "c322b6b433682559c0ea304238acfc02dd758788a6e32cc20f61b7c1cf01fe82",
+        "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+        "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+        "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+        "data_sha256": "88f284d6a756688ed4135d0f9e33aa167b659b61b0db20f654b1613f6a591a51",
+        "source_end_ts": 1789774200000,
+        "candles": 4372,
+        "runtime_seconds": 19.539423709000403,
+        "peak_rss_mib": 111.1328125,
+        "engine_version": "market-structure-v11.10-corrected-deadlines",
+        "policy_version": "online-net-r-v14-corrected-deadlines",
+        "learning_report_version": 16,
+        "historical_examples": 491,
+        "holdout_learning_updates": 127,
+        "validated": false,
+        "rejection_reasons": [
+          "Fewer than two later test periods made money after costs.",
+          "Fewer than 30 trades in the final test period.",
+          "The final test did not stay profitable at both ordinary and higher costs.",
+          "The uncertainty in final trade results is too large to qualify.",
+          "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+          "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+        ],
+        "cost_signature": {
+          "decision_interval": "6h",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "replay": {
+          "clock": "Historical candles processed without wall-clock waits",
+          "decision_interval": "6h",
+          "training_start_ts": 1700352000000,
+          "training_end_ts": 1770724800000,
+          "test_start_ts": 1770811200000,
+          "test_end_ts": 1789754400000,
+          "daily_context_rule": "Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
+          "decision_rule": "Use only information available at the signal close; enter no earlier than the next candle.",
+          "time_exit_rule": "Evaluate time limits at the execution candle close. Fixed learning deadlines align with supported intervals; other deadlines use the first available close at or after the limit. Intrabar stop/target ordering remains stop-first.",
+          "feedback_rule": "Learn a trade result only after its exit candle closes."
+        },
+        "model_observations": 618,
+        "holdout": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "holdout_stressed": {
+          "complete": true,
+          "trades": 0,
+          "net_pnl": 0.0,
+          "fees_paid": 0,
+          "max_drawdown_pct": 0
+        },
+        "ordinary_practice_forecasts": {
+          "samples": 63,
+          "rmse_r": 0.5116294857162101,
+          "zero_forecast_rmse_r": 0.5214989950238154
+        }
+      }
+    }
+  ],
+  "feature_capacity": {
+    "before": {
+      "source_code_sha256": "3670f2704c3efcef824dbca17e77d6e3a85fe54bcc88a162e3cae20cdd775bc7",
+      "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+      "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+      "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+      "source_end_ts": 1789774200000,
+      "selection_uses_results": false,
+      "qualification_uses_results": false,
+      "mode": "artificial_capacity_fixture_only",
+      "candles": 175200,
+      "feature_sha256": "f828b5eeabe69e81634c4519bc4e552bdb209f80bbd961325c6732bdbbc86f51",
+      "feature_rows": 174960,
+      "scope": "Repeated supplied OHLC shapes at artificial timestamps. Feature-build capacity only; excludes learner, web workers and saved reports. No market-performance result.",
+      "runtime_seconds": 30.469361633000517,
+      "peak_rss_mib": 454.00390625
+    },
+    "after": {
+      "source_code_sha256": "c322b6b433682559c0ea304238acfc02dd758788a6e32cc20f61b7c1cf01fe82",
+      "bundle_sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+      "source_data_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+      "daily_data_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+      "source_end_ts": 1789774200000,
+      "selection_uses_results": false,
+      "qualification_uses_results": false,
+      "mode": "artificial_capacity_fixture_only",
+      "candles": 175200,
+      "feature_sha256": "f828b5eeabe69e81634c4519bc4e552bdb209f80bbd961325c6732bdbbc86f51",
+      "feature_rows": 174960,
+      "scope": "Repeated supplied OHLC shapes at artificial timestamps. Feature-build capacity only; excludes learner, web workers and saved reports. No market-performance result.",
+      "runtime_seconds": 29.780643148998934,
+      "peak_rss_mib": 412.3984375
+    }
+  },
+  "dashboard_payload": {
+    "basis": "Arithmetic projection from one supplied LTC report; not a hosted load test.",
+    "original_one_report_bytes": 876900,
+    "compact_one_report_bytes": 3420,
+    "90_original_mib": 75.26493072509766,
+    "90_compact_mib": 0.29354095458984375
+  },
+  "web_startup": {
+    "passed": [
+      "dashboard, assets and public health served by real Gunicorn",
+      "private API requires access token",
+      "invalid study plans and 6h trading interval rejected",
+      "settings survive restart; runners remain stopped"
+    ],
+    "scope": "Fresh temporary database; local HTTP and Gunicorn only. No runners, external market calls, deployment or orders."
+  },
+  "hosting_limit": "The 512 MB plan is not established as sufficient for the full multi-year plan. The 175200-row feature fixture alone used about 412 MiB; stored reports, learning and web request overhead are additional.",
+  "validation": {
+    "python_tests": 295,
+    "python_seconds": 296.228,
+    "python_result": "passed",
+    "javascript_checks": [
+      "check_learning_ui.js",
+      "check_finances_ui.js"
+    ],
+    "python_compilation": "passed",
+    "javascript_syntax": "passed",
+    "diff_whitespace": "passed",
+    "gunicorn_smoke": "passed",
+    "hosted_deployment": false,
+    "native_runtime_note": "An additional repeating-faulthandler diagnostic run crashed during a background-thread stack dump. Cause unestablished; excluded from pass counts. Normal final full discovery and Gunicorn smoke passed."
+  }
+}

@@ -1,3 +1,27 @@
+# Predeployment corrections to V11.10 — 19 September 2026 UTC
+
+- Close time-limited historical positions at the intended candle close, including when that close ends the test window. Preserve the exit-bar identifier and record the known close time for accurate holding-duration reviews. Advance the policy to v14 and report to 16 so prior labels/models are not reused.
+- Require a current review of each monitored coin/timeframe, including its lookback, deadline and qualifying profile. A secondary-only study cannot defer the primary review.
+- Release unused feature arrays and stream background practice outcomes without retaining unused candidate ledgers/equity curves. Full-cost labels, cooldowns, forecasts and account ledgers remain intact.
+- Send compact dashboard summaries and fetch one detailed learning review on request. Authenticate the report route, match coin/timeframe/fingerprint, reject stale responses, and retain complete exports and reconciled finances.
+- Add pinned same-input LTC replays, memory measurements and an isolated real-Gunicorn startup/restart check. See PREDEPLOY_REVIEW.md for results and the 512 MB hosting limitation. No deployment or orders.
+
+# Broader market studies and continuous confirmation — 19 September 2026 UTC
+
+- Add 30 suggested markets, up to 60 custom tickers, separate 5m/15m/1h/6h studies and longer history controls. Default dashboard plan: 15m/1h/6h with five years requested. Explicit interval caps: one/five/eight/eight years.
+- Show actual dates/candle coverage, distinguish coins from studies, and union market hours across overlapping timeframes. Keep each model/account separate; only the configured decision interval may install a forward profile.
+- Isolate timeframe jobs and checkpoints, include lookback in reuse identity, preserve other saved studies, retain older cached candles on shorter downloads, and keep reviewed-price boundaries across timeframe changes.
+- Check current product availability, continue after unavailable studies, add native 6-hour download/research/export support (research only), and expand automatic reviews from five to ten markets.
+- Replay complete observed hourly/6-hour buckets from all four distinct supplied coin datasets as reused-history research; no new independent observations or future profitability are claimed.
+
+- Preserve open practice positions, cooldowns and original entry forecasts when measuring results after a review date. Learn each carried-in outcome only when its exit candle closes; report it separately from examples entered in the new window.
+- Keep the saved model from the primary continuous replay. A changed review boundary must not change the saved learner on identical inputs.
+- Give ordinary and higher-cost confirmation their corresponding costed practice histories and matched selected-account feedback controls.
+- Count gap-censored examples and practice loss-pause overrides at the event clock so window summaries do not recount earlier events.
+- Explain carried-in learning in the dashboard and correct the stale visible version label. Record the 11-market partial V11.9 export as reviewed history; retain prior BCH/DOT boundaries.
+- Add deterministic chronology, cooldown, reporting, model-invariance and cost-control regressions, plus a fixed LTC reproduction against V11.9. No strategy or trading threshold is tuned from the comparison.
+- Versions: engine `market-structure-v11.10-continuous-confirmation`, policy `online-net-r-v13-continuous-confirmation`, report 15. Fresh practice is required after deployment.
+
 # Eligible practice coverage — 18 September 2026 UTC
 
 - Give every candidate separate cost-eligible and cost-blocked historical practice tracks. An open rejected-cost position can no longer occupy later eligible practice. Both tracks charge full costs and learn losses or break-even outcomes once, after closure.

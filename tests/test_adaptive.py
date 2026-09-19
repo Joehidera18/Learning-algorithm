@@ -361,6 +361,12 @@ class AutomaticWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
         self.service=Service(BASE,Path(self.tmp.name)/"api.sqlite3",Path(self.tmp.name)/"data")
+        from lab.study_plan import DEFAULT_PRACTICE_SYMBOLS
+        products = patch.object(self.service.agent.client, "products", return_value=[{
+            "id":s, "base_currency":s[:-4], "quote_currency":"USD", "status":"online"}
+            for s in DEFAULT_PRACTICE_SYMBOLS])
+        products.start()
+        self.addCleanup(products.stop)
 
     def tearDown(self):
         self.service.autolearn.stop(); self.service.agent.stop(); self.tmp.cleanup()
@@ -389,7 +395,7 @@ class AutomaticWorkflowTests(unittest.TestCase):
         self.assertFalse(restarted.status()["enabled"])
         self.assertIsNone(restarted.worker)
 
-    def test_study_requests_three_years_and_caches_identical_data(self):
+    def test_study_requests_five_years_and_caches_identical_data(self):
         a=self.service.autolearn; rows=candles(3000)
         result={"symbol":"BTC-USD","validated":False,"data_hours":750,"historical_examples":0,
             "cost_signature":cost_signature(self.service.agent.settings),"rejection_reasons":["fixture"]}
@@ -428,7 +434,10 @@ class AutomaticWorkflowTests(unittest.TestCase):
         a=self.service.autolearn; settings=self.service.agent.settings
         a.state.update(tested_costs=cost_signature(settings),tested_engine=ENGINE_VERSION,
             tested_policy=POLICY_VERSION,tested_report_version=LEARNING_REPORT_VERSION,
-            tested_symbols=["BTC-USD","ETH-USD"],next_review_at=time.time()+86400)
+            tested_symbols=["BTC-USD","ETH-USD"],next_review_at=time.time()+86400,
+            results=[{"symbol":s,"interval":settings["decision_interval"],"validated":False,
+                "review_scope":a._scope(settings),"next_review_at":time.time()+86400}
+                for s in ("BTC-USD","ETH-USD")])
         self.assertFalse(a._needs_review(["ETH-USD","BTC-USD"],settings))
         self.assertTrue(a._needs_review(["BTC-USD","ETH-USD"],dict(settings,fee_rate=.002)))
         for key,value in (("tested_engine","old"),("tested_policy","old"),

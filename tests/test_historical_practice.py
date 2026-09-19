@@ -23,6 +23,12 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.service = Service(BASE, self.root/"test.sqlite3", self.root/"data")
+        from lab.study_plan import DEFAULT_PRACTICE_SYMBOLS
+        products = patch.object(self.service.agent.client, "products", return_value=[{
+            "id":s, "base_currency":s[:-4], "quote_currency":"USD", "status":"online"}
+            for s in DEFAULT_PRACTICE_SYMBOLS])
+        products.start()
+        self.addCleanup(products.stop)
 
     def tearDown(self):
         self.service.autolearn.stop()
@@ -45,8 +51,8 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertFalse(s.autolearn.worker.is_alive())
         self.assertEqual(s.agent.settings, before)
         self.assertFalse(s.agent.runtime["running"])
-        self.assertEqual(history.call_args_list[0].args, ("BTC-USD", "15m", 1095))
-        self.assertEqual(history.call_args_list[1].args, ("BTC-USD", "1d", 1125))
+        self.assertEqual(history.call_args_list[0].args, ("BTC-USD", "15m", 1825))
+        self.assertEqual(history.call_args_list[1].args, ("BTC-USD", "1d", 1855))
         status = s.autolearn.status()
         self.assertEqual(status["phase"], "completed")
         self.assertFalse(status["enabled"])
@@ -111,7 +117,7 @@ class HistoricalPracticeTests(unittest.TestCase):
     def test_invalid_or_overlapping_request_does_not_change_fee_settings(self):
         s = self.service
         before = dict(s.agent.settings)
-        for symbols in ([], ["../../other-USD"], [None], ["BTC-USD"]*21, ["BTC-USDT"], [""]):
+        for symbols in ([], ["../../other-USD"], [None], ["BTC-USD"]*61, ["BTC-USDT"], [""]):
             with self.subTest(symbols=symbols):
                 code, _, _ = s.handle("POST", "/api/learning/practice",
                     body={"symbols":symbols,"fee_rate":.001}, headers={"Content-Type":"application/json"})
@@ -171,8 +177,9 @@ class HistoricalPracticeTests(unittest.TestCase):
             s.autolearn.start_history()
             s.autolearn.worker.join(timeout=5)
         self.assertEqual(run.call_args.args[0], list(DEFAULT_PRACTICE_SYMBOLS))
-        self.assertEqual(run.call_args.args[0], ["BTC-USD", "ETH-USD", "SOL-USD", "HBAR-USD", "XRP-USD", "XLM-USD",
+        self.assertEqual(run.call_args.args[0][:13], ["BTC-USD", "ETH-USD", "SOL-USD", "HBAR-USD", "XRP-USD", "XLM-USD",
             "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "BCH-USD", "DOT-USD"])
+        self.assertEqual(len(run.call_args.args[0]), 30)
         self.assertFalse(s.agent.runtime["running"])
 
     def test_custom_practice_normalizes_deduplicates_and_saves_selection(self):
@@ -187,7 +194,7 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertEqual(run.call_args.args[0], expected)
         restarted = Service(BASE, s.db_path, self.root/"data")
         self.assertEqual(restarted.autolearn.status()["practice_symbols"], expected)
-        self.assertEqual(restarted.autolearn.status()["max_practice_markets"], 20)
+        self.assertEqual(restarted.autolearn.status()["max_practice_markets"], 60)
         self.assertFalse(restarted.agent.runtime["running"])
 
     def test_unavailable_coin_does_not_prevent_later_coin_practice(self):

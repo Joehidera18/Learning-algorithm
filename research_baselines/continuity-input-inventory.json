@@ -1,0 +1,629 @@
+{
+  "reports": [
+    {
+      "file": "learning-results 16.json",
+      "sha256": "3e0925d46867029615eb3d873336fa99ea4acc352685bec3a3136b0f315b2e8b",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.2-cost-learning"
+      ],
+      "selected_trades": 14,
+      "sum_of_available_separate_account_net_pnl": -15.084047068475229,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789453800000,
+        "ETH-USD": 1789453800000,
+        "SOL-USD": 1789453800000,
+        "HBAR-USD": 1789453800000,
+        "XRP-USD": 1789454700000,
+        "XLM-USD": 1789454700000,
+        "ADA-USD": 1789454700000,
+        "DOGE-USD": 1789454700000,
+        "AVAX-USD": 1789454700000,
+        "LINK-USD": 1789454700000,
+        "LTC-USD": 1789455600000,
+        "BCH-USD": 1789455600000,
+        "DOT-USD": 1789455600000
+      }
+    },
+    {
+      "file": "learning-results 17.json",
+      "sha256": "8256ee19af5b43a5e92a5cfda68fe6d43cb5c72e5282a7fd071f8c0fa3ba0baf",
+      "duplicate_of": null,
+      "markets_present": 9,
+      "engine_versions": [
+        "market-structure-v11.3-outcome-memory"
+      ],
+      "selected_trades": 20,
+      "sum_of_available_separate_account_net_pnl": -15.26042830230449,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789460100000,
+        "ETH-USD": 1789460100000,
+        "SOL-USD": 1789461000000,
+        "HBAR-USD": 1789461000000,
+        "XRP-USD": 1789461000000,
+        "XLM-USD": 1789461000000,
+        "ADA-USD": 1789461000000,
+        "DOGE-USD": 1789461000000,
+        "AVAX-USD": 1789461900000
+      }
+    },
+    {
+      "file": "learning-results 19.json",
+      "sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.4-trade-review"
+      ],
+      "selected_trades": 22,
+      "sum_of_available_separate_account_net_pnl": -22.726661907542564,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789506900000,
+        "ETH-USD": 1789506900000,
+        "SOL-USD": 1789507800000,
+        "HBAR-USD": 1789507800000,
+        "XRP-USD": 1789507800000,
+        "XLM-USD": 1789507800000,
+        "ADA-USD": 1789507800000,
+        "DOGE-USD": 1789508700000,
+        "AVAX-USD": 1789508700000,
+        "LINK-USD": 1789508700000,
+        "LTC-USD": 1789508700000,
+        "BCH-USD": 1789508700000,
+        "DOT-USD": 1789509600000
+      }
+    },
+    {
+      "file": "learning-results 2.json",
+      "sha256": "f6a3a8594a3673a2a0a60978951e5040396ca5db001d12b11276d38b6b1c4524",
+      "duplicate_of": null,
+      "markets_present": 5,
+      "engine_versions": [
+        "market-structure-v11.6-candle-context"
+      ],
+      "selected_trades": 9,
+      "sum_of_available_separate_account_net_pnl": -19.260447481275207,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789533900000,
+        "ETH-USD": 1789534800000,
+        "SOL-USD": 1789534800000,
+        "HBAR-USD": 1789534800000,
+        "XRP-USD": 1789534800000
+      }
+    },
+    {
+      "file": "learning-results 3(1).json",
+      "sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.6-candle-context"
+      ],
+      "selected_trades": 21,
+      "sum_of_available_separate_account_net_pnl": -26.093853179910866,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789533900000,
+        "ETH-USD": 1789534800000,
+        "SOL-USD": 1789534800000,
+        "HBAR-USD": 1789534800000,
+        "XRP-USD": 1789534800000,
+        "XLM-USD": 1789535700000,
+        "ADA-USD": 1789535700000,
+        "DOGE-USD": 1789535700000,
+        "AVAX-USD": 1789535700000,
+        "LINK-USD": 1789536600000,
+        "LTC-USD": 1789536600000,
+        "BCH-USD": 1789536600000,
+        "DOT-USD": 1789536600000
+      }
+    },
+    {
+      "file": "learning-results 3.json",
+      "sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392",
+      "duplicate_of": "learning-results 3(1).json",
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.6-candle-context"
+      ],
+      "selected_trades": 21,
+      "sum_of_available_separate_account_net_pnl": -26.093853179910866,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789533900000,
+        "ETH-USD": 1789534800000,
+        "SOL-USD": 1789534800000,
+        "HBAR-USD": 1789534800000,
+        "XRP-USD": 1789534800000,
+        "XLM-USD": 1789535700000,
+        "ADA-USD": 1789535700000,
+        "DOGE-USD": 1789535700000,
+        "AVAX-USD": 1789535700000,
+        "LINK-USD": 1789536600000,
+        "LTC-USD": 1789536600000,
+        "BCH-USD": 1789536600000,
+        "DOT-USD": 1789536600000
+      }
+    },
+    {
+      "file": "learning-results 4.json",
+      "sha256": "80f9ad9adea71d60761ba9ca278116b356614aeed438980ed406c4d4fcc8cbe9",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.7-entry-audit"
+      ],
+      "selected_trades": 21,
+      "sum_of_available_separate_account_net_pnl": -26.093853179910866,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789540200000,
+        "ETH-USD": 1789541100000,
+        "SOL-USD": 1789541100000,
+        "HBAR-USD": 1789541100000,
+        "XRP-USD": 1789541100000,
+        "XLM-USD": 1789542000000,
+        "ADA-USD": 1789542000000,
+        "DOGE-USD": 1789542000000,
+        "AVAX-USD": 1789542900000,
+        "LINK-USD": 1789542900000,
+        "LTC-USD": 1789542900000,
+        "BCH-USD": 1789542900000,
+        "DOT-USD": 1789543800000
+      }
+    },
+    {
+      "file": "learning-results 5(1).json",
+      "sha256": "c0269111ae225d238824fa09834ae49dc64d51abe93be22ae12215a948f6014b",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.8-calibration"
+      ],
+      "selected_trades": 18,
+      "sum_of_available_separate_account_net_pnl": -19.273764672545383,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789581600000,
+        "ETH-USD": 1789581600000,
+        "SOL-USD": 1789581600000,
+        "HBAR-USD": 1789581600000,
+        "XRP-USD": 1789582500000,
+        "XLM-USD": 1789582500000,
+        "ADA-USD": 1789582500000,
+        "DOGE-USD": 1789583400000,
+        "AVAX-USD": 1789583400000,
+        "LINK-USD": 1789583400000,
+        "LTC-USD": 1789584300000,
+        "BCH-USD": 1789584300000,
+        "DOT-USD": 1789584300000
+      }
+    },
+    {
+      "file": "learning-results 6(1).json",
+      "sha256": "a4a3ef7886a41bd37197d7b9d42ebe7d2bc2e90df507a78551024299d59116f5",
+      "duplicate_of": null,
+      "markets_present": 13,
+      "engine_versions": [
+        "market-structure-v11.8-calibration"
+      ],
+      "selected_trades": 18,
+      "sum_of_available_separate_account_net_pnl": -19.273764672545383,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789723800000,
+        "ETH-USD": 1789723800000,
+        "SOL-USD": 1789723800000,
+        "HBAR-USD": 1789723800000,
+        "XRP-USD": 1789723800000,
+        "XLM-USD": 1789724700000,
+        "ADA-USD": 1789724700000,
+        "DOGE-USD": 1789724700000,
+        "AVAX-USD": 1789724700000,
+        "LINK-USD": 1789724700000,
+        "LTC-USD": 1789724700000,
+        "BCH-USD": 1789725600000,
+        "DOT-USD": 1789725600000
+      }
+    },
+    {
+      "file": "learning-results 7(1).json",
+      "sha256": "03acd98982a13eab74a5bf5abb54cfaa4b66c16f53c16467580d5be6658b55da",
+      "duplicate_of": null,
+      "markets_present": 11,
+      "engine_versions": [
+        "market-structure-v11.9-practice-tracks"
+      ],
+      "selected_trades": 19,
+      "sum_of_available_separate_account_net_pnl": -12.689220754020027,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789770600000,
+        "ETH-USD": 1789771500000,
+        "SOL-USD": 1789771500000,
+        "HBAR-USD": 1789771500000,
+        "XRP-USD": 1789772400000,
+        "XLM-USD": 1789772400000,
+        "ADA-USD": 1789772400000,
+        "DOGE-USD": 1789773300000,
+        "AVAX-USD": 1789773300000,
+        "LINK-USD": 1789773300000,
+        "LTC-USD": 1789774200000
+      }
+    },
+    {
+      "file": "learning-results.json",
+      "sha256": "6d562f80e88734befa7901dca8014cefbbbae3f51c6e52e140eccaa4d32483fe",
+      "duplicate_of": null,
+      "markets_present": 5,
+      "engine_versions": [
+        "market-structure-v11.6-candle-context"
+      ],
+      "selected_trades": 9,
+      "sum_of_available_separate_account_net_pnl": -19.260447481275207,
+      "incomplete_accounts": 0,
+      "reviewed_endpoints": {
+        "BTC-USD": 1789533900000,
+        "ETH-USD": 1789534800000,
+        "SOL-USD": 1789534800000,
+        "HBAR-USD": 1789534800000,
+        "XRP-USD": 1789534800000
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "file": "DOT-USD_15m_learning-data 3.zip",
+      "sha256": "588237aa8fd36f590d1811bd5864f3ed66017786dc2b3922e95961cf0c83a458",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "842fd0b348f1253eca2e9b2430a2377aefe7e666c1f580cede4a6291f15038dd",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694847600000,
+          "end_ts": 1789454700000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 105049,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "AVAX-USD_15m_learning-data.zip",
+      "sha256": "bec40e28c639e289ec99828ccc9c76a42661e05898a2ff154d22af7b0d53b629",
+      "symbol": "AVAX-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105043,
+          "canonical_sha256": "0f7bbd6ee5a14baac52875da672188f5ce18c8d3fceef41b2a809536c157e019",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694853900000,
+          "end_ts": 1789461000000,
+          "missing_intervals": 77,
+          "additional_unique_timestamps": 105043,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "b92b2bb638e9fbdf1adefd19259d1595d2d3dd5c79d871fcdac6546f88ababcb",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692230400000,
+          "end_ts": 1789344000000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 1125,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data 5.zip",
+      "sha256": "9b9c52813ea6c5e68fe83db973c1d593bc82dc560435fe0ec608adad0fd9ad82",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "90296a705d86bc4e568fa3e4554afa680b35ab26f3332054d482cc3860cb3e67",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694901600000,
+          "end_ts": 1789508700000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 60,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "6c231b0bae998879aa986865569603618325a7abda968002f00146e55871a65b",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692230400000,
+          "end_ts": 1789344000000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 1125,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "XRP-USD_15m_learning-data 2.zip",
+      "sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+      "symbol": "XRP-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105062,
+          "canonical_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694926800000,
+          "end_ts": 1789533900000,
+          "missing_intervals": 58,
+          "additional_unique_timestamps": 105062,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 1125,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "XRP-USD_15m_learning-data.zip",
+      "sha256": "911ac25afa1f4aa6a0d927bbb39820618eaf80b5ecdb6672eedb42eec9658327",
+      "symbol": "XRP-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105062,
+          "canonical_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+          "declared_hash_verified": true,
+          "same_prices_as": "XRP-USD_15m_learning-data 2.zip",
+          "start_ts": 1694926800000,
+          "end_ts": 1789533900000,
+          "missing_intervals": 58,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "41fd27dc98726a9ceaabd6b728c5370cbc5bdb25da0c8a1ef6d0ddd98fc9f8de",
+          "declared_hash_verified": true,
+          "same_prices_as": "XRP-USD_15m_learning-data 2.zip",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data(1).zip",
+      "sha256": "4dcafdfe1e710f922c3632c9e2cc359e03d66beceba1af6529ed445b9fc8b4f7",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "ed5499d4ea7a47e5b02183f0cfc20c3c93dc923ded9899a9fcd65c4d9b1199b6",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694928600000,
+          "end_ts": 1789535700000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 30,
+          "revised_overlapping_rows": 1
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 1,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data.zip",
+      "sha256": "4dcafdfe1e710f922c3632c9e2cc359e03d66beceba1af6529ed445b9fc8b4f7",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "ed5499d4ea7a47e5b02183f0cfc20c3c93dc923ded9899a9fcd65c4d9b1199b6",
+          "declared_hash_verified": true,
+          "same_prices_as": "DOT-USD_15m_learning-data(1).zip",
+          "start_ts": 1694928600000,
+          "end_ts": 1789535700000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "declared_hash_verified": true,
+          "same_prices_as": "DOT-USD_15m_learning-data(1).zip",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data 2.zip",
+      "sha256": "fc6ee5e7c4fd3423e94a04dd865274dfdc17d8d70af2284dbd440894ab1b96bc",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "1ee9023a0aa5cd0b5c2162de57d3d1046838ef6d9bddd9a7705369503cfc327e",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694935800000,
+          "end_ts": 1789542900000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 8,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "declared_hash_verified": true,
+          "same_prices_as": "DOT-USD_15m_learning-data(1).zip",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data 3(3).zip",
+      "sha256": "02903cec32c1ffc3b461cb1943fecb44ea7cef71311f481fe8eec55a4f6f2b8b",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "6fc32b0b142aad8ae0d22934a6349426e7e2018625389b47baddd699b91b6847",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1694976300000,
+          "end_ts": 1789583400000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 45,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "ec1b930f6f017d4318ab0ca874748e6fc9e580e9222a891150e8cc78ed521074",
+          "declared_hash_verified": true,
+          "same_prices_as": "DOT-USD_15m_learning-data(1).zip",
+          "start_ts": 1692316800000,
+          "end_ts": 1789430400000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 0,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "DOT-USD_15m_learning-data 4.zip",
+      "sha256": "34d0812c56f07a64447ba327583fa5f5fe4a6c0e47cfe4b107d8d24a1e33baa6",
+      "symbol": "DOT-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105049,
+          "canonical_sha256": "9bc18b653098ceed6aaf03aaa85f2991c5e6b9aa63bd54d4371c80d29200d14d",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1695117600000,
+          "end_ts": 1789724700000,
+          "missing_intervals": 71,
+          "additional_unique_timestamps": 157,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "64e42956dfa87de5c84440596d2ed09ba0a7639196c3b067e73bd1543a3dac00",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692489600000,
+          "end_ts": 1789603200000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 2,
+          "revised_overlapping_rows": 0
+        }
+      }
+    },
+    {
+      "file": "LTC-USD_15m_learning-data(1).zip",
+      "sha256": "24f69d716a4002190afe21240b17c59b8f7e838b103fd6886f8695be14a20ed2",
+      "symbol": "LTC-USD",
+      "candles": {
+        "candles.csv": {
+          "rows": 105063,
+          "canonical_sha256": "17e78272ae712c8bb7cf57a01888a4454439da5f2e1ed432e1c2def68d8c1c2f",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1695166200000,
+          "end_ts": 1789773300000,
+          "missing_intervals": 57,
+          "additional_unique_timestamps": 105063,
+          "revised_overlapping_rows": 0
+        },
+        "daily-candles.csv": {
+          "rows": 1125,
+          "canonical_sha256": "845a10885bebc33a482ad6ec8f95c017f83381351309c7b076d388781ab3812a",
+          "declared_hash_verified": true,
+          "same_prices_as": null,
+          "start_ts": 1692489600000,
+          "end_ts": 1789603200000,
+          "missing_intervals": 0,
+          "additional_unique_timestamps": 1125,
+          "revised_overlapping_rows": 0
+        }
+      }
+    }
+  ],
+  "overlap_revisions": [
+    {
+      "symbol": "DOT-USD",
+      "file": "candles.csv",
+      "ts": 1789508700000,
+      "earlier_snapshot": "DOT-USD_15m_learning-data 5.zip",
+      "later_snapshot": "DOT-USD_15m_learning-data(1).zip",
+      "earlier_row": {
+        "ts": 1789508700000,
+        "open": 0.9483,
+        "high": 0.9491,
+        "low": 0.941,
+        "close": 0.9424,
+        "volume": 23933.35011527,
+        "quote_volume": 22554.78914863045,
+        "trades": 0
+      },
+      "later_row": {
+        "ts": 1789508700000,
+        "open": 0.9483,
+        "high": 0.9491,
+        "low": 0.9405,
+        "close": 0.9405,
+        "volume": 24337.95643832,
+        "quote_volume": 22889.848030239962,
+        "trades": 0
+      }
+    }
+  ],
+  "unique_timestamps": {
+    "DOT-USD/candles.csv": 105349,
+    "AVAX-USD/candles.csv": 105043,
+    "AVAX-USD/daily-candles.csv": 1125,
+    "DOT-USD/daily-candles.csv": 1128,
+    "XRP-USD/candles.csv": 105062,
+    "XRP-USD/daily-candles.csv": 1125,
+    "LTC-USD/candles.csv": 105063,
+    "LTC-USD/daily-candles.csv": 1125
+  },
+  "scope": "Inventory only. Duplicate uploads and overlapping snapshots are not extra independent learning. Reports are separate historical accounts, not one portfolio. Incomplete returns are identified. No prices are synthesized, merged or downloaded by this script."
+}

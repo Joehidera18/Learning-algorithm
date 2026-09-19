@@ -3,7 +3,7 @@ from datetime import datetime,timezone,timedelta
 import csv,time
 
 BINANCE="https://api.binance.us"
-INTERVAL_MS={"1m":60000,"5m":300000,"15m":900000,"1h":3600000,"4h":14400000,"1d":86400000}
+INTERVAL_MS={"1m":60000,"5m":300000,"15m":900000,"1h":3600000,"4h":14400000,"6h":21600000,"1d":86400000}
 
 def data_path(out_dir,symbol,interval):
     return out_dir/f"{symbol}_{interval}.csv"

@@ -20,6 +20,9 @@ for _market in CALIBRATION_BASELINE["markets"]:
 PRACTICE_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-v11.8-completed.json").read_text())
 for _market in PRACTICE_BASELINE["markets"]:
     REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
+CONTINUITY_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-v11.9-partial.json").read_text())
+for _market in CONTINUITY_BASELINE["markets"]:
+    REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
 DATA_FIELDS = ("ts", "open", "high", "low", "close", "volume", "quote_volume", "trades")
 
 

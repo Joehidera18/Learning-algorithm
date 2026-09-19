@@ -1,5 +1,6 @@
 # Creates a paid web service and a 1 GB persistent disk when you deploy it.
 # Read WEBSITE_SETUP.md before deployment. This archive has not been deployed.
+# The 512 MB plan is for smaller runs; full five-year studies need more headroom.
 services:
   - type: web
     name: crypto-research-lab

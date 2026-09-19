@@ -31,6 +31,45 @@ class ExecutionTests(unittest.TestCase):
         _, trades = self.run_sim(rows)
         self.assertEqual(trades[0]["entry_ts"], rows[241]["ts"])
 
+    def test_time_exit_uses_close_at_deadline_and_resolves_without_an_extra_bar(self):
+        for step in (300000, 900000, 3600000, 21600000):
+            for fee, slip in ((0., 0.), (.004, .001), (.006, .0015)):
+                with self.subTest(step=step, fee=fee):
+                    count = 12*3600000//step
+                    rows = candles(241+count, step=step)
+                    resolved = []
+                    with patch("lab.engine.evaluate_signal", return_value=(70,None)):
+                        _, trades = simulate(rows, features(len(rows)), 240, len(rows),
+                            500, .01, fee, slip, PARAMS, bar_interval_ms=step,
+                            on_resolved=lambda trade, reward, ts:resolved.append(ts))
+                    trade = trades[0]
+                    deadline = rows[241]["ts"]+12*3600000
+                    self.assertEqual(trade["reason"], "TIME")
+                    self.assertEqual(trade["exit_ts"]+step, deadline)
+                    self.assertEqual(resolved, [deadline])
+                    self.assertEqual(trade["review"]["holding_hours"], 12.)
+                    expected = ((trade["exit"]-trade["entry"])*trade["qty"]
+                        - (trade["entry"]+trade["exit"])*trade["qty"]*fee)
+                    self.assertAlmostEqual(trade["pnl"], expected)
+
+    def test_prices_after_time_deadline_cannot_change_the_closed_trade(self):
+        for step in (900000, 3600000, 21600000):
+            with self.subTest(step=step):
+                next_bar = 241+12*3600000//step
+                rows = candles(next_bar+2, step=step)
+                first = self.run_sim(rows)[1][0]
+                rows[next_bar].update(open=90., high=105., low=89., close=90.)
+                changed = self.run_sim(rows)[1][0]
+                self.assertEqual(first, changed)
+                self.assertEqual(first["reason"], "TIME")
+
+    def test_stop_inside_deadline_bar_still_precedes_time_exit(self):
+        rows = candles(243, step=21600000)
+        rows[242].update(low=97.)
+        trade = self.run_sim(rows)[1][0]
+        self.assertEqual(trade["reason"], "STOP")
+        self.assertEqual(trade["exit_ts"], rows[242]["ts"])
+
     def test_entry_candle_stop_is_not_skipped(self):
         rows = candles(243)
         rows[241].update(low=97.,close=98.)
@@ -112,6 +151,18 @@ class ExecutionTests(unittest.TestCase):
 
 
 class FeatureTests(unittest.TestCase):
+    def test_learning_features_match_the_full_feature_builder(self):
+        import math
+        rows = candles(1400)
+        for i, r in enumerate(rows):
+            price = 100+math.sin(i/13)*4+i/100
+            r.update(open=price, close=price+math.sin(i), high=price+2,
+                     low=price-2, quote_volume=1000+i%23*50)
+        full = build_feature_cache(rows, "15m")["features"]
+        learning = build_feature_cache(rows, "15m", simple_only=True)["features"]
+        for original, reduced in zip(full, learning):
+            self.assertEqual(reduced, {k:original[k] for k in reduced} if reduced else None)
+
     def test_latest_completed_candle_has_features(self):
         rows = candles(241)
         result = build_feature_cache(rows,"15m")["features"]

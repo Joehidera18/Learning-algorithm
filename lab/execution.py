@@ -5,6 +5,7 @@ When intrabar order is unknown, assume the stop was reached first.
 """
 import math
 import statistics
+from collections import deque
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr, signal_cost_check
 from .trade_review import close_review
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT, EXIT_POLICIES, protect_after_close
@@ -23,16 +24,20 @@ def simulate(*args, **kwargs):
 def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_slip,
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
-             feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all"):
+             feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all",
+             on_training_event=None, stream_only=False):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
     candles that have closed at the account's decision time. It is never used by
     the exchange runner and cannot submit orders.
+
+    stream_only delivers practice events without retaining an unused ledger or
+    equity curve. It cannot produce account metrics or be used for an account.
     """
     from .engine import evaluate_signal
     cash, position, next_entry_ts = float(balance), None, 0
-    trades, curve = [], [cash]
+    trades, curve = [], deque([cash], maxlen=2) if stream_only else [cash]
     direction = params.get("direction", "LONG")
     sign = 1 if direction == "LONG" else -1
     end = min(int(end), len(rows))
@@ -41,6 +46,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
               "entry_rejections": {}}
     if training_examples and policy is not None:
         raise ValueError("Independent training examples cannot be used for a policy account test")
+    if stream_only and (not training_examples or on_resolved is None):
+        raise ValueError("Streaming requires independent practice and an outcome consumer")
+    if on_training_event is not None and not training_examples:
+        raise ValueError("Practice diagnostics cannot be attached to an account test")
     if practice_cost_mode not in ("all", "eligible", "cost_blocked"):
         raise ValueError("Unknown practice cost mode")
     if practice_cost_mode != "all" and not training_examples:
@@ -92,6 +101,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         p["slippage_notional"] += abs(raw - exit_price) * p["qty"]
         p.update(exit_ts=candle["ts"], exit=exit_price, pnl=pnl, reason=reason,
                  outcome="WIN" if pnl > 0 else "LOSS" if pnl < 0 else "BREAK_EVEN", balance_after=cash)
+        # Preserve exit_ts as the OHLC bar identifier. Close-priced exits have
+        # a known execution boundary; intrabar stop/target touch times do not.
+        if reason in ("TIME", "END"):
+            p["exit_time_ts"] = candle["ts"]+bar_ms
         p["review"] = close_review(p)
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
@@ -103,7 +116,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             # Independent label collection continues after losses. Routine spacing
             # remains; account loss-streak pauses still apply outside this branch.
             base_delay = p["decision_params"].get("cooldown_minutes",15)
-            funnel["loss_pause_overrides"] += int(delay > base_delay and reason != "END")
+            override = delay > base_delay and reason != "END"
+            funnel["loss_pause_overrides"] += int(override)
+            if override and on_training_event:
+                on_training_event("loss_pause_overrides", candle["ts"]+bar_ms)
             delay = base_delay
         next_entry_ts = candle["ts"] + bar_ms + delay*60000
         if on_resolved and reason != "END":
@@ -116,6 +132,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         if training_examples:
             # Label collection: independently funded examples, not account returns.
             cash = float(balance)
+        if stream_only:
+            # Keep only the losses needed for the next cooldown decision. Every
+            # resolved label was already delivered above with its full review.
+            del trades[:-streak_window]
         position = None
 
     for i in range(max(240, int(start)), end - 1):
@@ -134,6 +154,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     complete, stopped_at = False, signal["ts"]+bar_ms
                     break
                 funnel["gap_censored_examples"] += 1
+                if on_training_event:
+                    on_training_event("gap_censored_examples", candle["ts"]+bar_ms)
                 position, cash = None, float(balance)
             continue
         current_day = candle["ts"]//86400000
@@ -277,7 +299,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                 else:
                     p["mfe_price"] = max(p["mfe_price"], candle["high"]) if sign == 1 else min(p["mfe_price"], candle["low"])
                     p["mae_price"] = min(p["mae_price"], candle["low"]) if sign == 1 else max(p["mae_price"], candle["high"])
-                    if candle["ts"] - p["entry_ts"] >= p["decision_params"].get("time_stop_hours", 24) * 3600000:
+                    # The fill below uses the close, so measure age at the close.
+                    # Fixed learning deadlines align with every study interval.
+                    # Other deadlines resolve at the first available bar close.
+                    if candle["ts"] + bar_ms - p["entry_ts"] >= p["decision_params"].get("time_stop_hours", 24) * 3600000:
                         close(candle["close"], candle, "TIME")
             if position:
                 protect_after_close(position, candle, bar_ms)
@@ -294,6 +319,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
     if position and complete:
         close(rows[end - 1]["close"], rows[end - 1], "END")
         curve.append(cash)
+    if stream_only:
+        return {}, []
     for trade in trades:
         rd = max(trade["risk_dollars"], 1e-12)
         trade["r_multiple"] = trade["pnl"] / rd

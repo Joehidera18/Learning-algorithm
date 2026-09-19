@@ -18,7 +18,7 @@ from .exit_management import FIXED_EXIT, EXIT_POLICIES
 from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, correction,
     validate_buckets)
 
-POLICY_VERSION = "online-net-r-v12-practice-tracks"
+POLICY_VERSION = "online-net-r-v14-corrected-deadlines"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
