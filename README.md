@@ -1,8 +1,10 @@
-# CryptO V11.10 — broader market studies and continuous learning
+# CryptO V11.11 — relevant learning evidence and market context
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** The program downloads and studies history when you run it. V11.10 repairs the handoff to testing on newer prices: open practice trades, waiting periods and original entry forecasts now continue across the review date. The saved learner comes from the continuous primary replay, so changing a reporting date cannot silently replace its learning history. Higher-cost confirmation keeps its own costed practice history. See [the diagnosis, research and measured results](CONFIRMATION_CONTINUITY_RESEARCH.md). Run historical practice again after deployment; older models require retraining.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Run historical practice again after deployment; policy v15 and report 17 require new models.
+
+V11.10's continuous handoff remains included: open practice trades, waiting periods and original entry forecasts continue across the review date. The saved learner comes from the continuous primary replay, and higher-cost confirmation keeps its own costed history. See [that earlier study](CONFIRMATION_CONTINUITY_RESEARCH.md).
 
 The separate cost-eligible and cost-blocked practice tracks introduced in V11.9 remain included. Both learn actual net returns, including losses and break-even outcomes, only after closure. The forecast panel separates their results. See [that earlier coverage study](PRACTICE_TRACKS_RESEARCH.md).
 
@@ -10,7 +12,7 @@ V11.7 entry-error margins and the separate conditional-selection experiment rema
 
 The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 
-The predeployment review also corrects time-based exits that ran one candle late, checks each monitored timeframe's own review date, reduces replay memory, and loads detailed dashboard reviews on demand. The corrected policy is v14 and report format is 16; previous models must be rebuilt. See [the findings and measured limits](PREDEPLOY_REVIEW.md).
+The predeployment review also corrects time-based exits that ran one candle late, checks each monitored timeframe's own review date, reduces replay memory, and loads detailed dashboard reviews on demand. Those fixes remain included. See [the findings and measured limits](PREDEPLOY_REVIEW.md).
 
 ## Start here
 
@@ -55,9 +57,13 @@ The model learns relationships between entry-time indicators and the trade's eve
 
 Historical training explores signal-matched setups even when their modeled costs or reward would block a trading entry. These independent hypothetical examples still pay all modeled fees, slippage and spread, so costly losses can be learned. They are not account returns. Policy tests and paper/live trading keep the cost and net-reward checks, evidence requirements, and account-risk limits. Historical policy tests also apply the configured daily loss halt. Reports compare the updating policy with pooled learning, frozen learning, holding cash, and buying and holding the market. These comparisons can show deterioration; they do not select a winner after seeing the final test.
 
+An affordable setup now needs its own completed cost-eligible evidence. Rejected expensive examples remain in overall memory and reports but cannot supply missing eligible samples, forecast weights or error margins. The dashboard shows those counts separately, including errors for positive affordable forecasts. Six additional models predict follow-through failure, giveback, fee-erased gains, near break-even, targets and time exits. Their saved entry estimates are scored only after closure against a historical-frequency baseline; they are diagnostics, not entry or exit controls.
+
+Historical practice and ongoing monitoring download completed BTC-USD daily candles for broader-market trend, momentum, volatility and relative strength. A model trained with that context pauses new entries when it is missing or stale. Existing position management continues. Older bundles without Bitcoin candles retain explicitly unavailable context; their replays cannot measure this feature's benefit. Each run records its data, costs, reviewed boundary and declared comparisons. Reusing a reviewed report never supplies fresh qualification.
+
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
-The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first five in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
+The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
 
 ## Learning from failed trades and fuller candle context
 
@@ -73,7 +79,7 @@ V11.3 learns recent net outcomes in comparable cost, intraday and daily-trend co
 
 Practice now retries remaining internal gaps, first directly and then using complete smaller Coinbase candles. It also downloads separate daily candles so an intraday gap need not erase daily context. If daily retrieval fails, the report names the fallback to complete intraday days. Intraday indicators still restart at gaps, and missing daily candles still reset daily warmup. An explicit Practice action rechecks both sources before the automatic deadline; identical observations reuse completed training. New external data could not be downloaded in the development environment, so actual recovery of the supplied gaps is still unverified.
 
-Each market offers **Download candles & report** for reproducible analysis of its actual saved data. Separate daily inputs, when used, are included as `daily-candles.csv` with their own checked hash. Add `--daily-csv daily-candles.csv` to an offline `--csv --learning` command to reproduce that context.
+Each market offers **Download candles & report** for reproducible analysis of its actual saved data. Separate daily inputs, when used, are included as `daily-candles.csv` with their own checked hash. Bitcoin inputs are exported as `bitcoin-daily-candles.csv` with a separate checked hash. Add `--daily-csv daily-candles.csv --bitcoin-csv bitcoin-daily-candles.csv` to an offline `--csv --learning` command when the bundle contains both files. Missing or changed cached inputs prevent an export from claiming an exact match.
 
 ## Paper and real trading
 

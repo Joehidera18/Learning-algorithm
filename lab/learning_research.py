@@ -21,11 +21,14 @@ from .prediction_audit import summarize_predictions
 from .chronological_learning import ChronologicalTrainer
 from .forecast_calibration import summarize as summarize_calibration
 from .practice import PRACTICE_LANES, merge_counts, outcome_totals
+from .market_context import attach_market_context, data_summary as bitcoin_summary
+from .learning_diagnostics import evidence_summary, regime_report, experiment_manifest
+from .failure_predictions import summary as failure_prediction_summary
 
-LEARNING_REPORT_VERSION = 16
+LEARNING_REPORT_VERSION = 17
 
 
-def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
+def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None):
     """Keep chronology and restart all indicators at every missing-data boundary."""
     features = [None]*len(rows)
     for segment in segments:
@@ -36,15 +39,17 @@ def build_learning_features(rows, interval, segments, cancelled=None, daily_rows
             cache = build_feature_cache(rows[start:end], interval, simple_only=True,
                                         daily_rows=daily_rows)["features"]
             features[start+FEATURE_WARMUP:end] = cache[FEATURE_WARMUP:]
-    return features
+    if bitcoin_rows is None:
+        return features  # Missing benchmark inputs retain the explicit zero readiness feature.
+    return attach_market_context(rows, features, INTERVAL_MS[interval], bitcoin_rows, in_place=True)
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                   reviewed_through_ts=None, daily_rows=None, exit_comparison=True,
-                  selection_comparison=True, forecast_correction=False):
+                  selection_comparison=True, forecast_correction=False, bitcoin_rows=None):
     """Keep the approved model separate from one independently trained experiment."""
     result = _learn_history(rows, symbol, settings, progress, cancelled, checkpoint,
-        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT, forecast_correction=forecast_correction)
+        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT, forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
     if exit_comparison:
         def experimental_progress(**state):
             if progress:
@@ -58,7 +63,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                 "save":lambda index,value:checkpoint["save"](offset+index,value)}
         experiment = _learn_history(rows, symbol, settings, experimental_progress, cancelled,
             experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT,
-            forecast_correction=forecast_correction)
+            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
         from .exit_research import comparison_report
         result["exit_policy_comparison"] = comparison_report(result, experiment)
     if selection_comparison:
@@ -70,15 +75,16 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         # Existing checkpoints can be reused without another candidate namespace.
         experiment = _learn_history(rows, symbol, settings, conditional_progress, cancelled,
             checkpoint, reviewed_through_ts, daily_rows, recent_return_veto=False,
-            forecast_correction=forecast_correction)
+            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
         from .selection_research import comparison_report
         result["selection_policy_comparison"] = comparison_report(result, experiment)
+    result["experiment_registry"] = experiment_manifest(result, exit_comparison, selection_comparison)
     return result
 
 
 def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                    reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT,
-                   recent_return_veto=True, forecast_correction=False):
+                   recent_return_veto=True, forecast_correction=False, bitcoin_rows=None):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -95,7 +101,11 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         from .daily_context import independent_daily_context, DAY_MS
         independent_daily_context([], step, daily_rows)
         daily_rows = [r for r in daily_rows if r["ts"]+DAY_MS <= rows[-1]["ts"]+step]
-    features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows)
+    if bitcoin_rows is not None:
+        from .daily_context import independent_daily_context, DAY_MS
+        independent_daily_context([], step, bitcoin_rows)
+        bitcoin_rows = [r for r in bitcoin_rows if r["ts"]+DAY_MS <= rows[-1]["ts"]+step]
+    features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows, bitcoin_rows)
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"],
                                 exit_policy=exit_policy, recent_return_veto=recent_return_veto,
@@ -147,7 +157,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     examples.sort(key=lambda x:(x[0],x[1]))
     seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy,
                           recent_return_veto=recent_return_veto, fee_rate=fee, slippage_rate=slip,
-                          forecast_correction=forecast_correction)
+                          forecast_correction=forecast_correction, market_context_required=bool(bitcoin_rows))
     trainer = ChronologicalTrainer(seed,candidates,examples,cancelled)
 
     def train_until(cut_ts):
@@ -180,6 +190,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "mode":"selected_account_trades" if learn else "frozen",
             "resolved_examples":policy.state["observations"]-starting_state["observations"]}
         metrics["prediction_audit"] = summarize_predictions(trades)
+        metrics["regime_performance"] = regime_report(features, trades, start, end)
         return metrics, trades, policy.export(), starting_state
 
     starts = [int(development*f) for f in (.45,.63,.81)]
@@ -293,7 +304,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "learning_report_version":LEARNING_REPORT_VERSION,
         "learning_inputs":{"dimensions":len(FEATURE_NAMES), "names":list(FEATURE_NAMES),
             "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
-                "wicks, RSI change, VWAP distance, volatility and completed daily context. "
+                "wicks, RSI change, VWAP distance, volatility, completed daily context, Bitcoin trend and relative strength. "
                 "Exit reviews and future candles are not entry inputs."},
         "entry_error_rule":"Save the forecast at entry in chronological development training as well as later tests. "
             "After at least 30 resolved forecasts in a model component, "
@@ -326,6 +337,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "end_ts":daily_rows[-1]["ts"] if daily_rows else None,
             "holdout_ready_candles":sum(bool(f and f.get("daily",{}).get("ready")) for f in features[holdout_start:]),
             "holdout_candles":len(rows)-holdout_start},
+        "bitcoin_data":bitcoin_summary(bitcoin_rows, features, holdout_start),
+        "learning_evidence":evidence_summary(trained["models"]),
+        "failure_predictions":failure_prediction_summary(trained["models"]),
         "historical_examples":len(examples), "candidate_count":len(candidates),
         "regime_examples":regime_examples,
         "training_diagnostics":{"totals":training_totals, "candidates":training_candidates,
@@ -338,11 +352,11 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                           "Different strategies and holding periods overlap. These are not independent bets or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
         "development_prediction_audit":trainer.predictions.summary(),
-        "forecast_calibration":{**summarize_calibration(trained["models"]),
-            "enabled_for_selection":forecast_correction,
-            "scope":"Residual correction is an experiment, disabled in the default trading model. "
-                "Chronological development forecast errors do affect the default error margin. "
-                "Experimental models cannot qualify or load for trading."},
+        "forecast_calibration":{**summarize_calibration({k:m.get("eligible_model", {}) for k,m in trained["models"].items()}),
+            "enabled_for_selection":True,
+            "policy":"two_sided_experiment" if forecast_correction else "eligible_downside_only",
+            "scope":"The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. "
+                "Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."},
         "pre_holdout_model_sha256":hashlib.sha256(json.dumps(initial,sort_keys=True).encode()).hexdigest(),
         "holdout_start_ts":rows[holdout_start]["ts"],
         "folds":folds, "profitable_folds":positive, "holdout":holdout,
@@ -396,4 +410,4 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "scope":"One-market $500 policy tests. Historical shadow feedback keeps studying unselected candidates; account profits count only selected trades. Training examples overlap and are not independent evidence. Forward journal updates learn only completed account trades between historical reviews. Model estimates are not calibrated probabilities.",
         "warning":"Repeated runs can reuse test periods. The frozen comparison cannot change qualification. Portfolio execution, latency, live fills, and future profit remain unvalidated.",
         "holdout_trades":[{k:t[k] for k in ("entry_ts","exit_ts","strategy_family","pnl","r_multiple","reason",
-            "risk_dollars","gross_pnl","fees_paid","entry_forecast") if k in t} for t in trades]}
+            "risk_dollars","gross_pnl","fees_paid","entry_forecast","regime") if k in t} for t in trades]}

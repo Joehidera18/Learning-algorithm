@@ -140,6 +140,7 @@ class ContinuousLearner:
         self.product_ids, self.market, self.open_positions = [], {}, {}
         self.strategy_variants = profit_candidates()
         self._feature_cache, self._board, self._processed = {}, {}, {}
+        self._bitcoin_daily = []
         self.runtime = {"running": False, "stream_status": "stopped", "stream_message": "",
                         "last_tick_ts": None, "last_cycle_ts": None, "bootstrapped": False,
                         "bootstrap_done": 0, "bootstrap_total": 0, "last_error": None}
@@ -371,6 +372,26 @@ class ContinuousLearner:
             self._latest_feature(pid, iv)
         self._decision_cycle(pid)
 
+    def _sync_bitcoin_context(self):
+        if not self.settings.get("learning_enabled") or self.stop_event.is_set():
+            return
+        now = now_ms()
+        expected = now//DAY_MS*DAY_MS-DAY_MS
+        with self.lock:
+            if self._bitcoin_daily and self._bitcoin_daily[-1]["ts"] >= expected:
+                return
+        try:
+            rows = self.client.candles("BTC-USD", "1d", limit=60, end_ms=now)
+            rows = [r for r in rows if r["ts"]+DAY_MS <= now]
+            independent_daily_context([], DAY_MS, rows)
+            with self.lock:
+                self._bitcoin_daily = rows
+                self._feature_cache.clear()
+        except Exception as exc:
+            # Models trained with Bitcoin context refuse a stale/missing join.
+            # Managing existing positions continues despite a context outage.
+            log_activity(self.db_path, "warning", "Bitcoin daily context refresh failed", {"error":str(exc)})
+
     def _main(self):
         try:
             log_activity(self.db_path, "info", "Finding active Coinbase USD markets")
@@ -386,6 +407,7 @@ class ContinuousLearner:
                 self.runtime["bootstrap_total"] = len(self.product_ids)
             self.stream = CoinbaseTickerStream(self.product_ids, self.on_tick, self._status_cb)
             self.stream.start()
+            self._sync_bitcoin_context()
             for pid in self.product_ids:
                 if self.stop_event.is_set():
                     return
@@ -399,6 +421,7 @@ class ContinuousLearner:
                 self._manage_time_exits()
                 bucket = (now_ms() - 4000) // INTERVAL_MS["5m"]
                 if bucket != last_bucket:
+                    self._sync_bitcoin_context()
                     for pid in list(self.product_ids):
                         if self.stop_event.is_set():
                             break
@@ -452,8 +475,12 @@ class ContinuousLearner:
             bars = self.market.get(pid, {}).get("bars", {})
             rows = bars.get(iv, [])
             direct_daily = list(bars.get("1d", []))
+            bitcoin_daily = list(self.market.get("BTC-USD", {}).get("bars", {}).get("1d", []))
+            if self._bitcoin_daily and (not bitcoin_daily or self._bitcoin_daily[-1]["ts"] >= bitcoin_daily[-1]["ts"]):
+                bitcoin_daily = list(self._bitcoin_daily)
             signature = (len(rows), rows[-1]["ts"] if rows else None,
-                         len(direct_daily), direct_daily[-1]["ts"] if direct_daily else None)
+                         len(direct_daily), direct_daily[-1]["ts"] if direct_daily else None,
+                         tuple((r["ts"],r["open"],r["high"],r["low"],r["close"]) for r in bitcoin_daily))
             cached = self._feature_cache.get((pid, iv))
             if cached and cached[0] == signature:
                 return cached[1]
@@ -476,6 +503,8 @@ class ContinuousLearner:
                     direct_daily = aggregate_complete(daily_rows, INTERVAL_MS["4h"], DAY_MS,
                                                       first_day, asof//DAY_MS*DAY_MS)
                 feature["daily"] = independent_daily_context([snapshot[-1]], INTERVAL_MS[iv], direct_daily)[0]
+                from .market_context import attach_market_context
+                feature = attach_market_context([snapshot[-1]], [feature], INTERVAL_MS[iv], bitcoin_daily)[0]
         with self.lock:
             self._feature_cache[(pid, iv)] = (signature, feature)
         return feature

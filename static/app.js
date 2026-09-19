@@ -356,10 +356,19 @@
       });
       if (laneRows.length) html+='<h4>Learning from trades that pass the cost rules</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Practice track</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Forecast RMSE</th></tr></thead><tbody>'+
         laneRows.join('')+'</tbody></table></div><p class="footnote">Separate practice tracks keep a costly open example from blocking a later setup that passes the cost rules. Both learn actual returns after fees, including losses and break-even results. Passing cost rules does not mean a trade is profitable or approved for the account.</p>';
+      const positiveRows=[];
+      audits.forEach(function(a) {
+        Object.entries((a[1] || {}).by_practice_lane_and_forecast_band || {}).forEach(function(pair) {
+          if (!['eligible/0_to_0.5R','eligible/above_0.5R'].includes(pair[0]) || !pair[1].samples) return;
+          const g=pair[1];
+          positiveRows.push('<tr><td>'+a[0]+'</td><td>'+escape(pair[0].split('/')[1])+'</td><td>'+num(g.samples,0)+'</td><td>'+num(g.mean_predicted_net_r,3)+'R</td><td>'+num(g.mean_actual_net_r,3)+'R</td><td>'+num(g.rmse_r,3)+'R</td><td>'+num(g.zero_forecast_rmse_r,3)+'R</td></tr>');
+        });
+      });
+      if (positiveRows.length) html+='<h4>Positive forecasts for affordable setups</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Forecast band</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Forecast error</th><th>Zero forecast error</th></tr></thead><tbody>'+positiveRows.join('')+'</tbody></table></div><p class="footnote">These forecasts are separated from the many negative predictions for cost-blocked trades. Small groups do not establish reliable predictions.</p>';
       if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Trial adjustments</th><th>Original forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
         paired.map(function(a) {const c=a[1].calibration;return '<tr><td>'+a[0]+'</td><td>'+num(c.paired_samples,0)+
           '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
-        '</tbody></table></div><p class="footnote">Both errors use the same completed examples. Trial corrections study whether earlier estimates were too high or too low. They are disabled for trading because the measured results were mixed. Lower error is better; it does not establish profitable trading.</p>';
+        '</tbody></table></div><p class="footnote">Both errors use the same completed examples. Trial corrections study whether earlier estimates were too high or too low. Two-sided trial corrections do not control trading. The revised learner can only lower an optimistic forecast after enough relevant outcomes. Lower error is better; it does not establish profitable trading.</p>';
       if (r.forecast_calibration) html+='<p class="footnote">'+escape(r.forecast_calibration.rule)+' '+escape(r.forecast_calibration.scope || '')+'</p>';
       html+='</details>';
     }
@@ -369,6 +378,28 @@
       money((study.holdout_stressed || {}).net_pnl)+'. Difference from the primary model: '+money(study.net_pnl_difference)+
       '.</p><p class="footnote">This experiment cannot control trading. Earlier-period results and later confirmation must also be considered.</p><ul>'+
       (study.rejection_reasons || []).map(v=>'<li>'+escape(v)+'</li>').join('')+'</ul></details>';
+    return html;
+  }
+  function renderLearningEvidence(r) {
+    let html='';
+    const evidence=r.learning_evidence || {}, bitcoin=r.bitcoin_data || {}, failures=r.failure_predictions || {};
+    if (evidence.by_family) html+='<details><summary>Relevant learning evidence</summary><div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Affordable examples</th><th>Cost-blocked examples</th><th>Ready candidates</th></tr></thead><tbody>'+
+      Object.entries(evidence.by_family).map(function(pair) {const g=pair[1];return '<tr><td>'+escape(family(pair[0]))+'</td><td>'+num(g.eligible_examples,0)+'</td><td>'+num(g.cost_blocked_examples,0)+'</td><td>'+num(g.eligible_ready_candidates,0)+' / '+num(g.candidates,0)+'</td></tr>';}).join('')+
+      '</tbody></table></div><p class="footnote">'+escape(evidence.rule || '')+'</p></details>';
+    if (bitcoin.source) html+='<details><summary>Bitcoin and market conditions</summary><p>Completed Bitcoin daily context: '+num(bitcoin.holdout_ready_candles,0)+' of '+num(bitcoin.holdout_candles,0)+' test candles ready.</p><p class="footnote">'+escape(bitcoin.rule || '')+'</p>'+
+      ['holdout','holdout_stressed'].map(function(key) {
+        const regimes=((r[key] || {}).regime_performance || {}).by_entry_regime || {};
+        if (!Object.keys(regimes).length) return '';
+        return '<p><b>'+(key==='holdout' ? 'Ordinary costs' : 'Higher costs')+'</b></p><div class="table-wrap"><table><thead><tr><th>Entry conditions</th><th>Candles</th><th>Trades</th><th>Net result</th></tr></thead><tbody>'+
+          Object.entries(regimes).map(function(pair) {const g=pair[1];return '<tr><td>'+escape(pair[0])+'</td><td>'+num(g.candles,0)+'</td><td>'+num(g.trades,0)+'</td><td>'+money(g.net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div>';
+      }).join('')+'<p class="footnote">Regimes with no trades have no demonstrated trading edge. Each cost scenario has its own account path.</p></details>';
+    if (failures.targets) {
+      const names={little_follow_through:'Little follow-through',gave_back_gains:'Gave back gains',fees_erased_gain:'Fees erased a gain',near_break_even:'Near break-even',target_reached:'Reached target',time_exit:'Reached time limit'};
+      html+='<details><summary>Learning specific failure patterns</summary><div class="table-wrap"><table><thead><tr><th>Outcome predicted before entry</th><th>Examples</th><th>Scored forecasts</th><th>Forecast error</th><th>Historical-frequency error</th></tr></thead><tbody>'+
+        Object.entries(failures.targets).map(function(pair) {const g=pair[1];return '<tr><td>'+escape(names[pair[0]] || pair[0])+'</td><td>'+num(g.samples,0)+'</td><td>'+num(g.scored,0)+'</td><td>'+num(g.brier_score,4)+'</td><td>'+num(g.prior_frequency_brier,4)+'</td></tr>';}).join('')+
+        '</tbody></table></div><p class="footnote">Lower Brier error is better. '+escape(failures.scope || '')+'</p></details>';
+    }
+    if (r.experiment_registry) html+='<details><summary>Experiment record</summary><p>Study '+escape(r.experiment_registry.trial_id)+'.</p><p>'+num((r.experiment_registry.variants || []).length,0)+' declared variants recorded.</p><p class="footnote">'+escape(r.experiment_registry.scope || '')+'</p></details>';
     return html;
   }
   function renderTradeReviews(r) {
@@ -505,8 +536,8 @@
         (r.error ? escape(r.error) : incomplete ? 'Final test incomplete: missing candles interrupted an open position. A full-period result is unavailable.' :
           ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
-        '</p>'+coverageText+'<p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        detailButton+(!r.report_summary || expanded ? renderCostLearning(full)+renderPredictionAudit(full)+
+        '</p>'+coverageText+(r.learning_evidence && finite(r.learning_evidence.eligible_examples) ? '<p class="footnote">Affordable practice examples: '+num(r.learning_evidence.eligible_examples,0)+'; cost-blocked examples studied separately: '+num(r.learning_evidence.cost_blocked_examples,0)+'.</p>' : '')+'<p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
+        detailButton+(!r.report_summary || expanded ? renderCostLearning(full)+renderLearningEvidence(full)+renderPredictionAudit(full)+
           renderTradeReviews(full)+renderLearningDiagnostics(full)+renderLearningComparison(full) : '')+
         (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
     }).join("")+'<p class="footnote">Each coin/timeframe test starts with $500. Studies may overlap. These results are not a combined account return or a profit forecast.</p>' :

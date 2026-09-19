@@ -78,16 +78,16 @@ class ForecastCalibrationTests(unittest.TestCase):
             broken['models'][key]['forecast_bands']['low/0_to_0.5R'][field]=value
             with self.assertRaises(ValueError): AdaptivePolicy(broken,forecast_correction=True)
 
-    def test_default_only_studies_correction_and_experimental_state_cannot_load(self):
+    def test_default_can_only_lower_optimism_and_experimental_state_cannot_load(self):
         policy,params,v,forecast=self.collect(-1,applied=False)
         self.assertTrue(forecast['calibration_ready'])
-        self.assertFalse(forecast['calibration_applied'])
-        self.assertEqual(forecast['estimated_net_r'],.4)
+        self.assertTrue(forecast['calibration_applied'])
+        self.assertLess(forecast['estimated_net_r'],.4)
         self.assertLess(forecast['trial_estimated_net_r'],.4)
         f=entry_snapshot(forecast,200)
         a=summarize_predictions([{'entry_forecast':f,'reason':'STOP','strategy_family':params['family'],
                                  'pnl':-1.,'risk_dollars':1.}])
-        self.assertEqual(a['calibration']['applied_forecasts'],0)
+        self.assertEqual(a['calibration']['applied_forecasts'],1)
         self.assertEqual(a['calibration']['adjusted_forecasts'],1)
         alternate=dict(policy.export(),forecast_correction=True)
         with self.assertRaises(ValueError): AdaptivePolicy(alternate)

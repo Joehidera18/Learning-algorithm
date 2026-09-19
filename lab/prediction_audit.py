@@ -49,11 +49,26 @@ def entry_snapshot(forecast, signal_close_ts, decision_ts=None):
                 or (not result["calibration_ready"] and adjustment != 0)
                 or type(result["calibration_applied"]) is not bool
                 or not math.isclose(raw+adjustment,result["trial_estimated_net_r"],abs_tol=1e-10)
-                or not math.isclose(result["trial_estimated_net_r"] if result["calibration_applied"] else raw,
-                                    result["estimated_net_r"],abs_tol=1e-10)
+                or ("calibration_policy" not in result and not math.isclose(
+                    result["trial_estimated_net_r"] if result["calibration_applied"] else raw,
+                    result["estimated_net_r"],abs_tol=1e-10))
                 or result["calibration_key"] not in {c+"/"+forecast_band(raw) for c in COSTS}
                 or not 0 <= result["calibration_last_label_ts"] <= result["model_last_label_ts"]):
             raise ValueError("Invalid entry calibration record")
+        if "calibration_policy" in result:
+            mode = result["calibration_policy"]
+            selected = result.get("selected_adjustment_r")
+            if (mode not in ("two_sided_experiment", "eligible_downside_only")
+                    or not isinstance(selected, (int,float)) or not math.isfinite(selected)
+                    or not math.isclose(raw+selected, result["estimated_net_r"], abs_tol=1e-10)
+                    or result["calibration_applied"] != (selected != 0)
+                    or (mode == "two_sided_experiment" and not math.isclose(selected, adjustment, abs_tol=1e-10))
+                    or (mode == "eligible_downside_only" and not math.isclose(selected,
+                        min(0., adjustment) if raw > 0 and result.get("evidence_scope") == "cost_eligible" else 0., abs_tol=1e-10))):
+                raise ValueError("Invalid selected forecast correction")
+    if "failure_predictions" in result:
+        from .failure_predictions import validate_forecasts
+        validate_forecasts(result["failure_predictions"])
     return result
 
 
@@ -100,6 +115,7 @@ class PredictionAudit:
         self.raw_bands = {}
         self.adjusted = self.applied = 0
         self.lanes = {}
+        self.lane_bands = {}
 
     def observe(self, trade, actual=None):
         if trade.get("reason") == "END":
@@ -127,6 +143,7 @@ class PredictionAudit:
             add(totals, predicted, actual)
         if lane is not None:
             add(self.lanes.setdefault(lane, empty_totals()), predicted, actual)
+            add(self.lane_bands.setdefault(lane+"/"+band, empty_totals()), predicted, actual)
         if "raw_estimated_net_r" in forecast:
             raw = forecast["raw_estimated_net_r"]
             trial = forecast["trial_estimated_net_r"]
@@ -146,6 +163,7 @@ class PredictionAudit:
             "by_family":{k:metrics(v) for k,v in self.families.items()},
             "by_forecast_band":{k:metrics(v) for k,v in self.bands.items()},
             "by_practice_lane":{k:metrics(v) for k,v in self.lanes.items()},
+            "by_practice_lane_and_forecast_band":{k:metrics(v) for k,v in self.lane_bands.items()},
             "calibration":{"paired_samples":self.raw_totals["samples"],
                 "adjusted_forecasts":self.adjusted,
                 "applied_forecasts":self.applied,
@@ -153,8 +171,9 @@ class PredictionAudit:
                 "by_raw_forecast_band":{k:{n:metrics(t) for n,t in pair.items()}
                     for k,pair in self.raw_bands.items()},
                 "scope":"Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw "
-                    "entry estimate. applied_forecasts reports actual use in decisions; the default policy only studies "
-                    "these corrections. This measures forecast error, not profit from another trading policy."},
+                    "entry estimate. applied_forecasts reports actual use in decisions. The normal policy can lower "
+                    "positive eligible estimates; two-sided corrections remain experimental. "
+                    "This measures forecast error, not profit from another trading policy."},
             "selection_uses_summary":False,
             "scope":"Forecasts saved before entry, scored after normal exits with full net returns. "
                 "Positive bias means overprediction. Zero-return RMSE is a forecast benchmark, not a trading strategy. "

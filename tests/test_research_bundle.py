@@ -98,5 +98,23 @@ class ResearchBundleTests(unittest.TestCase):
         daily.unlink()
         self.assertEqual(self.get()[0],400)
 
+    def test_bitcoin_context_export_is_hash_checked_and_separate_from_coin_prices(self):
+        rows=candles(24,step=86400000,start=0)
+        path=self.path.with_name("BTC-USD_1d.csv")
+        def write():
+            with path.open("w",newline="") as handle:
+                writer=csv.DictWriter(handle,fieldnames=DATA_FIELDS)
+                writer.writeheader();writer.writerows(rows)
+        write()
+        self.report["bitcoin_data"]={"symbol":"BTC-USD","source":"independent_daily_candles",
+            "rows":len(rows),"start_ts":rows[0]["ts"],"end_ts":rows[-1]["ts"],"data_sha256":dataset_digest(rows)}
+        code,data,_=self.get();self.assertEqual(code,200)
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            self.assertEqual(archive.read("bitcoin-daily-candles.csv").decode().splitlines(),path.read_text().splitlines())
+            self.assertEqual(json.loads(archive.read("manifest.json"))["bitcoin_data"]["data_sha256"],dataset_digest(rows))
+        rows[-1]["close"]-=.01;write()
+        self.assertEqual(self.get()[0],400)
+        path.unlink();self.assertEqual(self.get()[0],400)
+
 
 if __name__=="__main__": unittest.main()

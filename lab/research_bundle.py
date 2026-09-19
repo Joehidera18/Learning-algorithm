@@ -44,6 +44,19 @@ def market_bundle(learner, symbol, interval):
         daily_content = io.StringIO(newline="")
         daily_writer = csv.DictWriter(daily_content, fieldnames=DATA_FIELDS)
         daily_writer.writeheader(); daily_writer.writerows(canonical_candle(row) for row in daily_rows)
+    bitcoin = report.get("bitcoin_data", {})
+    bitcoin_content = None
+    if bitcoin.get("source") == "independent_daily_candles":
+        bitcoin_path = path.with_name("BTC-USD_1d.csv")
+        if not bitcoin_path.is_file():
+            raise ValueError("Bitcoin context candles are missing. Run practice again before exporting its data.")
+        bitcoin_rows = [r for r in load_history(bitcoin_path)
+            if bitcoin["start_ts"] is not None and bitcoin["start_ts"] <= r["ts"] <= bitcoin["end_ts"]]
+        if len(bitcoin_rows) != bitcoin["rows"] or dataset_digest(bitcoin_rows) != bitcoin["data_sha256"]:
+            raise ValueError("The cached Bitcoin candles no longer match this report. Run practice again before exporting its data.")
+        bitcoin_content = io.StringIO(newline="")
+        bitcoin_writer = csv.DictWriter(bitcoin_content, fieldnames=DATA_FIELDS)
+        bitcoin_writer.writeheader(); bitcoin_writer.writerows(canonical_candle(row) for row in bitcoin_rows)
     content = io.StringIO(newline="")
     writer = csv.DictWriter(content,fieldnames=DATA_FIELDS)
     writer.writeheader(); writer.writerows(canonical_candle(row) for row in rows)
@@ -53,12 +66,15 @@ def market_bundle(learner, symbol, interval):
         "market_data":report.get("market_data"),
         "history_request":report.get("history_request"),
         "daily_data":daily,
+        "bitcoin_data":bitcoin,
         "scope":"Recorded candle data and one historical report. Old reports without a data hash can verify dates and count only. No API keys, account database or exchange journal is included."}
     output = io.BytesIO()
     with zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("candles.csv",content.getvalue())
         if daily_content is not None:
             archive.writestr("daily-candles.csv",daily_content.getvalue())
+        if bitcoin_content is not None:
+            archive.writestr("bitcoin-daily-candles.csv",bitcoin_content.getvalue())
         archive.writestr("learning-result.json",json.dumps(report,indent=2,allow_nan=False))
         archive.writestr("manifest.json",json.dumps(manifest,indent=2,allow_nan=False))
     return output.getvalue(),f"{symbol}_{interval}_learning-data.zip"
