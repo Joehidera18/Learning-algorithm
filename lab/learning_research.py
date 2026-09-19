@@ -164,7 +164,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         return trainer.advance(cut_ts)
 
     def test(initial, start, end, stress=1, learn=True, baseline=False, legacy=False, shadow=True,
-             failure_adaptation=True, practice_start=None):
+             failure_adaptation=True, practice_start=None, retain_model=False, retain_start=False):
         policy = AdaptivePolicy(initial, settings["max_notional_fraction"], learn=learn,
             fee_rate=fee*stress, slippage_rate=slip*stress,
             regime_adaptation=not baseline, cost_filter=not baseline,
@@ -180,7 +180,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             # Warm up the SAME stream that will continue after the boundary.
             # Truncating a prefix would END-mark and discard pending outcomes.
             feedback.begin_reporting(rows[start]["ts"])
-        starting_state = policy.export()
+        starting_observations = policy.state["observations"]
+        starting_state = policy.export() if retain_start else None
         metrics, trades = simulate(rows, features, start, end, 500,
             settings["risk_per_trade"], fee*stress, slip*stress,
             {"family":"adaptive_policy", "direction":"LONG"},
@@ -188,10 +189,10 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             bar_interval_ms=step, feedback=feedback)
         metrics["feedback"] = feedback.summary() if feedback else {
             "mode":"selected_account_trades" if learn else "frozen",
-            "resolved_examples":policy.state["observations"]-starting_state["observations"]}
+            "resolved_examples":policy.state["observations"]-starting_observations}
         metrics["prediction_audit"] = summarize_predictions(trades)
         metrics["regime_performance"] = regime_report(features, trades, start, end)
-        return metrics, trades, policy.export(), starting_state
+        return metrics, trades, policy.export() if retain_model else None, starting_state
 
     starts = [int(development*f) for f in (.45,.63,.81)]
     ends = starts[1:]+[development]
@@ -207,7 +208,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
 
     initial = train_until(rows[development]["ts"])
     progress(phase="testing", message=f"{symbol}: checking the later period and higher costs")
-    holdout, trades, trained, _ = test(initial,holdout_start,len(rows))
+    holdout, trades, trained, _ = test(initial,holdout_start,len(rows),retain_model=True)
     stressed, _, _, _ = test(initial,holdout_start,len(rows),stress=1.5)
     frozen, _, _, _ = test(initial,holdout_start,len(rows),learn=False)
     baseline, _, _, _ = test(initial,holdout_start,len(rows),baseline=True)
@@ -230,9 +231,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     if reused and fresh_start < len(rows)-1:
         progress(phase="testing", message=f"{symbol}: checking prices after the reviewed report")
         fresh, fresh_trades, _, confirmation_initial = test(initial,fresh_start,len(rows),
-            practice_start=holdout_start)
+            practice_start=holdout_start,retain_start=True)
         fresh_stress, _, _, stressed_initial = test(initial,fresh_start,len(rows),stress=1.5,
-            practice_start=holdout_start)
+            practice_start=holdout_start,retain_start=True)
         fresh_account, _, _, _ = test(confirmation_initial,fresh_start,len(rows),shadow=False)
         fresh_account_stress, _, _, _ = test(stressed_initial,fresh_start,len(rows),stress=1.5,shadow=False)
         confirmation = {"start_ts":rows[fresh_start]["ts"], "end_ts":rows[-1]["ts"]+step,

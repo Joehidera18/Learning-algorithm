@@ -11,6 +11,7 @@ from .microstructure import load_micro_rows,MicrostructureIndex,enrich_feature,m
 from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
+from .strategies import simple_signal
 
 ENGINE_VERSION="market-structure-v11.11-eligible-context"
 
@@ -374,7 +375,6 @@ def evaluate_signal(f,p,edge_prob=None,edge_lower=None,edge_samples=0):
         return None,"no_features"
 
     if p["family"].endswith("_simple"):
-        from .strategies import simple_signal
         return simple_signal(f,p)
     fam=p["family"];direction=p["direction"];score=0.0
     vol_ok=f["volume_z"]>=p.get("volume_z_min",-99)

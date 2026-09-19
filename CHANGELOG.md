@@ -1,3 +1,9 @@
+# V11.11 historical learning speed — 19 September 2026 UTC
+
+- Move the simple-strategy import out of the per-candle rule evaluation. Skip unused streaming-practice funnel/mark calculations while preserving all account equity reporting, requested daily halts and causal learning callbacks.
+- Avoid diagnostic before/after model copies that are immediately discarded; retain the primary model and both confirmation seeds as independent snapshots.
+- Add exact-output benchmarks and a streaming daily-halt regression. The paired full XRP workflow takes 29.24% less time and the primary LTC 5m workflow takes 27.38% less time. Complete reports differ only in creation timestamp. No strategy, cost, model/report version or qualification rule changes. See LEARNING_SPEED.md.
+
 # V11.11 relevant learning evidence and Bitcoin context — 19 September 2026 UTC
 
 - Separate cost-eligible models from overall practice memory so rejected expensive examples cannot supply affordable entries' weights, minimum evidence, recent outcomes or errors.

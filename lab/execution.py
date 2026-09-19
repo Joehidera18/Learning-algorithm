@@ -68,6 +68,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         funnel["learning_candidate_rejections"] = learning_rejections
     if daily_loss_limit is not None and not 0 < daily_loss_limit < 1:
         raise ValueError("Daily loss limit must be between zero and one")
+    # Independent streaming practice has no account equity report. Retain marks
+    # only when a caller actually consumes them or enforces a daily loss halt.
+    track_equity = not stream_only or daily_loss_limit is not None
     day_id, day_start, day_halted, halted_days = None, float(balance), False, 0
 
     def check_daily_limit(equity):
@@ -78,6 +81,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             halted_days += 1
 
     def reject(reason, entry=False):
+        if stream_only:
+            return  # Per-candle funnels are not returned by streaming practice.
         funnel["rejections"][reason] = funnel["rejections"].get(reason, 0) + 1
         if entry:
             funnel["entry_rejections"][reason] = funnel["entry_rejections"].get(reason, 0) + 1
@@ -158,13 +163,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     on_training_event("gap_censored_examples", candle["ts"]+bar_ms)
                 position, cash = None, float(balance)
             continue
-        current_day = candle["ts"]//86400000
-        if current_day != day_id:
-            day_id, day_start, day_halted = current_day, curve[-1], False
-        check_daily_limit(curve[-1])
+        if daily_loss_limit is not None:
+            current_day = candle["ts"]//86400000
+            if current_day != day_id:
+                day_id, day_start, day_halted = current_day, curve[-1], False
+            check_daily_limit(curve[-1])
         f = features[i]
-        funnel["candles_checked"] += 1
-        funnel["features_available"] += int(bool(f))
+        if not stream_only:
+            funnel["candles_checked"] += 1
+            funnel["features_available"] += int(bool(f))
         # A position already alive at this candle's open forbids re-entry in it.
         held_at_open = position is not None
         if not held_at_open and day_halted:
@@ -276,10 +283,11 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             p = position
             # Once a stop fills, do not mark through lower prices later in the bar.
             # Intrabar ordering is unknown; a drawdown may precede a target touch.
-            adverse = (min(candle["open"], max(candle["low"], p["stop"])) if sign == 1 else
-                       max(candle["open"], min(candle["high"], p["stop"])))
-            adverse *= 1-sign*base_slip
-            check_daily_limit(cash+(adverse-p["entry"])*p["qty"]*sign-adverse*p["qty"]*fee_rate)
+            if daily_loss_limit is not None:
+                adverse = (min(candle["open"], max(candle["low"], p["stop"])) if sign == 1 else
+                           max(candle["open"], min(candle["high"], p["stop"])))
+                adverse *= 1-sign*base_slip
+                check_daily_limit(cash+(adverse-p["entry"])*p["qty"]*sign-adverse*p["qty"]*fee_rate)
             # Handle gaps at the open before any intrabar touch.
             if (candle["open"] <= p["stop"] if sign == 1 else candle["open"] >= p["stop"]):
                 p["mae_price"] = candle["open"]
@@ -306,13 +314,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                         close(candle["close"], candle, "TIME")
             if position:
                 protect_after_close(position, candle, bar_ms)
-        mark = cash
-        if position:
-            liquidation = candle["close"] * (1 - sign * base_slip)
-            mark += (liquidation - position["entry"]) * position["qty"] * sign
-            mark -= liquidation * position["qty"] * fee_rate
-        curve.append(mark)
-        check_daily_limit(mark)
+        if track_equity:
+            mark = cash
+            if position:
+                liquidation = candle["close"] * (1 - sign * base_slip)
+                mark += (liquidation - position["entry"]) * position["qty"] * sign
+                mark -= liquidation * position["qty"] * fee_rate
+            curve.append(mark)
+            if daily_loss_limit is not None:
+                check_daily_limit(mark)
     if feedback is not None:
         through = rows[end-1]["ts"]+bar_ms if complete else stopped_at
         feedback.advance(through)

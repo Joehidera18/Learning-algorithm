@@ -6,6 +6,8 @@ A trading program that studies market history, learns which setups work in diffe
 
 V11.10's continuous handoff remains included: open practice trades, waiting periods and original entry forecasts continue across the review date. The saved learner comes from the continuous primary replay, and higher-cost confirmation keeps its own costed history. See [that earlier study](CONFIRMATION_CONTINUITY_RESEARCH.md).
 
+Historical learning now avoids repeated imports, unused background-practice bookkeeping and discarded model copies. Paired local runs finished in **27–29% less time** with identical complete reports except for creation timestamps. The full XRP workflow fell from 123.5 to 87.4 seconds; the primary LTC 5m workflow fell from 40.7 to 29.6 seconds. Downloads and hosted load were not part of these timings. See [the measured speed study](LEARNING_SPEED.md).
+
 The separate cost-eligible and cost-blocked practice tracks introduced in V11.9 remain included. Both learn actual net returns, including losses and break-even outcomes, only after closure. The forecast panel separates their results. See [that earlier coverage study](PRACTICE_TRACKS_RESEARCH.md).
 
 V11.7 entry-error margins and the separate conditional-selection experiment remain included. That experiment cannot control trading. [Its earlier paired replays](ENTRY_LEARNING_RESEARCH.md) showed no final-period profit improvement.

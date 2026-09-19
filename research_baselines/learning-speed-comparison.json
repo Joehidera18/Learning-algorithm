@@ -1,0 +1,160 @@
+{
+  "baseline_remote_commit": "46d22a8b0eeb0ea32499d4860d54efc196ef64c2",
+  "baseline_tree": "61a549c598f488f97716085be4de39845d69838d",
+  "final_lab_source_sha256": "2cac57102f0ccab81a313ccb513f4424c3539115cb096ac1a5919b083d7a0873",
+  "method": "Fresh sequential processes; no profiler or competing test workload during these four recorded runs. Same inputs, settings and comparisons per pair. Only report creation time is excluded from output identity. One paired timing per workload is not a server-capacity guarantee.",
+  "excluded_timings": "The initial profiler, a preliminary baseline and an interrupted overlapping optimized attempt are not used in these timing comparisons.",
+  "profile": {
+    "candles": 20000,
+    "workflow": "primary only, last actual XRP candles",
+    "profiled_seconds": 27.793,
+    "function_calls": 91338346,
+    "simulate_cumulative_seconds": 23.715,
+    "rule_wrapper_calls": 2220112,
+    "deepcopy_cumulative_seconds": 1.51
+  },
+  "pairs": [
+    {
+      "before": {
+        "source_code_sha256": "7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27",
+        "python": "3.12.14",
+        "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+        "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+        "candles": 105062,
+        "symbol": "XRP-USD",
+        "interval": "15m",
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "primary_only": false,
+        "last_candles": null,
+        "report_sha256_without_created_at": "fbbcda5eb834c08be539ee72db5ce94609f6caee13daf12d26857792b220a946",
+        "model_sha256": "7dbf54a0c57215448e504b9c1f56688b28d519f3cb3f79aa0eb7fea2938ab32f",
+        "runtime_seconds": 123.5035241859996,
+        "cpu_seconds": 123.492320835,
+        "peak_replay_rss_mib": 260.25,
+        "observations": 13832,
+        "historical_examples": 11308,
+        "net_pnl": -12.749657329177012,
+        "account_trades": 6,
+        "higher_cost_net_pnl": 0.0,
+        "qualified": false,
+        "scope": "Local CPU replay only; excludes candle downloading, output serialization and hosted load. Exact report digest includes all forecasts, model weights, fees, account paths, diagnostic comparisons and qualification decisions. Creation time is the only excluded field. Recorded data is reviewed research, not fresh performance evidence."
+      },
+      "after": {
+        "source_code_sha256": "2cac57102f0ccab81a313ccb513f4424c3539115cb096ac1a5919b083d7a0873",
+        "python": "3.12.14",
+        "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+        "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+        "candles": 105062,
+        "symbol": "XRP-USD",
+        "interval": "15m",
+        "cost_signature": {
+          "decision_interval": "15m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "primary_only": false,
+        "last_candles": null,
+        "report_sha256_without_created_at": "fbbcda5eb834c08be539ee72db5ce94609f6caee13daf12d26857792b220a946",
+        "model_sha256": "7dbf54a0c57215448e504b9c1f56688b28d519f3cb3f79aa0eb7fea2938ab32f",
+        "runtime_seconds": 87.39176449499973,
+        "cpu_seconds": 87.375017618,
+        "peak_replay_rss_mib": 265.45703125,
+        "observations": 13832,
+        "historical_examples": 11308,
+        "net_pnl": -12.749657329177012,
+        "account_trades": 6,
+        "higher_cost_net_pnl": 0.0,
+        "qualified": false,
+        "scope": "Local CPU replay only; excludes candle downloading, output serialization and hosted load. Exact report digest includes all forecasts, model weights, fees, account paths, diagnostic comparisons and qualification decisions. Creation time is the only excluded field. Recorded data is reviewed research, not fresh performance evidence.",
+        "comparison": {
+          "identical_report_except_created_at": true,
+          "baseline_source_code_sha256": "7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27",
+          "baseline_seconds": 123.5035241859996,
+          "time_reduction_pct": 29.239456872999504,
+          "speed_multiple": 1.4132169650043633
+        }
+      }
+    },
+    {
+      "before": {
+        "source_code_sha256": "7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27",
+        "python": "3.12.14",
+        "bundle_sha256": "45505dce3a68adb5865613edb0fbff05880ba4736de36415ca4d875a0e38d77d",
+        "data_sha256": "ff420eb50b909af58b095e6b1c33bb8e8eee954f93d34ec912f64f0ccb80be66",
+        "candles": 104966,
+        "symbol": "LTC-USD",
+        "interval": "5m",
+        "cost_signature": {
+          "decision_interval": "5m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "primary_only": true,
+        "last_candles": null,
+        "report_sha256_without_created_at": "d68903c5ab46fc137eb1e4299682b30ed8ed7d71f2c0a98198b325e5be7897e8",
+        "model_sha256": "93ac92a31164ae89661468f0220cd0d9ed5d13ec98ab7513680aff6f166d29eb",
+        "runtime_seconds": 40.740393404001225,
+        "cpu_seconds": 40.735338893,
+        "peak_replay_rss_mib": 246.41796875,
+        "observations": 11461,
+        "historical_examples": 8956,
+        "net_pnl": 0.0,
+        "account_trades": 0,
+        "higher_cost_net_pnl": 0.0,
+        "qualified": false,
+        "scope": "Local CPU replay only; excludes candle downloading, output serialization and hosted load. Exact report digest includes all forecasts, model weights, fees, account paths, diagnostic comparisons and qualification decisions. Creation time is the only excluded field. Recorded data is reviewed research, not fresh performance evidence."
+      },
+      "after": {
+        "source_code_sha256": "2cac57102f0ccab81a313ccb513f4424c3539115cb096ac1a5919b083d7a0873",
+        "python": "3.12.14",
+        "bundle_sha256": "45505dce3a68adb5865613edb0fbff05880ba4736de36415ca4d875a0e38d77d",
+        "data_sha256": "ff420eb50b909af58b095e6b1c33bb8e8eee954f93d34ec912f64f0ccb80be66",
+        "candles": 104966,
+        "symbol": "LTC-USD",
+        "interval": "5m",
+        "cost_signature": {
+          "decision_interval": "5m",
+          "fee_rate": 0.004,
+          "slippage_rate": 0.0005,
+          "risk_per_trade": 0.0075,
+          "max_notional_fraction": 0.3,
+          "daily_loss_limit": 0.03
+        },
+        "primary_only": true,
+        "last_candles": null,
+        "report_sha256_without_created_at": "d68903c5ab46fc137eb1e4299682b30ed8ed7d71f2c0a98198b325e5be7897e8",
+        "model_sha256": "93ac92a31164ae89661468f0220cd0d9ed5d13ec98ab7513680aff6f166d29eb",
+        "runtime_seconds": 29.58622536599978,
+        "cpu_seconds": 29.584207068,
+        "peak_replay_rss_mib": 244.8125,
+        "observations": 11461,
+        "historical_examples": 8956,
+        "net_pnl": 0.0,
+        "account_trades": 0,
+        "higher_cost_net_pnl": 0.0,
+        "qualified": false,
+        "scope": "Local CPU replay only; excludes candle downloading, output serialization and hosted load. Exact report digest includes all forecasts, model weights, fees, account paths, diagnostic comparisons and qualification decisions. Creation time is the only excluded field. Recorded data is reviewed research, not fresh performance evidence.",
+        "comparison": {
+          "identical_report_except_created_at": true,
+          "baseline_source_code_sha256": "7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27",
+          "baseline_seconds": 40.740393404001225,
+          "time_reduction_pct": 27.37864587460258,
+          "speed_multiple": 1.3770054442571682
+        }
+      }
+    }
+  ]
+}

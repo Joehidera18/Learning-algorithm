@@ -1,3 +1,13 @@
+# 19 September 2026 V11.11 replay speed
+
+**314 Python tests passed in 102.659 seconds** on the optimized implementation. Compilation and diff whitespace checks passed. The additional regression compares full-retention and streaming learning through requested daily loss halts, including identical entries, resolved trades and learning events. Existing tests cover stopped and gapped positions, exact time exits, full fees, cancellation, checkpoint/restart equality, one-time feedback, model isolation and ordinary/higher-cost confirmation seeds.
+
+Two before/after pairs run in separate sequential processes. Full XRP 15m practice with all three policy variants falls from **123.504 to 87.392 seconds (29.24% less time)**. The primary LTC 5m workflow falls from **40.740 to 29.586 seconds (27.38% less time)**. Each complete report has the same SHA-256 after removing only its top-level creation timestamp, and each final model hash also matches. These are timing gains, not new trading-performance evidence; XRP still loses $12.749657 and LTC still selects zero primary account trades.
+
+Peak RSS is 260.25 → 265.46 MiB for XRP and 246.42 → 244.81 MiB for LTC, so lower memory use is not claimed. The measurements exclude downloads, report serialization and hosted website traffic. One timing pair per workload does not guarantee the same benefit on every server. Preliminary profiler/overlapping timings are excluded.
+
+The optimization removes repeated rule imports, unused streaming bookkeeping and discarded snapshots while retaining all consumed account data and confirmation seeds. Model/report versions remain compatible. The measured and tested lab-source SHA-256 is `2cac57102f0ccab81a313ccb513f4424c3539115cb096ac1a5919b083d7a0873`; the preceding PR #14 source is `7a8ed7e5d6ceb51048d9b15c982ef8a5eaddb72273fcae69cede17a193221b27`. See [the speed study](LEARNING_SPEED.md) and [exact records](research_baselines/learning-speed-comparison.json). The code is prepared for review; no merge, deployment or exchange order was performed.
+
 # 19 September 2026 V11.11 eligible evidence and market context
 
 **313 Python tests passed in 362.228 seconds on the final implementation.** Both actual JavaScript mocked-DOM checks passed, covering evidence counts, positive eligible forecast errors, failure scores, Bitcoin context, experiment records, financial totals, escaping and detail loading. Python compilation, both JavaScript syntax checks and diff whitespace checks passed. The visible version label is V11.11.
