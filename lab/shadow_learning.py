@@ -38,7 +38,7 @@ class HistoricalFeedback:
                     settings["risk_per_trade"], policy.fee_rate, policy.slippage_rate, params,
                     cancelled=cancelled, training_examples=True, bar_interval_ms=step,
                     on_resolved=resolved, on_entry=opened, practice_cost_mode=lane,
-                    on_training_event=self._training_event)
+                    on_training_event=self._training_event, stream_only=True)
                 try:
                     self.runs.append([next(run), run])
                 except StopIteration:

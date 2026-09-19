@@ -1,5 +1,7 @@
 # Broader market and timeframe studies — 19 September 2026
 
+This note records the earlier V11.10 source checkpoint. The later [predeployment review](PREDEPLOY_REVIEW.md) corrects time-exit labels and adds new pinned LTC comparisons. The eight studies below retain their original source hash and results.
+
 The prior dashboard requested three years on one configured timeframe for thirteen suggested coins. It could accept twenty markets but keyed each study and checkpoint only by coin. Simply looping through additional timeframes would overwrite saved reports, reset another timeframe's checkpoint and potentially replace the model used by the forward account.
 
 ## Implemented coverage

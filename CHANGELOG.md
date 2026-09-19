@@ -1,3 +1,11 @@
+# Predeployment corrections to V11.10 — 19 September 2026 UTC
+
+- Close time-limited historical positions at the intended candle close, including when that close ends the test window. Preserve the exit-bar identifier and record the known close time for accurate holding-duration reviews. Advance the policy to v14 and report to 16 so prior labels/models are not reused.
+- Require a current review of each monitored coin/timeframe, including its lookback, deadline and qualifying profile. A secondary-only study cannot defer the primary review.
+- Release unused feature arrays and stream background practice outcomes without retaining unused candidate ledgers/equity curves. Full-cost labels, cooldowns, forecasts and account ledgers remain intact.
+- Send compact dashboard summaries and fetch one detailed learning review on request. Authenticate the report route, match coin/timeframe/fingerprint, reject stale responses, and retain complete exports and reconciled finances.
+- Add pinned same-input LTC replays, memory measurements and an isolated real-Gunicorn startup/restart check. See PREDEPLOY_REVIEW.md for results and the 512 MB hosting limitation. No deployment or orders.
+
 # Broader market studies and continuous confirmation — 19 September 2026 UTC
 
 - Add 30 suggested markets, up to 60 custom tickers, separate 5m/15m/1h/6h studies and longer history controls. Default dashboard plan: 15m/1h/6h with five years requested. Explicit interval caps: one/five/eight/eight years.

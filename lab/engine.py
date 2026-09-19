@@ -12,7 +12,7 @@ from .counterfactual import forward_outcome,summarize_counterfactuals
 from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_vote
 from .structure import build_structure_features
 
-ENGINE_VERSION="market-structure-v11.10-continuous-confirmation"
+ENGINE_VERSION="market-structure-v11.10-corrected-deadlines"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={
@@ -146,13 +146,14 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
     qv=[r.get("quote_volume",r.get("volume",0.0)*r["close"]) for r in rows]
 
     e8=_ema(c,8);e20=_ema(c,20);e50=_ema(c,50);e200=_ema(c,200)
-    ma20,sd20=_rolling_mean_std(c,20)
+    ma20,sd20=(None,None) if simple_only else _rolling_mean_std(c,20)
     typical=[(h[i]+l[i]+c[i])/3 for i in range(n)]
     pv_prefix=[0.0];v_prefix=[0.0]
     for i in range(n):
         vv=max(qv[i],0.0)
         pv_prefix.append(pv_prefix[-1]+typical[i]*vv)
         v_prefix.append(v_prefix[-1]+vv)
+    del typical
     def rolling_vwap(i,window=48):
         a=max(0,i-window+1);den=v_prefix[i+1]-v_prefix[a]
         return (pv_prefix[i+1]-pv_prefix[a])/den if den>0 else c[i]
@@ -174,6 +175,7 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
         if len(tq)==14:atr[i]=ts/14
     atr_fill=[x or 0.0 for x in atr]
     atr50,_=_rolling_mean_std(atr_fill,50)
+    del atr_fill, _
 
     # Volume z-score 60
     vz=[0.0]*n;vq=deque();vs=vss=0.0
@@ -193,6 +195,7 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
         signed[i]=qv[i]*max(-1,min(1,body/rng))
     sprefix=[0.0]
     for x in signed:sprefix.append(sprefix[-1]+x)
+    del signed
 
     # OBV slope proxy
     obv=[0.0]*n
@@ -206,6 +209,7 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
     ranges=[h[i]-l[i] for i in range(n)]
     rp=[0.0]
     for x in ranges:rp.append(rp[-1]+x)
+    del ranges
     def ravg(a,b):
         a=max(0,a)
         if b<=a:return None
@@ -268,7 +272,7 @@ def build_feature_cache(rows,interval,simple_only=False,daily_rows=None):
         if i>=one_h:votes += 1 if c[i]>c[i-one_h] else -1
         if i>=four_h:votes += 1 if c[i]>c[i-four_h] else -1
         mtf=votes/2
-        bbz=(c[i]-ma20[i])/max(sd20[i] or 0,1e-9) if ma20[i] is not None else 0
+        bbz=(c[i]-ma20[i])/max(sd20[i] or 0,1e-9) if ma20 is not None and ma20[i] is not None else 0
         signed20=(sprefix[i+1]-sprefix[max(0,i-19)])/max(sum(qv[max(0,i-19):i+1]),1e-9)
         obv_slope=(obv[i]-obv[i-20])/max(abs(obv[i-20]),sum(qv[max(0,i-20):i+1]),1e-9)
         atr_regime=a/max(atr50[i] or a,1e-9)

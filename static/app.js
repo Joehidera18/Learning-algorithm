@@ -4,6 +4,7 @@
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
   let practiceSelectionLoaded = false;
+  let learningDetail = null, learningDetailLoading = null, learningDetailRequest = 0;
   const practiceIntervals=["5m","15m","1h","6h"];
   const financeData = {paper:null,coinbase:null,history:null};
   const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
@@ -434,8 +435,25 @@
       '<p class="footnote">Research only. This experiment cannot control trading or qualify a market. '+
       escape((study.rejection_reasons || []).join(" "))+'</p></details>';
   }
+  function studyDetailKey(r) { return [r.symbol,r.interval || "15m",r.fingerprint || ""].join("|"); }
+  async function showLearningDetails(symbol, interval, fingerprint) {
+    const key=studyDetailKey({symbol,interval,fingerprint}), request=++learningDetailRequest;
+    if (learningDetail && learningDetail.key===key) {
+      learningDetail=null; learningDetailLoading=null; renderLearning(learningState); return;
+    }
+    learningDetail=null; learningDetailLoading=key; renderLearning(learningState);
+    try {
+      const report=await api("/api/learning/report?symbol="+encodeURIComponent(symbol)+
+        "&interval="+encodeURIComponent(interval)+"&fingerprint="+encodeURIComponent(fingerprint || ""));
+      if (request===learningDetailRequest && (learningState.results || []).some(r=>studyDetailKey(r)===key))
+        learningDetail={key,report};
+    } finally {
+      if (request===learningDetailRequest) { learningDetailLoading=null; renderLearning(learningState); }
+    }
+  }
   function renderLearning(s) {
     learningState=s;
+    if (learningDetail && !(s.results || []).some(r=>studyDetailKey(r)===learningDetail.key)) learningDetail=null;
     updateFinances("history",s);
     if (!practiceSelectionLoaded) {
       const saved=s.practice_symbols || s.default_practice_symbols;
@@ -466,6 +484,13 @@
     $("startBtn").textContent=(s.results || []).length ? "Resume learning & paper trading" : "Start learning & paper trading";
     $("stopBtn").disabled=!s.enabled && !s.paper_running && s.phase!=="stopping";
     $("learningResults").innerHTML=(s.results || []).length ? s.results.map(function (r) {
+      const detailKey=studyDetailKey(r);
+      const expanded=learningDetail && learningDetail.key===detailKey;
+      const full=expanded ? learningDetail.report : r;
+      const detailButton=r.report_summary && r.details_available ? '<button class="small" data-learning-review="'+escape(r.symbol)+
+        '" data-interval="'+escape(r.interval || "15m")+'" data-fingerprint="'+escape(r.fingerprint || "")+'"'+
+        (learningDetailLoading===detailKey ? ' disabled' : '')+'>'+
+        (learningDetailLoading===detailKey ? 'Loading review…' : expanded ? 'Hide detailed review' : 'Open detailed learning review')+'</button>' : '';
       const h=r.holdout || {}, stressed=r.holdout_stressed || {}, d=r.daily_goal || {};
       const stale=(s.current_policy_version && r.policy_version!==s.current_policy_version) ||
         (s.current_report_version && r.learning_report_version!==s.current_report_version);
@@ -481,7 +506,8 @@
           ((r.evaluation || {}).reuses_reviewed_history ? 'Reused-history test: ' : 'Final test: ')+money(h.net_pnl)+' after costs across '+num(h.trades,0)+
           ' trades. At higher costs: '+money(stressed.net_pnl)+'. Average realized per day: '+money(d.mean_net_per_day)+'.')+
         '</p>'+coverageText+'<p class="footnote">'+escape((r.rejection_reasons || []).join(" "))+'</p>'+
-        renderCostLearning(r)+renderPredictionAudit(r)+renderTradeReviews(r)+renderLearningDiagnostics(r)+renderLearningComparison(r)+
+        detailButton+(!r.report_summary || expanded ? renderCostLearning(full)+renderPredictionAudit(full)+
+          renderTradeReviews(full)+renderLearningDiagnostics(full)+renderLearningComparison(full) : '')+
         (r.data_quality ? '<button class="small" data-learning-data="'+escape(r.symbol)+'" data-interval="'+escape(r.interval)+'">Download candles &amp; report</button>' : '')+'</div>';
     }).join("")+'<p class="footnote">Each coin/timeframe test starts with $500. Studies may overlap. These results are not a combined account return or a profit forecast.</p>' :
       '<p class="empty">No completed learning run yet.</p>';
@@ -599,6 +625,12 @@
   bind("researchExport",function () { return download("/api/research/export","research-results.json"); });
   bind("learningExport",function () { return download("/api/learning/export","learning-results.json"); });
   $("learningResults").addEventListener("click",async function (event) {
+    const review=event.target.closest("[data-learning-review]");
+    if (review) {
+      try { await showLearningDetails(review.dataset.learningReview,review.dataset.interval,review.dataset.fingerprint); }
+      catch (e) { notice(e.message,true); }
+      return;
+    }
     const button=event.target.closest("[data-learning-data]"); if (!button) return;
     const symbol=button.dataset.learningData, interval=button.dataset.interval;
     button.disabled=true;

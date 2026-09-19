@@ -434,7 +434,10 @@ class AutomaticWorkflowTests(unittest.TestCase):
         a=self.service.autolearn; settings=self.service.agent.settings
         a.state.update(tested_costs=cost_signature(settings),tested_engine=ENGINE_VERSION,
             tested_policy=POLICY_VERSION,tested_report_version=LEARNING_REPORT_VERSION,
-            tested_symbols=["BTC-USD","ETH-USD"],next_review_at=time.time()+86400)
+            tested_symbols=["BTC-USD","ETH-USD"],next_review_at=time.time()+86400,
+            results=[{"symbol":s,"interval":settings["decision_interval"],"validated":False,
+                "review_scope":a._scope(settings),"next_review_at":time.time()+86400}
+                for s in ("BTC-USD","ETH-USD")])
         self.assertFalse(a._needs_review(["ETH-USD","BTC-USD"],settings))
         self.assertTrue(a._needs_review(["BTC-USD","ETH-USD"],dict(settings,fee_rate=.002)))
         for key,value in (("tested_engine","old"),("tested_policy","old"),

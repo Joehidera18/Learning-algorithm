@@ -22,7 +22,7 @@ from .chronological_learning import ChronologicalTrainer
 from .forecast_calibration import summarize as summarize_calibration
 from .practice import PRACTICE_LANES, merge_counts, outcome_totals
 
-LEARNING_REPORT_VERSION = 15
+LEARNING_REPORT_VERSION = 16
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None):
@@ -307,6 +307,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "test_start_ts":rows[holdout_start]["ts"], "test_end_ts":rows[-1]["ts"]+step,
             "daily_context_rule":"Only completed UTC days, joined at each signal close. 21 consecutive daily candles required; intraday indicators restart after intraday gaps.",
             "decision_rule":"Use only information available at the signal close; enter no earlier than the next candle.",
+            "time_exit_rule":"Evaluate time limits at the execution candle close. Fixed learning deadlines align with supported intervals; other deadlines use the first available close at or after the limit. Intrabar stop/target ordering remains stop-first.",
             "feedback_rule":"Learn a trade result only after its exit candle closes."},
         "evaluation":{"reviewed_through_ts":boundary, "reuses_reviewed_history":reused,
             "basis":"reused_research" if reused else "chronological_test",

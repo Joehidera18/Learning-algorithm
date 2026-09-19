@@ -20,6 +20,7 @@ from .paper_store import db_connect, load_state, save_state
 from .research import ResearchManager, cost_signature
 from .evaluation import reviewed_boundary
 from .finances import historical_trade_totals
+from .study_reports import compact_report
 from .study_plan import (HISTORY_DAYS, MAX_PRACTICE_MARKETS, DEFAULT_PRACTICE_SYMBOLS,
     DEFAULT_PRACTICE_INTERVALS, INTERVAL_HISTORY_LIMITS, normalize_plan, study_days,
     study_key, unique_market_hours, history_coverage)
@@ -50,14 +51,17 @@ class AutoLearner:
     def _download_progress(self, **patch):
         self._update(phase="downloading", message=patch.get("message", "Collecting market history"))
 
-    def status(self):
+    def status(self, compact=False):
         with self.lock:
-            result = copy.deepcopy(self.state)
+            result = copy.deepcopy({k:v for k,v in self.state.items() if k != "results"})
+            originals = list(self.state.get("results", []))
+            result["results"] = ([compact_report(r) for r in originals] if compact
+                else copy.deepcopy(originals))
         settings = dict(self.agent.settings)
         reports = result.get("results", [])
         active, updates = [], 0
-        for report in reports:
-            report["trade_finances"] = self._report_finances(report)
+        for report, original in zip(reports, originals):
+            report["trade_finances"] = self._report_finances(original)
             profile = (approved_profile(self.db_path, report["symbol"], settings)
                 if report.get("interval", "15m") == settings["decision_interval"]
                 and report["symbol"] not in active else None)
@@ -81,6 +85,22 @@ class AutoLearner:
             paper_running=self.agent.runtime["running"],
             current_policy_version=POLICY_VERSION,
             current_report_version=LEARNING_REPORT_VERSION)
+        return result
+
+    def report_details(self, symbol, interval, fingerprint=None):
+        with self.lock:
+            report = next((r for r in self.state.get("results", [])
+                if study_key(r) == (symbol, interval)), None)
+            if report is None:
+                raise ValueError("No saved study matches this coin and timeframe")
+            report = dict(report)
+        if (fingerprint or None) != (report.get("fingerprint") or None):
+            raise ValueError("This study changed; refresh its summary before opening the review")
+        full = (load_state(self.db_path, "learning_result_"+report["fingerprint"], report)
+            if report.get("fingerprint") else report)
+        result = copy.deepcopy({k:v for k,v in full.items() if k not in ("model","holdout_trades")})
+        result["trade_finances"] = self._report_finances(full)
+        result["report_summary"] = False
         return result
 
     def _report_finances(self, report):
@@ -371,12 +391,26 @@ class AutoLearner:
 
     def _needs_review(self, symbols, settings):
         with self.lock:
-            return (self.state.get("tested_costs") != cost_signature(settings) or
+            stale = (self.state.get("tested_costs") != cost_signature(settings) or
                 self.state.get("tested_engine") != ENGINE_VERSION or
                 self.state.get("tested_policy") != POLICY_VERSION or
                 self.state.get("tested_report_version") != LEARNING_REPORT_VERSION or
                 set(self.state.get("tested_symbols", [])) != set(symbols) or
                 time.time() >= self.state.get("next_review_at", 0))
+            days = self.state.get("practice_history_days", HISTORY_DAYS)
+            reports = {study_key(r):dict(r) for r in self.state.get("results", [])}
+        if stale:
+            return True
+        scope = self._scope(settings, days)
+        for symbol in symbols:
+            report = reports.get((symbol, settings["decision_interval"]), {})
+            # A different timeframe's completed study cannot satisfy the
+            # monitored model's review, even if the global queue is up to date.
+            if (report.get("review_scope") != scope or
+                    time.time() >= report.get("next_review_at", 0) or
+                    (report.get("validated") and not approved_profile(self.db_path, symbol, settings))):
+                return True
+        return False
 
     def _run(self):
         try:
@@ -399,7 +433,7 @@ class AutoLearner:
                     raise RuntimeError("No Coinbase USD markets are available")
                 if self._needs_review(symbols, settings):
                     self.study(symbols, settings)
-                active = self.status()["active_markets"]
+                active = self.status(compact=True)["active_markets"]
                 self._update(phase="watching" if active else "waiting",
                     message="Learning from completed paper trades and watching for qualified setups." if active else
                     "No market has passed yet. Historical learning will retry with new data within a day; see each market's results.")

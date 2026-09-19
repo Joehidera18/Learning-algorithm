@@ -17,7 +17,7 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
 const original=process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2],"utf8")) :
   {results:[],historical_examples:0,phase:"completed",message:"Fixture"};
@@ -106,9 +106,36 @@ context.testUI.renderJournal([{product_id:"BTC-USD",family:"fixture",status:"CLO
 assert.ok(element("journalTable").innerHTML.includes("At-close review"));
 assert.ok(element("journalTable").innerHTML.includes("Entry estimate 0.750R; realized -0.050R"));
 assert.ok(!element("journalTable").innerHTML.includes("<img"));
-context.testUI.download("/api/learning/data?symbol=BTC-USD&interval=15m","test.zip").then(()=>{
+(async function () {
+  const report={...current.results[0],symbol:"BTC-USD",fingerprint:"saved15m"};
+  const summary={symbol:report.symbol,interval:report.interval,fingerprint:report.fingerprint,
+    holdout:report.holdout,report_summary:true,details_available:true};
+  context.testUI.renderLearning({...current,results:[summary]});
+  assert.match(element("learningResults").innerHTML,/Open detailed learning review/);
+  assert.ok(!element("learningResults").innerHTML.includes("Loss and break-even study"));
+  context.fetch=async function (url) {
+    assert.match(url,/\/api\/learning\/report\?symbol=BTC-USD&interval=15m&fingerprint=saved15m/);
+    return {ok:true,json:async()=>report};
+  };
+  await context.testUI.showLearningDetails("BTC-USD","15m","saved15m");
+  assert.match(element("learningResults").innerHTML,/Hide detailed review/);
+  assert.match(element("learningResults").innerHTML,/Loss and break-even study/);
+  await context.testUI.showLearningDetails("BTC-USD","15m","saved15m");
+  assert.ok(!element("learningResults").innerHTML.includes("Loss and break-even study"));
+  let resolveOld;
+  context.fetch=()=>new Promise(resolve=>{resolveOld=resolve;});
+  const pending=context.testUI.showLearningDetails("BTC-USD","15m","saved15m");
+  context.testUI.renderLearning({...current,results:[{...summary,fingerprint:"new15m"}]});
+  resolveOld({ok:true,json:async()=>report});
+  await pending;
+  assert.ok(!element("learningResults").innerHTML.includes("Loss and break-even study"));
+  context.fetch=async()=>{throw new Error("fixture offline");};
+  await assert.rejects(context.testUI.showLearningDetails("BTC-USD","15m","new15m"),/fixture offline/);
+  assert.ok(!element("learningResults").innerHTML.includes("Loading review"));
+  context.fetch=async()=>({ok:true,blob:async()=>({})});
+  await context.testUI.download("/api/learning/data?symbol=BTC-USD&interval=15m","test.zip");
   assert.equal(element("download-anchor").clicked,true);
   assert.equal(element("download-anchor").attached,false);
   assert.ok(timers.some(t=>t.delay>=60000));
-  console.log("Dashboard checks passed: supplied report, new counts, cost attribution, confirmation, escaping and download handoff.");
-}).catch(error=>{console.error(error);process.exitCode=1;});
+  console.log("Dashboard checks passed: summaries, on-demand detail, stale-response rejection, reports, costs, escaping and download handoff.");
+})().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,4 +1,20 @@
-# 19 September 2026 coverage and confirmation verification
+# 19 September 2026 final predeployment verification
+
+**295 Python tests passed in 296.228 seconds on the final source.** Both actual JavaScript mocked-DOM checks passed, including compact summaries, requested detail loading, stale-response rejection, failed-request recovery, financial totals and escaping. Python compilation, both JavaScript syntax checks and diff whitespace checks passed.
+
+New regressions reproduce and verify corrected time-exit deadlines on 5m/15m/1h/6h bars, full costs, final-window closure, post-deadline price isolation and stop-first ordering. Scheduling checks require each primary timeframe's own current scope, date and profile. Streaming-practice comparisons preserve all outcomes, forecasts, cooldowns, audits and models. Summary/detail tests retain exact exports and finances while enforcing authentication and study identity. Feature values match the full builder and the large capacity fixture's before/after hash.
+
+The real Gunicorn entry point passed a local HTTP startup/restart smoke test using an isolated temporary database. It served health/assets, protected private APIs, rejected invalid study plans and six-hour trading, retained settings after restart and left runners stopped. All declared dependencies installed successfully, including Gunicorn 23.0.0 and the pinned Coinbase SDK 1.8.4. This does not establish hosted/mobile behavior or real fills.
+
+Six pinned LTC replays compare the draft baseline and corrected execution on identical supplied 15m/1h/6h inputs, daily candles, costs and reviewed boundaries. Learned observations change from 15,118 to 15,165 at 15m, 4,442 to 4,490 at 1h and 580 to 618 at 6h. Every final account selects zero trades for $0 at ordinary and higher costs, and every report rejects qualification. More resolved practice examples do not establish profit or independent evidence.
+
+The synthetic five-year feature-capacity check falls from 454.0 to 412.4 MiB peak RSS with identical feature values. The complete real LTC 15m replay falls from 276.4 to 253.1 MiB. A sampled dashboard summary falls from 876,900 to 3,420 bytes; 90 such summaries project 0.29 MiB instead of 75.26 MiB. The 512 MB service is still not established as sufficient for the full five-year workload. See [the review](PREDEPLOY_REVIEW.md), [exact comparison](research_baselines/predeploy-review.json) and [hosting guidance](WEBSITE_SETUP.md).
+
+One additional run with repeating `faulthandler` traceback collection ended in a native interpreter crash while dumping a background thread. That run is excluded from passing counts; its cause was not established. Normal final discovery completed all 295 tests, and the real Gunicorn smoke test passed. No hosted deployment was performed to investigate runtime behavior there.
+
+The final lab-source SHA-256 is `2c71c8cc017116de9b1fd9a6bcbede281938c789e46a8bbd07e3217277140676`. The paired replay source is `c322b6b433682559c0ea304238acfc02dd758788a6e32cc20f61b7c1cf01fe82`; only compact report delivery in `autolearn.py`, `service.py` and new `study_reports.py` changed afterward. The replayed learning/execution modules are identical. No new external candles, exchange orders, merge or deployment were performed.
+
+# Earlier 19 September 2026 coverage and confirmation checkpoint
 
 The 282-test Python suite passed in 327.167 seconds. After the final restriction keeping six-hour studies research-only, all 14 focused market-coverage tests passed in 1.577 seconds, including a new check that six-hour results cannot install a forward profile even with matching settings. The final revision contains 283 tests in total; the full-suite run preceded that last added restriction test. The earlier 281-test suite also passed. No production risk limits or test deadlines were loosened.
 

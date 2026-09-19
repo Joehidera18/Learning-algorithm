@@ -93,7 +93,10 @@ class Service:
                     settings = self.agent.configure({"fee_rate":float(snapshot["taker_fee_rate"])})
                     return 200,{"ok":True,"settings":settings},{}
             if path == "/api/learning/status" and method == "GET":
-                return 200, self.autolearn.status(), {}
+                return 200, self.autolearn.status(compact=True), {}
+            if path == "/api/learning/report" and method == "GET":
+                return 200, self.autolearn.report_details(query.get("symbol"),
+                    query.get("interval"), query.get("fingerprint")), {}
             if path == "/api/learning/start" and method == "POST":
                 if set(body)-{"fee_rate"}:
                     raise ValueError("Automatic start accepts only the fee_rate setting")

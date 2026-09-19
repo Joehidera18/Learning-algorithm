@@ -91,6 +91,30 @@ class MultiStudyTests(unittest.TestCase):
             'data_selection':{'segments':[{'start_ts':rows[0]['ts'], 'end_ts':rows[-1]['ts']+step}]},
             'replay':{'test_end_ts':rows[-1]['ts']+step}, 'rejection_reasons':['Fixture only']}
 
+    def study_fixture(self, intervals):
+        with patch.object(self.a.downloader, '_history', side_effect=self.history), patch(
+                'lab.autolearn.learn_history', side_effect=self.learned):
+            self.a.study(['BTC-USD'], self.settings, intervals=intervals)
+
+    def test_secondary_only_study_cannot_postpone_primary_review(self):
+        self.study_fixture(['6h'])
+        self.assertTrue(self.a._needs_review(['BTC-USD'], self.settings))
+
+    def test_primary_review_checks_its_report_scope_deadline_and_profile(self):
+        self.study_fixture(['15m','6h'])
+        primary, secondary = self.a.state['results']
+        self.assertFalse(self.a._needs_review(['BTC-USD'], self.settings))
+        for changed in ({'review_scope':'old'}, {'next_review_at':0}, {'validated':True}):
+            with self.subTest(changed=changed), patch.dict(primary, changed):
+                self.assertTrue(self.a._needs_review(['BTC-USD'], self.settings))
+        with patch.dict(primary, {'validated':True}):
+            install(self.a.db_path, self.settings)
+            self.assertFalse(self.a._needs_review(['BTC-USD'], self.settings))
+        with patch.dict(self.a.state, {'results':[secondary]}):
+            self.assertTrue(self.a._needs_review(['BTC-USD'], self.settings))
+        with patch.dict(self.a.state, {'practice_history_days':2920}):
+            self.assertTrue(self.a._needs_review(['BTC-USD'], self.settings))
+
     def test_api_saves_selected_plan_and_rejects_invalid_plan_before_fee_change(self):
         for payload in ({'intervals':[]}, {'history_days':2921}, {'intervals':['1h'],'history_days':True}):
             code, _, _ = self.service.handle('POST','/api/learning/practice', body={

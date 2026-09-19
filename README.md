@@ -10,6 +10,8 @@ V11.7 entry-error margins and the separate conditional-selection experiment rema
 
 The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
 
+The predeployment review also corrects time-based exits that ran one candle late, checks each monitored timeframe's own review date, reduces replay memory, and loads detailed dashboard reviews on demand. The corrected policy is v14 and report format is 16; previous models must be rebuilt. See [the findings and measured limits](PREDEPLOY_REVIEW.md).
+
 ## Start here
 
 1. Open the app locally or follow [WEBSITE_SETUP.md](WEBSITE_SETUP.md) to put it on Render.

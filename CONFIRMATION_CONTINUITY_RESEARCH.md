@@ -1,5 +1,7 @@
 # V11.10: preserve learning across review dates
 
+This note records the original confirmation repair and its pinned results. The later [predeployment review](PREDEPLOY_REVIEW.md) additionally corrects time-exit labels; its new counts should not be substituted into the earlier continuity experiment.
+
 ## Reproduced defect
 
 The latest supplied V11.9 export is partial: 11 of 13 markets completed. Those markets contain 19 selected historical account trades (six winners, thirteen losers), $36.05 gained by winners and $48.74 lost by losers, for a net loss of $12.69 after costs. They are separate $500 simulations, not a pooled portfolio. The aggregate higher-cost result is -$16.86. Changing candle windows and models means the improvement from the preceding ordinary-cost snapshot is not a controlled treatment effect.
