@@ -1,0 +1,215 @@
+{
+  "source": "Fourteen reviewed uploads through learning-results 11.json; checkpoints can repeat prices.",
+  "partial_current_run": {
+    "completed_studies": 29,
+    "total_studies": 120
+  },
+  "baseline_commit": "24e21c77cacd4dba28885a55e0a216eb857c3e67",
+  "baseline_tree": "a27acc3ceae94b5ac60c808c2f296817d892c429",
+  "reviewed_reports": [
+    {
+      "file": "learning-results 16.json",
+      "sha256": "3e0925d46867029615eb3d873336fa99ea4acc352685bec3a3136b0f315b2e8b"
+    },
+    {
+      "file": "learning-results 17.json",
+      "sha256": "8256ee19af5b43a5e92a5cfda68fe6d43cb5c72e5282a7fd071f8c0fa3ba0baf"
+    },
+    {
+      "file": "learning-results 19.json",
+      "sha256": "d0cf78898b57c7274d43f6098240e90d3ac083e56edc39877aad0bdde21b9d1a"
+    },
+    {
+      "file": "learning-results 2.json",
+      "sha256": "f6a3a8594a3673a2a0a60978951e5040396ca5db001d12b11276d38b6b1c4524"
+    },
+    {
+      "file": "learning-results.json",
+      "sha256": "6d562f80e88734befa7901dca8014cefbbbae3f51c6e52e140eccaa4d32483fe"
+    },
+    {
+      "file": "learning-results 3(1).json",
+      "sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392"
+    },
+    {
+      "file": "learning-results 3.json",
+      "sha256": "4230273e7d0dcdd4d72d6a2c114f89012f76573e97a2a2d46508e8950293b392"
+    },
+    {
+      "file": "learning-results 4.json",
+      "sha256": "80f9ad9adea71d60761ba9ca278116b356614aeed438980ed406c4d4fcc8cbe9"
+    },
+    {
+      "file": "learning-results 5(1).json",
+      "sha256": "c0269111ae225d238824fa09834ae49dc64d51abe93be22ae12215a948f6014b"
+    },
+    {
+      "file": "learning-results 6(1).json",
+      "sha256": "a4a3ef7886a41bd37197d7b9d42ebe7d2bc2e90df507a78551024299d59116f5"
+    },
+    {
+      "file": "learning-results 7(1).json",
+      "sha256": "03acd98982a13eab74a5bf5abb54cfaa4b66c16f53c16467580d5be6658b55da"
+    },
+    {
+      "file": "learning-results 8.json",
+      "sha256": "353061f7bb42fc547aa50cc991456734ac4f9fbadd0fd1bae78aa3b2f2f07b51"
+    },
+    {
+      "file": "learning-results 10(1).json",
+      "sha256": "fb52c2ccb16fa7a235f82d35b2ea4c9f851fc06ab7c1597783f751079f1d7a01"
+    },
+    {
+      "file": "learning-results 11.json",
+      "sha256": "7fa9b32d176a359f3fb962c270c685b74654e3b34f5fa6122eb31a106d538ae7"
+    }
+  ],
+  "results": [
+    {
+      "symbol": "ADA-USD",
+      "reviewed_through_ts": 1789877700000,
+      "replay": {
+        "test_end_ts": 1789877700000
+      }
+    },
+    {
+      "symbol": "AVAX-USD",
+      "reviewed_through_ts": 1789794000000,
+      "replay": {
+        "test_end_ts": 1789794000000
+      }
+    },
+    {
+      "symbol": "BCH-USD",
+      "reviewed_through_ts": 1789725600000,
+      "replay": {
+        "test_end_ts": 1789725600000
+      }
+    },
+    {
+      "symbol": "BTC-USD",
+      "reviewed_through_ts": 1789871400000,
+      "replay": {
+        "test_end_ts": 1789871400000
+      }
+    },
+    {
+      "symbol": "DOGE-USD",
+      "reviewed_through_ts": 1789878600000,
+      "replay": {
+        "test_end_ts": 1789878600000
+      }
+    },
+    {
+      "symbol": "DOT-USD",
+      "reviewed_through_ts": 1789725600000,
+      "replay": {
+        "test_end_ts": 1789725600000
+      }
+    },
+    {
+      "symbol": "ETH-USD",
+      "reviewed_through_ts": 1789873200000,
+      "replay": {
+        "test_end_ts": 1789873200000
+      }
+    },
+    {
+      "symbol": "HBAR-USD",
+      "reviewed_through_ts": 1789874400000,
+      "replay": {
+        "test_end_ts": 1789874400000
+      }
+    },
+    {
+      "symbol": "LINK-USD",
+      "reviewed_through_ts": 1789794900000,
+      "replay": {
+        "test_end_ts": 1789794900000
+      }
+    },
+    {
+      "symbol": "LTC-USD",
+      "reviewed_through_ts": 1789796100000,
+      "replay": {
+        "test_end_ts": 1789796100000
+      }
+    },
+    {
+      "symbol": "SOL-USD",
+      "reviewed_through_ts": 1789873200000,
+      "replay": {
+        "test_end_ts": 1789873200000
+      }
+    },
+    {
+      "symbol": "XLM-USD",
+      "reviewed_through_ts": 1789876800000,
+      "replay": {
+        "test_end_ts": 1789876800000
+      }
+    },
+    {
+      "symbol": "XRP-USD",
+      "reviewed_through_ts": 1789875300000,
+      "replay": {
+        "test_end_ts": 1789875300000
+      }
+    }
+  ],
+  "markets": [
+    {
+      "symbol": "ADA-USD",
+      "reviewed_through_ts": 1789877700000
+    },
+    {
+      "symbol": "AVAX-USD",
+      "reviewed_through_ts": 1789794000000
+    },
+    {
+      "symbol": "BCH-USD",
+      "reviewed_through_ts": 1789725600000
+    },
+    {
+      "symbol": "BTC-USD",
+      "reviewed_through_ts": 1789871400000
+    },
+    {
+      "symbol": "DOGE-USD",
+      "reviewed_through_ts": 1789878600000
+    },
+    {
+      "symbol": "DOT-USD",
+      "reviewed_through_ts": 1789725600000
+    },
+    {
+      "symbol": "ETH-USD",
+      "reviewed_through_ts": 1789873200000
+    },
+    {
+      "symbol": "HBAR-USD",
+      "reviewed_through_ts": 1789874400000
+    },
+    {
+      "symbol": "LINK-USD",
+      "reviewed_through_ts": 1789794900000
+    },
+    {
+      "symbol": "LTC-USD",
+      "reviewed_through_ts": 1789796100000
+    },
+    {
+      "symbol": "SOL-USD",
+      "reviewed_through_ts": 1789873200000
+    },
+    {
+      "symbol": "XLM-USD",
+      "reviewed_through_ts": 1789876800000
+    },
+    {
+      "symbol": "XRP-USD",
+      "reviewed_through_ts": 1789875300000
+    }
+  ],
+  "scope": "Reviewed research only, not new qualification evidence. Source reports remain unchanged."
+}

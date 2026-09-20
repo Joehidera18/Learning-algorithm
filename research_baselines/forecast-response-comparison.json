@@ -1,0 +1,307 @@
+{
+  "version": "V11.16",
+  "baseline_commit": "24e21c77cacd4dba28885a55e0a216eb857c3e67",
+  "baseline_source_sha256": "8b23909cb69f5e1565db5e511c583dacc768ac5dba3d5a0c4f770bcdcbb5f0d0",
+  "revised_source_sha256": "d18ad1376df769af4497f28d1811f2991db4b0cb019653e2e4a3e463802b7931",
+  "reviewed_report_sha256": "2a49adb24f40d59911b9da0d6e2679a794ba8fa25364a602aa26cd54e229c00f",
+  "cases": [
+    {
+      "symbol": "XRP-USD",
+      "interval": "15m",
+      "primary_before": -12.749657329177012,
+      "primary_after": 6.354066538164375,
+      "trade_count_before": 6,
+      "trade_count_after": 1,
+      "higher_cost_before": 0.0,
+      "higher_cost_after": 0.0,
+      "selected_forecasts_before": {
+        "samples": 6,
+        "optimism_bias_r": 0.9176805583900061,
+        "rmse_r": 1.325279034943511,
+        "positive_forecasts_that_lost": 5
+      },
+      "selected_forecasts_after": {
+        "samples": 1,
+        "optimism_bias_r": -1.366418081489576,
+        "rmse_r": 1.366418081489576,
+        "positive_forecasts_that_lost": 0
+      },
+      "same_shadow_examples_before": {
+        "samples": 2515,
+        "optimism_bias_r": 0.013051367434722802,
+        "rmse_r": 0.664572414967729,
+        "positive_forecasts_that_lost": 13
+      },
+      "same_shadow_examples_after": {
+        "samples": 2515,
+        "optimism_bias_r": 0.014062633273265622,
+        "rmse_r": 0.66540979925704,
+        "positive_forecasts_that_lost": 10
+      },
+      "response": {
+        "scored_outcomes": 603,
+        "candidates": 13,
+        "ready_candidates": 9,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "slope_bounds": [
+          0,
+          1
+        ],
+        "rule": "Per candidate, learn a recency-weighted monotone response from the saved base entry forecast to resolved net R. Cost-eligible examples only; 30 actual and effective observations required; shrink toward the original forecast. No hindsight entries or cross-coin pooling."
+      },
+      "qualification": false,
+      "rejection_reasons": [
+        "A later test period stopped at a data gap while holding a position; its return is unknown.",
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "files": {
+        "baseline": {
+          "path": "research_baselines/forecast-response-records/xrp-baseline.json.gz",
+          "sha256": "f9572680edc1b33184de6a34a3ccd2095bdf86324ffe62f2c76894c540b0dc1d",
+          "record_sha256": "abbd632f8fbb09f031d8b7002aaeefb3784f90c34cb1d75ba6ba3483c250d306"
+        },
+        "revised": {
+          "path": "research_baselines/forecast-response-records/xrp-revised.json.gz",
+          "sha256": "7a0295018f4ef2b281845f377ecccd7b4877cd8f086ff6824df7dc91c4ac907c",
+          "record_sha256": "56d9cba296a8ead458cdb6bc4555dbe15f0a478f5012c69cfc24a53caf64499b"
+        }
+      }
+    },
+    {
+      "symbol": "AVAX-USD",
+      "interval": "15m",
+      "primary_before": -5.610306061557594,
+      "primary_after": -5.610306061557594,
+      "trade_count_before": 3,
+      "trade_count_after": 3,
+      "higher_cost_before": -4.007496293780093,
+      "higher_cost_after": -2.25617447054816,
+      "selected_forecasts_before": {
+        "samples": 3,
+        "optimism_bias_r": 0.9275233035414745,
+        "rmse_r": 1.1527256100600343,
+        "positive_forecasts_that_lost": 2
+      },
+      "selected_forecasts_after": {
+        "samples": 3,
+        "optimism_bias_r": 0.9207160861484823,
+        "rmse_r": 1.1447023115578194,
+        "positive_forecasts_that_lost": 2
+      },
+      "same_shadow_examples_before": {
+        "samples": 2293,
+        "optimism_bias_r": 0.043456310797186516,
+        "rmse_r": 0.6516836224898829,
+        "positive_forecasts_that_lost": 14
+      },
+      "same_shadow_examples_after": {
+        "samples": 2293,
+        "optimism_bias_r": 0.04366415079364475,
+        "rmse_r": 0.6510661252816448,
+        "positive_forecasts_that_lost": 10
+      },
+      "response": {
+        "scored_outcomes": 826,
+        "candidates": 13,
+        "ready_candidates": 10,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "slope_bounds": [
+          0,
+          1
+        ],
+        "rule": "Per candidate, learn a recency-weighted monotone response from the saved base entry forecast to resolved net R. Cost-eligible examples only; 30 actual and effective observations required; shrink toward the original forecast. No hindsight entries or cross-coin pooling."
+      },
+      "qualification": false,
+      "rejection_reasons": [
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "files": {
+        "baseline": {
+          "path": "research_baselines/forecast-response-records/avax-baseline.json.gz",
+          "sha256": "87c75372273d1005aba64819a0e5f556a15852eac0c8b416b68604ccf9d0d57e",
+          "record_sha256": "ec7364d3808ab24e66e09a331bdb4fdc4e948f9812bf2f1a751ffa878ba01ea0"
+        },
+        "revised": {
+          "path": "research_baselines/forecast-response-records/avax-revised.json.gz",
+          "sha256": "f0cb37b397296a7ad17a96b00796b36afbba7d5d4107b08a161ab66af08d4606",
+          "record_sha256": "45472166fb8ef81203a65460906e2fa3617a24097e05d9ac328b4a429b76b66a"
+        }
+      }
+    },
+    {
+      "symbol": "DOT-USD",
+      "interval": "15m",
+      "primary_before": 0.0,
+      "primary_after": 0.0,
+      "trade_count_before": 0,
+      "trade_count_after": 0,
+      "higher_cost_before": 0.0,
+      "higher_cost_after": 0.0,
+      "selected_forecasts_before": {
+        "samples": 0,
+        "optimism_bias_r": null,
+        "rmse_r": null,
+        "positive_forecasts_that_lost": 0
+      },
+      "selected_forecasts_after": {
+        "samples": 0,
+        "optimism_bias_r": null,
+        "rmse_r": null,
+        "positive_forecasts_that_lost": 0
+      },
+      "same_shadow_examples_before": {
+        "samples": 2008,
+        "optimism_bias_r": -0.04858739955676806,
+        "rmse_r": 0.7550033828119624,
+        "positive_forecasts_that_lost": 2
+      },
+      "same_shadow_examples_after": {
+        "samples": 2008,
+        "optimism_bias_r": -0.04805289032231252,
+        "rmse_r": 0.7548227991330132,
+        "positive_forecasts_that_lost": 2
+      },
+      "response": {
+        "scored_outcomes": 534,
+        "candidates": 13,
+        "ready_candidates": 8,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "slope_bounds": [
+          0,
+          1
+        ],
+        "rule": "Per candidate, learn a recency-weighted monotone response from the saved base entry forecast to resolved net R. Cost-eligible examples only; 30 actual and effective observations required; shrink toward the original forecast. No hindsight entries or cross-coin pooling."
+      },
+      "qualification": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "files": {
+        "baseline": {
+          "path": "research_baselines/forecast-response-records/dot-baseline.json.gz",
+          "sha256": "d050490b67b222298c24098b51f8d71f6da24e757f750651b92f970759544de8",
+          "record_sha256": "c79cd7a0e1d2ef47a8e99131007764ee4997f1a9b10871ed1e7e035c5fcb7656"
+        },
+        "revised": {
+          "path": "research_baselines/forecast-response-records/dot-revised.json.gz",
+          "sha256": "3aef97b4a0353d0116c58468e73e3737aef85042001b83840b0423d95dd56344",
+          "record_sha256": "d7b4ba7885ec62977b68cc95f5ab6462a88fd1e2918679246cc7519e5a2be808"
+        }
+      }
+    },
+    {
+      "symbol": "XRP-USD",
+      "interval": "6h",
+      "primary_before": 0.0,
+      "primary_after": 0.0,
+      "trade_count_before": 0,
+      "trade_count_after": 0,
+      "higher_cost_before": 0.0,
+      "higher_cost_after": 0.0,
+      "selected_forecasts_before": {
+        "samples": 0,
+        "optimism_bias_r": null,
+        "rmse_r": null,
+        "positive_forecasts_that_lost": 0
+      },
+      "selected_forecasts_after": {
+        "samples": 0,
+        "optimism_bias_r": null,
+        "rmse_r": null,
+        "positive_forecasts_that_lost": 0
+      },
+      "same_shadow_examples_before": {
+        "samples": 71,
+        "optimism_bias_r": 0.2067083830859942,
+        "rmse_r": 0.3854586949490764,
+        "positive_forecasts_that_lost": 3
+      },
+      "same_shadow_examples_after": {
+        "samples": 71,
+        "optimism_bias_r": 0.2038425977587981,
+        "rmse_r": 0.3833327645624285,
+        "positive_forecasts_that_lost": 2
+      },
+      "response": {
+        "scored_outcomes": 266,
+        "candidates": 7,
+        "ready_candidates": 3,
+        "minimum_samples": 30,
+        "half_life_observations": 50,
+        "shrinkage": 50,
+        "slope_bounds": [
+          0,
+          1
+        ],
+        "rule": "Per candidate, learn a recency-weighted monotone response from the saved base entry forecast to resolved net R. Cost-eligible examples only; 30 actual and effective observations required; shrink toward the original forecast. No hindsight entries or cross-coin pooling."
+      },
+      "qualification": false,
+      "rejection_reasons": [
+        "Fewer than two later test periods made money after costs.",
+        "Fewer than 30 trades in the final test period.",
+        "The final test did not stay profitable at both ordinary and higher costs.",
+        "The uncertainty in final trade results is too large to qualify.",
+        "Learning only from selected account trades did not stay profitable at ordinary and higher costs.",
+        "This history was already reviewed when this learner was designed. No later prices are available for fresh confirmation."
+      ],
+      "files": {
+        "baseline": {
+          "path": "research_baselines/forecast-response-records/xrp6h-baseline.json.gz",
+          "sha256": "db97b5b3ba7cd78588df9929e317c3b46e3dbdd27a8c7329bd90ff6957752f0f",
+          "record_sha256": "f779e52427d3b3a4c45777b62d6714b314b677eadc815a5567e86656fe120a9f"
+        },
+        "revised": {
+          "path": "research_baselines/forecast-response-records/xrp6h-revised.json.gz",
+          "sha256": "390ff4bdbc5bae376dc091d4d5abe55a356c9246fe89e7952147549fafc59b85",
+          "record_sha256": "4a71c738c7fc9baecb6ce859ac0e393c0037c8958eb52fb1d9cec9ab406f06f3"
+        }
+      }
+    }
+  ],
+  "final_scope_regression_replays": [
+    {
+      "case": "xrp",
+      "pre_scope_fix_source_sha256": "6648a1baf250877468af26eaeffbe2a948bcc03233f21d67a93964f38f70e15d",
+      "complete_report_identical_except_creation_time": true
+    },
+    {
+      "case": "avax",
+      "pre_scope_fix_source_sha256": "6648a1baf250877468af26eaeffbe2a948bcc03233f21d67a93964f38f70e15d",
+      "complete_report_identical_except_creation_time": true
+    },
+    {
+      "case": "dot",
+      "pre_scope_fix_source_sha256": "6648a1baf250877468af26eaeffbe2a948bcc03233f21d67a93964f38f70e15d",
+      "complete_report_identical_except_creation_time": true
+    },
+    {
+      "case": "xrp6h",
+      "pre_scope_fix_source_sha256": "6648a1baf250877468af26eaeffbe2a948bcc03233f21d67a93964f38f70e15d",
+      "complete_report_identical_except_creation_time": true
+    }
+  ],
+  "selection_uses_comparison": false,
+  "qualification_uses_comparison": false,
+  "tuning_after_results": false,
+  "scope": "Four separate simulated $500 accounts on already reviewed supplied prices. All final primary and stressed accounts complete. XRP has an incomplete earlier fold at a data gap. No news archive in these inputs; no sentiment profit claim. Full candle/context hashes, costs, boundaries and every diagnostic retained in eight compressed records."
+}

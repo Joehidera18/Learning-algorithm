@@ -404,11 +404,14 @@
         });
       });
       if (positiveRows.length) html+='<h4>Positive forecasts for affordable setups</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Forecast band</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Forecast error</th><th>Zero forecast error</th></tr></thead><tbody>'+positiveRows.join('')+'</tbody></table></div><p class="footnote">These forecasts are separated from the many negative predictions for cost-blocked trades. Small groups do not establish reliable predictions.</p>';
-      if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Trial adjustments</th><th>Original forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
+      if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Decision corrections</th><th>Trial adjustments</th><th>Original forecast error</th><th>Selected forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
         paired.map(function(a) {const c=a[1].calibration;return '<tr><td>'+a[0]+'</td><td>'+num(c.paired_samples,0)+
-          '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
-        '</tbody></table></div><p class="footnote">Both errors use the same completed examples. Trial corrections study whether earlier estimates were too high or too low. Two-sided trial corrections do not control trading. The revised learner can only lower an optimistic forecast after enough relevant outcomes. Lower error is better; it does not establish profitable trading.</p>';
+          '</td><td>'+num(c.applied_forecasts,0)+(c.provisional_forecasts !== undefined ? ' ('+num(c.provisional_forecasts,0)+' sparse)' : '')+
+          '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num((c.selected || {}).rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
+        '</tbody></table></div><p class="footnote">All errors use the same completed examples. Selected forecasts are the estimates used for decisions. The revised learner can lower an optimistic forecast after the first matching resolved outcome, with a small correction when evidence is sparse. Two-sided trial corrections do not control trading. Lower forecast error does not establish profitable trading.</p>';
       if (r.forecast_calibration) html+='<p class="footnote">'+escape(r.forecast_calibration.rule)+' '+escape(r.forecast_calibration.scope || '')+'</p>';
+      if (r.forecast_response) html+='<p><strong>Forecast response learning:</strong> '+num(r.forecast_response.ready_candidates,0)+
+        ' ready candidates from '+num(r.forecast_response.scored_outcomes,0)+' resolved eligible forecasts.</p><p class="footnote">'+escape(r.forecast_response.rule)+'</p>';
       html+='</details>';
     }
     const study=r.selection_policy_comparison;
@@ -437,6 +440,8 @@
       html+='<details><summary>News and scheduled-event context</summary><p>'+num(events.holdout_covered_candles,0)+' of '+num(events.holdout_candles,0)+' test candles have some recorded feed coverage; '+num(events.holdout_full_coverage_candles,0)+' have all configured sources.</p><p class="footnote">'+escape(events.rule || '')+'</p>';
       if (Object.keys(groups).length) html+='<div class="table-wrap"><table><thead><tr><th>Context at entry</th><th>Completed trades</th><th>Net result</th></tr></thead><tbody>'+Object.entries(groups).map(function(pair) {return '<tr><td>'+escape(family(pair[0]))+'</td><td>'+num(pair[1].trades,0)+'</td><td>'+money(pair[1].net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div><p class="footnote">Groups overlap. These are associations, not proven causes.</p>';
       if (r.event_comparison) html+='<p>Difference from separately trained price-context control: '+money(r.event_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.event_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
+      if (r.sentiment_comparison) html+='<p>Fear &amp; Greed contribution versus a separately trained control retaining other news: '+
+        money(r.sentiment_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.sentiment_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
       html+='</details>';
     }
     if (failures.targets) {
@@ -622,7 +627,7 @@
   }
   function renderEvents(data) {
     const sources=data.sources || [];
-    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 15 minutes" : "Collection stopped");
+    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 5–15 minutes" : "Collection stopped");
     $("eventsStart").disabled=!!data.running;
     $("eventsStop").disabled=!data.running;
     $("eventsCoverage").textContent=sources.filter(function(s){return s.healthy;}).length+" of "+sources.length+
@@ -635,6 +640,13 @@
           (upcoming ? ' · schedule may change' : ' · first observed '+escape(date(e.observed_ts,true)))+'</small></div>';
       }).join('') : '<p class="empty">'+(upcoming ? 'No upcoming events recorded in this window.' : 'No recent announcements recorded. Check source coverage below.')+'</p>';
     }
+    const sentiment=data.sentiment || {};
+    $("eventsSentiment").innerHTML=sentiment.available ? '<p><strong>'+num(sentiment.value,0)+'/100</strong> · '+
+      eventLink(sentiment.url,'Alternative.me Crypto Fear & Greed Index')+
+      (sentiment.change_1d == null ? '' : ' · daily change '+num(sentiment.change_1d,0))+
+      '</p><p class="footnote">Index dated '+escape(date(sentiment.published_ts,true))+' · first observed '+
+      escape(date(sentiment.observed_ts,true))+'. '+escape(sentiment.scope || '')+'</p>' :
+      '<p class="empty">No fresh Fear &amp; Greed observation available. Missing sentiment is unknown.</p>';
     $("eventsRecent").innerHTML=entries(data.recent || [],false);
     $("eventsUpcoming").innerHTML=entries(data.upcoming || [],true);
     $("eventsProjects").innerHTML=entries(data.projects || [],false);
@@ -674,17 +686,40 @@
         '<button data-forward-export="'+escape(s.id)+'">Download this study</button></details>';
     }).join('') || '<p class="empty">No forward study registered yet.</p>';
   }
+  function renderVwap(value) {
+    const active=['running','downloading','testing'].includes(value.status);
+    $('vwapRun').disabled=active;
+    $('vwapCancel').disabled=!active;
+    $('vwapExport').disabled=!(value.results || []).length;
+    $('vwapMessage').textContent=value.message || 'No VWAP comparison yet';
+    $('vwapResults').innerHTML=(value.results || []).map(function(report) {
+      if (report.error) return '<p class="callout">'+escape(report.symbol)+': '+escape(report.error)+'</p>';
+      const rows=(report.results || []).map(function(variant) {
+        return ['earlier','later'].map(function(period) {
+          const w=variant.windows[period], a=w.standard.metrics, stress=w.higher_cost.metrics;
+          return '<tr><td>'+escape(variant.label)+'</td><td>'+period+'</td><td>'+num(a.trades,0)+'</td><td>'+money(a.net_pnl)+
+            '</td><td>'+money(stress.net_pnl)+'</td><td>'+pct(a.win_rate)+'</td><td>'+num(a.profit_factor)+
+            '</td><td>'+pct(a.max_drawdown_pct)+'</td><td>'+escape(a.complete && stress.complete ? 'Complete' : 'Incomplete: missing prices')+'</td></tr>';
+        }).join('');
+      }).join('');
+      const q=report.data_quality || {}, costs=report.costs || {};
+      return '<h3>'+escape(report.symbol)+'</h3><p>'+date(q.start_ts,true)+' – '+date(q.end_ts,true)+
+        ' · '+num(q.rows,0)+' one-minute candles · '+num(q.gaps,0)+' missing · fee '+pct(costs.fee_rate*100)+' per side.</p>'+
+        '<div class="table-wrap"><table><thead><tr><th>Version</th><th>History window</th><th>Trades</th><th>Net P&amp;L</th><th>Higher-cost net</th><th>Win rate</th><th>Profit factor</th><th>Drawdown</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        '<p class="footnote">Each row is a separately funded $500 simulation. Earlier 70% and later 30% are chronological historical windows, not fresh forward evidence. Higher-cost accounts pay 50% more fees and execution friction and may select different entries. Holding cash returns $0. No winner is automatically selected.</p>';
+    }).join('') || '<p class="empty">Run a comparison to see results, including rejected and zero-trade versions.</p>';
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
     try {
       const responses = await Promise.allSettled([
         api("/api/continuous/status"), api("/api/continuous/analytics"),
-        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status")
+        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status"), api("/api/vwap/status")
       ]);
       const renderers = [renderState,renderAnalytics,renderJournal,function (rows) {
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
-      },renderResearch,renderLearning,renderEvents,renderForward];
+      },renderResearch,renderLearning,renderEvents,renderForward,renderVwap];
       let firstError = null;
       responses.forEach(function (response,i) {
         if (response.status === "fulfilled") renderers[i](response.value);
@@ -693,6 +728,7 @@
           if (i===5) updateFinances("history",null,true);
           if (i===6) $("eventsStatus").textContent="Event status unavailable";
           if (i===7) $("forwardStatus").textContent="Study update unavailable · displayed results may be stale";
+          if (i===8) $('vwapMessage').textContent='Comparison update unavailable · displayed results may be stale';
           if (!firstError) firstError=response.reason;
         }
       });
@@ -767,6 +803,16 @@
     try { const result = await api("/api/continuous/close",{product_id:button.dataset.close}); notice("Paper position closed. Net P&L: " + money(result.pnl)); await refresh(); }
     catch (e) { notice(e.message,true); } finally { button.disabled = false; }
   });
+  $('vwapForm').addEventListener('submit',async function(event) {
+    event.preventDefault(); $('vwapRun').disabled=true;
+    try {
+      await api('/api/vwap/start',{symbols:$('vwapSymbols').value.toUpperCase().split(/[,\s]+/).filter(Boolean),
+        days:Number($('vwapDays').value),fee_rate:Number($('vwapFee').value)/100});
+      await refresh();
+    } catch(e) {notice(e.message,true);$('vwapRun').disabled=false;}
+  });
+  bind('vwapCancel',async function(){await api('/api/vwap/cancel',{});await refresh();});
+  bind('vwapExport',function(){return download('/api/vwap/export','vwap-research.json');});
   $("researchForm").addEventListener("submit",async function (event) {
     event.preventDefault(); $("researchRun").disabled = true;
     try { await api("/api/research/start",{symbols:$("researchSymbols").value.split(/[,\s]+/).filter(Boolean),days:Number($("researchDays").value)}); await refresh(); }

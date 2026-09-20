@@ -20,15 +20,17 @@ from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT
 from .prediction_audit import summarize_predictions
 from .chronological_learning import ChronologicalTrainer
 from .forecast_calibration import summarize as summarize_calibration
+from .forecast_response import summarize as summarize_response
 from .practice import PRACTICE_LANES, merge_counts, outcome_totals
 from .market_context import attach_market_context, data_summary as bitcoin_summary
 from .learning_diagnostics import evidence_summary, regime_report, experiment_manifest
 from .failure_predictions import summary as failure_prediction_summary
+from .study_plan import FOCUS_UNIVERSE
 
 from .event_context import (attach_event_context, data_summary as event_summary,
-    validate_snapshot, outcome_summary as event_outcomes)
+    validate_snapshot, outcome_summary as event_outcomes, without_sentiment)
 
-LEARNING_REPORT_VERSION = 20
+LEARNING_REPORT_VERSION = 22
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None,
@@ -95,6 +97,16 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
             "selection_uses_comparison":False,
             "scope":"Independently train without event inputs on the same candles, costs and boundaries. "
                     "This comparison is research, not a promotion rule or proof of causation."}
+    if event_comparison and result["event_data"].get("sentiment_covered_candles",0):
+        control = _learn_history(rows, symbol, settings, progress, cancelled, None,
+            reviewed_through_ts, daily_rows, forecast_correction=forecast_correction,
+            bitcoin_rows=bitcoin_rows, event_snapshot=without_sentiment(event_snapshot))
+        result["sentiment_comparison"] = {
+            "sentiment_disabled":{key:control[key] for key in ("holdout","holdout_stressed","validated")},
+            "net_pnl_difference":result["holdout"]["net_pnl"]-control["holdout"]["net_pnl"],
+            "stress_net_pnl_difference":result["holdout_stressed"]["net_pnl"]-control["holdout_stressed"]["net_pnl"],
+            "selection_uses_comparison":False,
+            "scope":"Independently train without the sentiment source on identical candles, costs and boundaries; retain other observed news. Run only when sentiment was actually available. Not a promotion rule."}
     result["event_snapshot"] = event_snapshot
     result["experiment_registry"] = experiment_manifest(result, exit_comparison, selection_comparison)
     return result
@@ -333,9 +345,11 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                 "Exit reviews and future candles are not entry inputs."},
         "entry_error_rule":"Save the forecast at entry in chronological development training as well as later tests. "
             "After at least 30 resolved forecasts in a model component, "
-            "its entry-time RMSE can raise the ranking error margin; it cannot reduce the existing margin. "
+            "its entry-time RMSE can raise the ranking error margin. Persistent positive mean entry error "
+            "also floors that margin without shrinking by sample count; neither can reduce the existing margin. "
             "Each realized reward still trains once. Diagnostic summaries cannot select a policy.",
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
+        "default_universe":FOCUS_UNIVERSE,
         "data_selection":coverage,
         "replay":{"clock":"Historical candles processed without wall-clock waits",
             "decision_interval":interval, "training_start_ts":rows[240]["ts"],
@@ -379,10 +393,12 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                           "Different strategies and holding periods overlap. These are not independent bets or account trades."},
         "training_label_end_ts":initial["last_label_ts"],
         "development_prediction_audit":trainer.predictions.summary(),
+        "forecast_response":summarize_response({k:m.get("eligible_model", {}) for k,m in trained["models"].items()}),
         "forecast_calibration":{**summarize_calibration({k:m.get("eligible_model", {}) for k,m in trained["models"].items()}),
             "enabled_for_selection":True,
-            "policy":"two_sided_experiment" if forecast_correction else "eligible_downside_only",
-            "scope":"The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. "
+            "policy":"two_sided_experiment" if forecast_correction else "eligible_downside_shrinkage",
+            "scope":"The normal model can reduce positive forecasts from the first comparable cost-eligible outcome, "
+                "with strong shrinkage and an explicit provisional flag before 30-sample readiness. "
                 "Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."},
         "pre_holdout_model_sha256":hashlib.sha256(json.dumps(initial,sort_keys=True).encode()).hexdigest(),
         "holdout_start_ts":rows[holdout_start]["ts"],

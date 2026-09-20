@@ -72,6 +72,7 @@ def main():
         for key in ('bundle_sha256','reviewed_report_sha256','bitcoin_data_sha256'):
             assert record[key]==previous[key],key
         old=previous['result']
+        assert report['evaluation']['reviewed_through_ts']==old['evaluation']['reviewed_through_ts']
         for key in ('data_sha256','daily_data','cost_signature','historical_examples','training_diagnostics','holdout_start_ts','training_label_end_ts'):
             assert report[key]==old[key],key
         record['comparison']={'baseline_source_code_sha256':previous['source_code_sha256'],

@@ -1,0 +1,60 @@
+{
+  "release": "CryptO V11.16 combined learning and VWAP research",
+  "date": "2026-09-20",
+  "parent_commit": "a3b176636d6e7d0371208c5e72d62a8ec786678a",
+  "includes_learning_commit": "ecd0caeb98670057b0d45bde75ec75a6b898517b",
+  "includes_vwap_commit": "9e0b828de7a703f6cb7b8476647ab0d812d472c6",
+  "lab_source_sha256": "f182ceff7dc7f60b1c6892650d2e7eacc1b08d3b013ea8b5caffe8cabd5e7593",
+  "lab_hash_format": "Sorted lab/*.py; for each, filename UTF-8, NUL byte, then file bytes.",
+  "vwap_export_source_sha256": "5f06e72b93fa305ce9137e7c554d95987eee4ff4f695e343827340a546b6249d",
+  "vwap_export_hash_format": "Sorted lab/*.py; for each, filename UTF-8 then file bytes.",
+  "python_version": "3.12.14",
+  "validation": {
+    "full_python_suite_passed": 410,
+    "full_python_suite_seconds": 234.631,
+    "full_suite_includes_final_execution_fix": true,
+    "command": "python -m unittest discover -s tests -q",
+    "dashboard_checks_passed": [
+      "node tests/check_learning_ui.js",
+      "node tests/check_finances_ui.js"
+    ],
+    "javascript_syntax_check_passed": "node --check static/app.js",
+    "app_smoke": {
+      "app_entrypoint_routes": {
+        "/": "200 OK",
+        "/api/health": "200 OK",
+        "/api/vwap/status": "200 OK"
+      },
+      "shutdown_before_temp_cleanup": true,
+      "state": "temporary isolated database"
+    },
+    "browser_visual_review": false,
+    "fixtures_are_market_profit_evidence": false
+  },
+  "integration_fix": {
+    "issue": "Opening partial/full target exits could cause an incorrect daily halt based on the pre-exit quantity and later candle prices.",
+    "behavior": "Fill known opening targets first; evaluate later intrabar daily-loss exposure only on the remaining position. Actual stop losses still halt entries.",
+    "regression": "test_daily_loss_halt_uses_quantity_remaining_after_opening_targets",
+    "reproduced_before_fix": true
+  },
+  "main_learning_regression": {
+    "symbol": "XRP-USD",
+    "interval": "15m",
+    "baseline_commit": "ecd0caeb98670057b0d45bde75ec75a6b898517b",
+    "baseline_lab_source_sha256": "d18ad1376df769af4497f28d1811f2991db4b0cb019653e2e4a3e463802b7931",
+    "combined_lab_source_sha256": "f182ceff7dc7f60b1c6892650d2e7eacc1b08d3b013ea8b5caffe8cabd5e7593",
+    "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+    "reviewed_report_sha256": "2a49adb24f40d59911b9da0d6e2679a794ba8fa25364a602aa26cd54e229c00f",
+    "ordinary_net_pnl": 6.354066538164375,
+    "ordinary_trades": 1,
+    "higher_cost_net_pnl": 0.0,
+    "qualified": false,
+    "entire_report_identical_except_created_at": true,
+    "normalized_report_sha256": "7bbd7b8121d1557d97fefcc2a0389560ed28af3e9b40136b19af3cfba47cbfac",
+    "normalization": "Remove top-level created_at from result; JSON sorted keys, separators comma/colon, allow_nan=False, default ensure_ascii=True."
+  },
+  "vwap_market_result": null,
+  "vwap_market_status": "No completed historical market comparison; previous Coinbase minute-data request failed. No synthetic price substitution.",
+  "deployment_performed": false,
+  "trading_account_action_performed": false
+}

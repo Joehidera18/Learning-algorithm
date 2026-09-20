@@ -10,7 +10,7 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.14</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.16</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
@@ -41,6 +41,7 @@
 <p class="muted">World and crypto reporting, official project updates, regulatory announcements and economic schedules.</p>
 <div class="top-actions"><button id="eventsStart">Start event collection</button><button id="eventsStop">Stop event collection</button><button id="eventsExport">Download event history</button></div>
 <p id="eventsCoverage" class="footnote"></p>
+<h3>Fear &amp; Greed</h3><div id="eventsSentiment"></div>
 <div class="event-columns"><div><h3>Recent announcements</h3><div id="eventsRecent"></div></div><div><h3>Coming in the next 7 days</h3><div id="eventsUpcoming"></div></div></div>
 <h3>Project publications · last 30 days</h3><div id="eventsProjects"></div>
 <p id="eventsCategories" class="footnote"></p>
@@ -51,9 +52,9 @@
 <div class="panel-title"><h1 id="learningHeading">Your trading system</h1><span id="learningPhase" class="badge">Ready</span></div>
 <p id="learningMessage" role="status">Practice on recorded market prices first, then monitor new prices with paper money.</p>
 <label for="practiceSymbols">Coins to practice on</label>
-<textarea id="practiceSymbols" rows="3" maxlength="1250" autocapitalize="characters" spellcheck="false" aria-describedby="practiceSymbolsHelp">BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT, UNI, AAVE, ATOM, NEAR, FIL, ETC, ALGO, XTZ, ICP, INJ, OP, ARB, RENDER, APT, SUI, SHIB, PEPE</textarea>
+<textarea id="practiceSymbols" rows="3" maxlength="1250" autocapitalize="characters" spellcheck="false" aria-describedby="practiceSymbolsHelp">BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT, UNI, AAVE</textarea>
 <p id="practiceSymbolsHelp" class="footnote">Enter up to 60 Coinbase USD tickers separated by commas. Your list is saved. Availability is checked when practice runs.</p>
-<button id="practiceDefaults" class="small">Use suggested 30 coins</button>
+<button id="practiceDefaults" class="small">Use focused 15 coins</button>
 <div class="practice-options">
 <fieldset><legend>Timeframes to study</legend><div class="practice-intervals">
 <label class="check"><input id="practiceInterval5m" type="checkbox">5 minutes</label>
@@ -96,6 +97,14 @@
 </div>
 </section>
 <section id="research" class="tab-panel" hidden>
+<article class="panel"><p class="eyebrow">VWAP MEAN REVERSION</p><h2>Test the Reddit strategy</h2>
+<p class="muted">Compare four fixed versions on recorded one-minute prices: VWAP re-entry, added volume levels, added delta divergence, then a trend filter. Each version has a separate $500 account and pays trading costs.</p>
+<p class="callout">This is a crypto adaptation. Delta is estimated from candle direction; it does not measure actual buy/sell aggressors. The author's private settings are unavailable. Results cannot enable trades or replace a learned model.</p>
+<form id="vwapForm" class="inline-form"><label class="grow">Coinbase USD markets <input id="vwapSymbols" value="BTC-USD" required></label><label>History <select id="vwapDays"><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option></select></label><label>Fee per side (%) <input id="vwapFee" type="number" min="0" max="2" step="0.001" value="0.4" required></label><button id="vwapRun" class="primary">Backtest VWAP strategy</button><button id="vwapCancel" type="button">Cancel comparison</button></form>
+<p class="footnote">Use your actual Coinbase fee; 0.4% is an assumption. Slippage, position sizing and daily loss limits come from Settings. Downloads may take several minutes. Five-minute and coarser data cannot recreate these signals.</p>
+<details><summary>Exact research assumptions</summary><p>UTC-midnight VWAP; separate closed 1m/5m/30m bands; 120-minute warmup; prior complete day's 48-bin volume profile. Two lows confirmed by two later candles, with at least 10% of the known session delta range between them. Enter after the 30m close, stop below the recent extreme with a 0.1-sigma buffer, exit half at the signal-time VWAP and half at its upper 1-sigma band. Targets stay fixed; stop first in ambiguous candles; four-hour time exit and 30-minute cooldown. The trend variant excludes a 30-minute VWAP fall greater than 0.25 sigma. No Wednesday exclusion or parameter optimization.</p></details>
+<div class="between"><p id="vwapMessage" role="status">No VWAP comparison yet.</p><button id="vwapExport" class="small">Download comparison</button></div>
+<div id="vwapResults"><p class="empty">No results yet.</p></div></article>
 <article class="panel"><p class="eyebrow">TEST THE IDEA BEFORE TRUSTING IT</p><h2>Historical strategy research</h2><p class="muted">Twenty-two fixed candidates across seven strategy families, including daily trend/momentum, volatility expansion, and support with RSI recovery. Selection uses chronological training and validation, then tests frozen choices in later windows and a final holdout. These are research hypotheses; adding strategies does not establish profitability.</p>
 <form id="researchForm" class="inline-form"><label class="grow">Coinbase USD markets <input id="researchSymbols" value="BTC-USD, ETH-USD, SOL-USD" required placeholder="BTC-USD, ETH-USD"></label><label>History <select id="researchDays"><option value="90">90 days</option><option value="180" selected>180 days</option><option value="365">365 days</option></select></label><button id="researchRun" class="primary">Run research</button><button type="button" id="researchCancel">Cancel</button></form>
 <p id="researchCosts" class="callout"></p><p class="footnote">Choose your actual fee in Settings first. At 1-hour resolution, use 180 or 365 days to meet the 3,000-candle minimum. Missing candles cause rejection. Downloads can take several minutes.</p>
@@ -134,7 +143,7 @@
 <label>Total open risk (%)<input name="max_total_risk" type="number" min="0.5" max="8" step="0.1" required></label>
 <label>Daily entry loss limit (%)<input name="daily_loss_limit" type="number" min="0.5" max="10" step="0.1" required></label>
 <label>Maximum open positions<input name="max_positions" type="number" min="1" max="10" step="1" required></label>
-<label>Markets monitored (stop first)<input name="universe_size" type="number" min="1" max="30" step="1" required></label>
+<label>Markets from the focused 15 (stop first)<input name="universe_size" type="number" min="1" max="15" step="1" required></label>
 <label>Maximum position value (%)<input name="max_notional_fraction" type="number" min="5" max="100" step="1" required></label>
 <label>Maximum bid/ask spread (%)<input name="max_spread" type="number" min="0.01" max="2" step="0.01" required></label>
 </div>

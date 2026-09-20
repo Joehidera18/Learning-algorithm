@@ -98,6 +98,7 @@ class EventCollector:
         self.lock=threading.RLock()
         self.refresh_lock=threading.Lock()
         self.stop_event=threading.Event()
+        self.initial_poll=threading.Event()
         self.worker=None
         self.generation=0
         self.last_error=None
@@ -109,10 +110,35 @@ class EventCollector:
             self._snapshot=snapshot
             self.indexes={}
             self.generation+=1
+            if any(p['ok'] for p in snapshot['polls']):
+                self.initial_poll.set()
 
     def snapshot(self):
         with self.lock:
             return copy.deepcopy(self._snapshot)
+
+    def prepare_for_study(self, timeout=15., cancelled=None):
+        """Bounded wait in the learning worker, never in an HTTP/status handler.
+
+        Even a failed collection is evidence about missing coverage. Return the
+        archive unchanged; observations retain their real receipt timestamps.
+        """
+        if cancelled and cancelled():
+            raise InterruptedError("Learning cancelled")
+        self.start()
+        deadline=time.monotonic()+max(0.,timeout)
+        while not self.initial_poll.is_set():
+            if cancelled and cancelled():
+                raise InterruptedError("Learning cancelled")
+            if self.stop_event.is_set() or not (self.worker and self.worker.is_alive()):
+                break
+            remaining=deadline-time.monotonic()
+            if remaining <= 0:
+                break
+            self.initial_poll.wait(min(.1,remaining))
+        if cancelled and cancelled():
+            raise InterruptedError("Learning cancelled")
+        return self.snapshot()
 
     def context(self, symbol, ts, clock="status"):
         with self.lock:
@@ -150,12 +176,18 @@ class EventCollector:
             # Bounded I/O concurrency; historical replay never calls this method.
             with ThreadPoolExecutor(max_workers=3) as pool:
                 tasks=[pool.submit(collect,s) for s in due if not self.stop_event.is_set()]
-                for task in as_completed(tasks):task.result()
-            self._reload()
+                for task in as_completed(tasks):
+                    task.result()
+                    # Publish completed feeds immediately; a slow source must not
+                    # hide successful observations until the entire batch ends.
+                    self._reload()
             self.last_error=None
             return True
         finally:
             self.refresh_lock.release()
+            # Include a completed storage-error attempt in readiness. Historical
+            # learning can continue with explicitly unavailable event coverage.
+            self.initial_poll.set()
 
     def _run(self):
         while not self.stop_event.is_set():

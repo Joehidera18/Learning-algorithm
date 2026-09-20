@@ -52,7 +52,9 @@ def experiment_manifest(report, exit_comparison, selection_comparison):
         variants.append("conditional_entry_selection")
     if report.get("event_comparison"):
         variants.extend(["event_inputs_disabled", "event_inputs_disabled_higher_cost"])
-    identity = {"hypothesis":"event-context-v1", "policy_version":report["policy_version"],
+    if report.get("sentiment_comparison"):
+        variants.extend(["sentiment_disabled", "sentiment_disabled_higher_cost"])
+    identity = {"hypothesis":"forecast-response-observed-sentiment-v1", "policy_version":report["policy_version"],
         "engine_version":report["engine_version"], "symbol":report["symbol"], "interval":report["interval"],
         "data_sha256":report["data_sha256"], "daily_sha256":report["daily_data"]["data_sha256"],
         "bitcoin_sha256":report["bitcoin_data"]["data_sha256"], "cost_signature":report["cost_signature"],

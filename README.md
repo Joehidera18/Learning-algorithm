@@ -1,10 +1,20 @@
-# CryptO V11.14 — future-price studies and reconciled finances
+# CryptO V11.16 — learning improvements and VWAP research
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.14 adds a registered 30-day comparison of continued learning against an identical frozen seed on prices following registration. Each uses its own $500 candle simulation. The source, seed, costs and end date stay fixed; early stops and failures remain recorded. It also repairs exact break-even counts and same-second closing order, independently checks paper fill arithmetic and account balances, and adds concrete questions to loss reviews. An optional Massive downloader creates separate historical crypto bundles. Read [the design, sources, usage and limitations](FORWARD_STUDY.md). The supplied XRP replay still loses $12.75; these changes do not establish profitability. Engine V11.14/report 20 require fresh practice for trading qualification; the numeric policy remains v17.
+**Complete combined package:** V11.16 learning, sentiment and focused practice,
+plus the Reddit VWAP strategy tester. Open [START_HERE.md](START_HERE.md) for
+setup, the two workflows and the current evidence limits.
 
-V11.13's news/calendar collector remains included with 14 sources, including world reporting and official project publications. Fifteen timestamped event inputs include topic coverage. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). No event-related trading benefit has yet been demonstrated.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.16 learns how saved entry forecasts translate into later net returns, using only resolved eligible examples. It adds timestamped Alternative.me Fear & Greed inputs, displays source/freshness, publishes completed news feeds immediately, and aligns default practice and monitoring around 15 coins.
+
+**One supplied historical account improved:** XRP 15m changed from six trades losing $12.75 to one trade earning $6.35 after costs. AVAX 15m remained -$5.61; its higher-cost result improved from -$4.01 to -$2.26. DOT 15m and XRP 6h remained in cash. All four are still unqualified; the XRP gain rests on one trade, forecast errors are mixed, and these prices were already reviewed. Sentiment has no measured profit benefit yet. See [the declared design, all comparisons and reproduction](FORECAST_RESPONSE_RESEARCH.md). Engine V11.16/report 22/policy v19 require fresh practice; old reports remain viewable.
+
+V11.15's entry-bias floor, provisional downside corrections and bounded news-startup wait remain included. Its four paired replays showed no account-profit improvement; [the earlier negative findings](FORECAST_RELIABILITY_RESEARCH.md) are preserved.
+
+V11.14's registered 30-day comparison of continued learning against an identical frozen seed remains included. Each uses its own $500 candle simulation on prices following registration. The source, seed, costs and end date stay fixed; early stops and failures remain recorded. Its reconciled trade finances, loss-review questions and optional Massive downloader also remain included. Read [the forward-study guide](FORWARD_STUDY.md). Finish an ongoing learning period and preserve its exports before deploying a code change; an existing forward study cannot silently switch its registered code.
+
+V11.13's news/calendar collector remains included. V11.16 extends it to 15 sources and 20 event/sentiment inputs, including coverage, the dated Fear & Greed value and its observed daily change. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). No event-related trading benefit has yet been demonstrated.
 
 This version also repairs stale fair-value gaps, inverse-gap retirement, repeated structure breaks and mismatched timestamps in the relative-return helper. Those structure helpers are outside the simplified adaptive training path; fixing them does not add all the screenshot concepts as learned predictors. [The concept review](NEWS_AND_CONCEPT_REVIEW.md) distinguishes implemented fixes from remaining experiments and unverified course rules.
 
@@ -24,19 +34,26 @@ The predeployment review also corrects time-based exits that ran one candle late
 
 ## Start here
 
+**New isolated experiment:** under **Advanced research**, choose **Test the Reddit
+strategy** to compare VWAP mean-reversion variants on recorded one-minute Coinbase
+candles. It reports earlier/later windows, full costs, split exits and a higher-cost
+comparison. The delta and volume profile are explicitly candle-based proxies;
+the author's private rules cannot be reproduced exactly. It does not replace
+models or enable trading. See [the declared rules and offline runner](VWAP_RESEARCH.md).
+
 1. Open the app locally or follow [WEBSITE_SETUP.md](WEBSITE_SETUP.md) to put it on Render.
 2. Enter your actual Coinbase fee per side. The initial 0.4% is an assumption until confirmed.
-3. Click **Start event collection** and check source freshness. Then edit **Coins to practice on** (or choose **Use suggested 30 coins**), choose the timeframes and history length, then click **Practice on real market history**.
+3. Edit **Coins to practice on** (or choose **Use focused 15 coins**), choose the timeframes and history length, then click **Practice on real market history**. The learning worker starts event collection and waits up to 15 seconds for an initial attempt. Check the Market events panel for source freshness and errors; empty or failed collection stays missing coverage. Starting collection earlier can build a longer observed archive.
 4. Review the historical results, then use **Start learning & paper trading** for ongoing practice on new prices.
 5. To measure whether continued learning helps, choose a saved 15m or 1h model under **Does continued learning help?** and click **Begin 30-day study**. This starts a separate research comparison, including when the seed is unqualified. Its results never install a trading profile. Download the full record for reproduction; [the study guide](FORWARD_STUDY.md) explains missing prices, open-position marks and early stops.
 
-Historical practice now suggests 30 Coinbase USD markets spanning established coins, smart-contract networks, DeFi, scaling networks and more volatile tokens. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
+Historical practice defaults to the same 15 Coinbase USD markets used by monitoring and automatic learning. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
 
 The dashboard defaults to separate **15-minute, hourly and 6-hour** studies, with **five years** requested. Optional 5-minute studies are supported. Requests are bounded to one year at 5m, five years at 15m and eight years at 1h/6h. Every report shows requested/effective history, actual candle dates and the percentage of the effective window covered. A younger listing cannot supply history before it existed. At least 3,000 observed candles remain required; a 6-hour study therefore needs at least 750 observed days. The daily context uses only completed daily candles available at each historical signal. See [the data design, sources and replay results](MARKET_COVERAGE_RESEARCH.md).
 
 Each coin/timeframe has its own model, simulated account, result, cache identity and resumable checkpoint. Practice finishes without starting monitoring or order runners. Existing runners keep their current state. Only the configured **Decision interval** in Settings may install a qualified forward profile. Secondary timeframe studies cannot overwrite or delete it. Six-hour models remain research only and cannot install a forward profile; coarser candles need a separate execution-precision review before enabling that trading interval. Changing timeframes requires that timeframe's qualification; the app does not choose a winner from the highest backtest profit. Previously reviewed prices remain reviewed across timeframe and history-length changes.
 
-The background automatic learner studies up to ten of the scanner's liquid Coinbase USD markets at the configured decision interval, using the last selected lookback (five years by default), subject to the interval limits. Those reviews retain completed studies from other coins and timeframes. Qualified models can open paper trades and learn after closure. Unqualified markets stay out of the account.
+The background automatic learner studies up to 15 available members of the fixed focus list at the configured decision interval, using the last selected lookback (five years by default), subject to the interval limits. Those reviews retain completed studies from other coins and timeframes. Qualified models can open paper trades and learn after closure. Unqualified markets stay out of the account.
 
 Larger plans can take hours. Coins and timeframes are processed sequentially; unavailable or insufficient data is reported while the rest continue. Completed download chunks, candidate labels and results are saved. A restart within 24 hours reuses the current study's cutoff and completed candidates; an interrupted candidate restarts. Shorter requests retain older cached candles so another report can still export its exact inputs. The dashboard counts the union of observed market hours per coin, avoiding duplicate hours across overlapping timeframes. Training examples and individual account studies may still overlap and are not independent samples or a combined portfolio.
 
@@ -74,7 +91,7 @@ Historical practice and ongoing monitoring download completed BTC-USD daily cand
 
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
-The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once. V11.13 includes selected world/crypto news, project publications and official calendar context, with explicit coverage; it does not parse full articles, infer sentiment, or include on-chain data. See MARKET_EVENTS.md.
+The scanner watches up to 15 available members of the fixed focus list: BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT, UNI and AAVE. Automatic learning uses the same list and capacity; old open positions remain monitored without expanding automatic practice. Existing custom historical lists remain available. The list is a research scope, not a market-cap or backtest-winner ranking. Product status and volume are checked at startup. News, calendars and the provider's Bitcoin-focused sentiment index have explicit coverage; full-article interpretation and on-chain inputs remain unavailable. See [market context](MARKET_EVENTS.md).
 
 ## Learning from failed trades and fuller candle context
 

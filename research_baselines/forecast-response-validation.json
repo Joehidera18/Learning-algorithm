@@ -1,0 +1,37 @@
+{
+  "python_full_suite": {
+    "passed": 394,
+    "seconds": 237.218,
+    "log_sha256": "d850b6d158f2f587271198d3d92be28aef6d80f93869bd54033b3a33b23d7c53"
+  },
+  "final_focus_scope_patch": {
+    "targeted_tests_passed": 2,
+    "scope": "One existing product-filter test plus the added automatic-practice regression passed after the final one-line focus-scope fix."
+  },
+  "dashboard_checks": [
+    "tests/check_learning_ui.js",
+    "tests/check_finances_ui.js"
+  ],
+  "paired_replays": 4,
+  "records": 8,
+  "all_final_reports_identical_to_pre_scope_fix_except_creation_time": true,
+  "all_final_ledgers_reconcile": true,
+  "public_source_smoke": {
+    "sentiment": {
+      "received_observations": 2,
+      "values": [
+        71,
+        71
+      ],
+      "provider_dates": [
+        1789862400000,
+        1789776000000
+      ]
+    },
+    "products": {
+      "error": "The read operation timed out"
+    }
+  },
+  "revised_source_sha256": "d18ad1376df769af4497f28d1811f2991db4b0cb019653e2e4a3e463802b7931",
+  "limitations": "Tests validate software behavior, not profitability. Coinbase product metadata timed out locally; active/volume checks still run on monitoring startup. No merge, deployment or trading account action."
+}

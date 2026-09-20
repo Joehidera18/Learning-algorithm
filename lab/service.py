@@ -23,6 +23,8 @@ class Service:
         init_db(self.db_path)
         self.agent = ContinuousLearner(self.db_path, self.data_dir)
         self.research = ResearchManager(self.db_path, self.data_dir)
+        from .vwap_research import VwapResearchManager
+        self.vwap = VwapResearchManager(self.db_path, self.data_dir)
         self.token = token or ""
         self.coinbase = CoinbaseTrader(self.db_path,self.agent,CoinbaseAdapter(
             key_file=os.getenv("COINBASE_KEY_FILE"),
@@ -105,6 +107,25 @@ class Service:
                     return 200,{"ok":True,"settings":settings},{}
             if path == "/api/forward/status" and method == "GET":
                 return 200,self.forward.status(),{}
+            if path == "/api/vwap/status" and method == "GET":
+                return 200, self.vwap.status(), {}
+            if path == "/api/vwap/start" and method == "POST":
+                if set(body)-{"symbols", "days", "fee_rate"}:
+                    raise ValueError("VWAP research accepts symbols, days and fee_rate")
+                settings = dict(self.agent.settings)
+                if "fee_rate" in body:
+                    fee = body["fee_rate"]
+                    if isinstance(fee, bool) or not isinstance(fee, (int, float)) or not math.isfinite(fee) or not 0 <= fee <= .02:
+                        raise ValueError("Fee fraction per side must be between 0 and 0.02")
+                    settings["fee_rate"] = fee
+                self.vwap.start(body.get("symbols", ["BTC-USD"]), body.get("days", 30), settings)
+                return 202, self.vwap.status(), {}
+            if path == "/api/vwap/cancel" and method == "POST":
+                self.vwap.cancel()
+                return 200, {"ok": True}, {}
+            if path == "/api/vwap/export" and method == "GET":
+                return 200, json.dumps(self.vwap.export(), indent=2, allow_nan=False).encode(), {
+                    "Content-Type": "application/json", "Content-Disposition": 'attachment; filename="vwap-research.json"'}
             if path == "/api/forward/start" and method == "POST":
                 if set(body)!={"symbol","interval","fingerprint"}:
                     raise ValueError("Choose one saved report for a fixed 30-day study")

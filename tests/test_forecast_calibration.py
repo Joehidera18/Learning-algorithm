@@ -7,6 +7,7 @@ from unittest.mock import patch
 from lab.adaptive import AdaptivePolicy, action_key, feature_vector
 from lab.chronological_learning import ChronologicalTrainer
 from lab.forecast_calibration import correction, empty_bucket, update_bucket
+from lab.forecast_response import estimate as response_estimate
 from lab.prediction_audit import entry_snapshot, summarize_predictions
 from tests.test_adaptive import F, trained_state
 
@@ -16,7 +17,7 @@ class ForecastCalibrationTests(unittest.TestCase):
         state=dict(trained_state(),forecast_correction=applied)
         policy=AdaptivePolicy(state,forecast_correction=applied);params=policy.candidates[0]
         vector=feature_vector(F,params,0,0)
-        with patch.object(policy,'raw_predict',return_value=.4):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.4)):
             for i in range(n):
                 forecast=entry_snapshot(policy.forecast(params,vector),100+i*2)
                 policy.observe(params,vector,reward,101+i*2,outcome={'entry_forecast':forecast})
@@ -47,14 +48,53 @@ class ForecastCalibrationTests(unittest.TestCase):
         self.assertFalse(forecast['calibration_ready'])
         self.assertEqual(forecast['estimated_net_r'],.4)
 
+    def test_first_resolved_loss_can_lower_normal_forecast_but_is_not_ready_evidence(self):
+        policy,params,v,forecast=self.collect(-1,n=1,applied=False)
+        self.assertAlmostEqual(forecast['estimated_net_r'],.4-1.4/51)
+        self.assertEqual(forecast['trial_estimated_net_r'],.4)
+        self.assertEqual(forecast['calibration_adjustment_r'],0)
+        self.assertFalse(forecast['calibration_ready'])
+        self.assertTrue(forecast['calibration_provisional'])
+        f=entry_snapshot(forecast,200)
+        audit=summarize_predictions([{'entry_forecast':f,'reason':'STOP',
+            'strategy_family':params['family'],'pnl':-1,'risk_dollars':1}])['calibration']
+        self.assertEqual(audit['applied_forecasts'],1)
+        self.assertEqual(audit['provisional_forecasts'],1)
+        self.assertEqual(audit['adjusted_forecasts'],0)
+        self.assertEqual(audit['selected']['samples'],audit['raw']['samples'])
+        self.assertLess(audit['selected']['rmse_r'],audit['raw']['rmse_r'])
+        self.assertEqual(policy.state['observations'],81)
+
+    def test_normal_correction_has_no_thirty_sample_activation_cliff_and_never_raises(self):
+        before=self.collect(-1,n=29,applied=False)[3]
+        after=self.collect(-1,n=30,applied=False)[3]
+        self.assertLess(before['estimated_net_r'],.4)
+        self.assertLess(abs(after['estimated_net_r']-before['estimated_net_r']),.03)
+        for n in (1,29,40):
+            forecast=self.collect(.9,n=n,applied=False)[3]
+            self.assertEqual(forecast['estimated_net_r'],.4)
+            self.assertFalse(forecast['calibration_provisional'])
+
+    def test_invalid_provisional_record_cannot_update_model(self):
+        policy,params,v,forecast=self.collect(-1,n=1,applied=False)
+        good=entry_snapshot(forecast,200)
+        before=policy.export()
+        missing=dict(good);missing.pop('shrunk_calibration_adjustment_r')
+        for broken in (missing,dict(good,calibration_provisional=False),
+                       dict(good,shrunk_calibration_adjustment_r=float('nan')),
+                       dict(good,shrunk_calibration_adjustment_r=1)):
+            with self.assertRaises(ValueError):
+                policy.observe(params,v,-1,201,outcome={'entry_forecast':broken})
+            self.assertEqual(policy.export(),before)
+
     def test_cost_bands_actions_and_forecast_bands_do_not_share_corrections(self):
         policy,params,v,_=self.collect(-1)
         costly=list(v);costly[16]=1.
-        with patch.object(policy,'raw_predict',return_value=.4):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.4)):
             self.assertLess(policy.predict(params,v),.4)
             self.assertEqual(policy.predict(params,costly),.4)
             self.assertEqual(policy.predict(policy.candidates[1],v),.4)
-        with patch.object(policy,'raw_predict',return_value=.8):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.8)):
             self.assertEqual(policy.predict(params,v),.8)
 
     def test_tail_losses_keep_their_actual_size(self):

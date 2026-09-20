@@ -25,7 +25,7 @@ from .study_plan import (HISTORY_DAYS, MAX_PRACTICE_MARKETS, DEFAULT_PRACTICE_SY
     DEFAULT_PRACTICE_INTERVALS, INTERVAL_HISTORY_LIMITS, normalize_plan, study_days,
     study_key, unique_market_hours, history_coverage)
 
-TRAINING_MARKETS = 10
+TRAINING_MARKETS = 15
 REVIEW_SECONDS = 28*86400
 UNQUALIFIED_REVIEW_SECONDS = 86400
 
@@ -296,9 +296,9 @@ class AutoLearner:
         completed = set()
         bitcoin_cache = {}
         collector = getattr(self.agent,"events",None)
-        event_snapshot = collector.snapshot() if collector else None
-        if event_snapshot and not any(p["ok"] for p in event_snapshot["polls"]):
-            event_snapshot = None
+        if collector:
+            self._update(phase="collecting_context", message="Preparing the observed news archive; unavailable history stays marked as missing.")
+            collector.prepare_for_study(cancelled=self.stop_event.is_set)
         def publish():
             self._update(results=[updated[k] for k in queue if k in updated]+
                 [r for k,r in updated.items() if k not in queue_set],
@@ -333,8 +333,6 @@ class AutoLearner:
             job = self._job(symbol, settings, history_days)
             trial_key = None
             try:
-                job_events = self._pin_events(job,event_snapshot)
-                save_state(self.db_path,self._job_key(symbol,interval),job)
                 product = catalog.get(symbol) if catalog is not None else None
                 if catalog is not None and (not product or product.get("quote_currency") != "USD"
                         or product.get("base_currency") in STABLE_BASES
@@ -363,6 +361,11 @@ class AutoLearner:
                 elif benchmark_key not in bitcoin_cache:
                     bitcoin_cache[benchmark_key] = self.downloader.daily_history("BTC-USD", days, job["end_ms"])
                 bitcoin_rows, bitcoin_source = bitcoin_cache[benchmark_key]
+                # Downloading may take minutes and a batch may take hours. New
+                # jobs use the archive now available; resumed jobs retain their
+                # original immutable snapshot, including an explicitly empty one.
+                job_events = self._pin_events(job,collector.snapshot() if collector else None)
+                save_state(self.db_path,self._job_key(symbol,interval),job)
                 fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows, history_days, bitcoin_rows, job_events)
                 if job.get("fingerprint") and job["fingerprint"] != fingerprint:
                     self._finish_job(symbol, job)
@@ -479,7 +482,7 @@ class AutoLearner:
                 if not settings.get("learning_enabled"):
                     break
                 # A restart can select different markets before the 28-day review.
-                symbols = list(self.agent.product_ids)[:TRAINING_MARKETS]
+                symbols = [s for s in self.agent.product_ids if s in DEFAULT_PRACTICE_SYMBOLS][:TRAINING_MARKETS]
                 if not symbols:
                     raise RuntimeError("No Coinbase USD markets are available")
                 if self._needs_review(symbols, settings):

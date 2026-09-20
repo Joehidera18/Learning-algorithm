@@ -17,8 +17,19 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails,renderEvents,renderForward};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails,renderEvents,renderForward,renderVwap};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
+context.testUI.renderVwap({status:'error',message:'Download unavailable',results:[{symbol:'BTC-USD',error:'Failed <img src=x>'}]});
+assert.match(element('vwapResults').innerHTML,/Failed &lt;img/);
+assert.doesNotMatch(element('vwapResults').innerHTML,/<img/);
+const vwapAccount={metrics:{trades:0,net_pnl:0,win_rate:null,profit_factor:null,max_drawdown_pct:0,complete:true}};
+context.testUI.renderVwap({status:'complete',results:[{symbol:'BTC-USD',costs:{fee_rate:.004},data_quality:{rows:4320,gaps:0},
+  results:[{label:'VWAP re-entry',windows:{earlier:{standard:vwapAccount,higher_cost:vwapAccount},later:{standard:vwapAccount,higher_cost:vwapAccount}}}]}]});
+assert.match(element('vwapResults').innerHTML,/\$0\.00/);
+assert.match(element('vwapResults').innerHTML,/separately funded/);
+assert.match(element('vwapResults').innerHTML,/not fresh forward evidence/);
+assert.equal(element('vwapRun').disabled,false);
+assert.equal(element('vwapCancel').disabled,true);
 context.testUI.renderEvents({running:true,versions:2,sources:[{name:'<script>bad</script>',url:'https://example.org',healthy:false,error:'Unavailable <img src=x>'}],
   recent:[{title:'<img src=x onerror=bad()>',url:'javascript:bad()',published_ts:1789862572845,category:'regulation',source:'sec'}],
   upcoming:[{title:'Scheduled release',url:'https://example.org/release',event_ts:1789862572845,precision:'day',category:'macro',source:'bls'}]});
@@ -28,6 +39,13 @@ assert.doesNotMatch(element('eventsRecent').innerHTML,/javascript:|<img/);
 assert.match(element('eventsUpcoming').innerHTML,/date only/);
 assert.match(element('eventsSources').innerHTML,/&lt;script/);
 assert.match(element('eventsSources').innerHTML,/Unavailable or stale/);
+assert.match(element('eventsSentiment').innerHTML,/No fresh Fear/);
+context.testUI.renderEvents({sentiment:{available:true,value:25,change_1d:-5,
+  url:'https://alternative.me/crypto/fear-and-greed-index/',published_ts:1789862572845,
+  observed_ts:1789862672845,scope:'Bitcoin-focused market index'}});
+assert.match(element('eventsSentiment').innerHTML,/25\/100/);
+assert.match(element('eventsSentiment').innerHTML,/Alternative.me Crypto Fear/);
+assert.match(element('eventsSentiment').innerHTML,/first observed/);
 context.testUI.renderEvents({sources:[],projects:[{title:'<script>release</script>',url:'javascript:bad()',
   source:'avalanche_releases',origin:'project_publication',published_ts:1789862572845,observed_ts:1789862572846}],
   category_coverage:{world:0,project:null}});
@@ -99,6 +117,7 @@ const current={...original,current_policy_version:"fixture",current_report_versi
     outcome_memory_comparison:{net_pnl_difference:0,stress_net_pnl_difference:-1.23},
     prediction_audit:{selected:{samples:3,mean_predicted_net_r:.4,mean_actual_net_r:-.5,optimism_bias_r:.9,
       rmse_r:1.2,zero_forecast_rmse_r:1.0,calibration:{paired_samples:3,adjusted_forecasts:2,
+        applied_forecasts:3,provisional_forecasts:1,selected:{rmse_r:1.234},
         raw:{rmse_r:1.345},corrected:{rmse_r:1.2}}},shadow:{samples:40,mean_predicted_net_r:-.2,mean_actual_net_r:-.3}},
     development_prediction_audit:{samples:100,mean_predicted_net_r:-.1,mean_actual_net_r:-.2,
       by_practice_lane_and_forecast_band:{'eligible/0_to_0.5R':{samples:5,mean_predicted_net_r:.234,
@@ -133,6 +152,7 @@ for (const text of ["Reused-history test","$9.01","$9.63","-$0.62","120","Confir
   "Entry context studied:","Large losses retain their full size",
   "Entry predictions and later outcomes","0.400R","-0.500R","0.900R","Zero forecast RMSE",
   "Learning from forecast mistakes","Earlier training practice","Original forecast error","1.345R","Trial adjustments",
+  "Selected forecast error","1.234R","3 (1 sparse)",
   "Two-sided trial corrections do not control trading",
   "Relevant learning evidence","Affordable practice examples: 135","Bitcoin and market conditions",
   "Learning specific failure patterns","0.2400","0.2500","Experiment record","2 declared variants recorded",

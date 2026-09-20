@@ -3,6 +3,8 @@ import copy
 import io
 import json
 import tempfile
+import threading
+import time
 import unittest
 import zipfile
 from datetime import datetime, timezone
@@ -259,6 +261,35 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(collector.status()["versions"],0)
         self.assertTrue(all(s["error"]=="offline" for s in collector.status()["sources"]))
 
+    def test_initial_collection_waits_for_completed_failure_and_keeps_missing_coverage(self):
+        def offline(source):raise OSError('offline')
+        collector=EventCollector(self.db,fetcher=offline)
+        try:
+            archive=collector.prepare_for_study(timeout=2.)
+            self.assertEqual(len(archive['polls']),len(SOURCES))
+            self.assertTrue(all(not p['ok'] for p in archive['polls']))
+            self.assertEqual(archive['events'],[])
+            self.assertEqual(EventIndex(archive).at(int(time.time()*1000))['coverage'],0.)
+        finally:
+            collector.stop();collector.worker.join(2)
+
+    def test_initial_collection_timeout_and_cancellation_do_not_wait_for_network(self):
+        release=threading.Event();cancelled=threading.Event()
+        def slow(source):
+            release.wait(2)
+            raise OSError('offline')
+        collector=EventCollector(self.db,fetcher=slow)
+        try:
+            began=time.monotonic()
+            self.assertEqual(collector.prepare_for_study(timeout=.02)['polls'],[])
+            self.assertLess(time.monotonic()-began,1.)
+            cancelled.set()
+            with self.assertRaises(InterruptedError):
+                collector.prepare_for_study(timeout=15.,cancelled=cancelled.is_set)
+            self.assertLess(time.monotonic()-began,1.)
+        finally:
+            collector.stop();release.set();collector.worker.join(3)
+
 
 class IntegrationTests(unittest.TestCase):
     def test_complete_replay_learns_events_and_records_separate_price_control(self):
@@ -267,6 +298,11 @@ class IntegrationTests(unittest.TestCase):
         rows=candles(3000,start=start)
         events=[event(published=start+i*DAY,observed=start+i*DAY,identity=str(i)) for i in range(32)]
         polls=[{"source":"sec","ts":start+i*DAY,"ok":True,"ttl_ms":DAY} for i in range(32)]
+        from tests.test_observed_sentiment import payload
+        for i in range(32):
+            ts=start+i*DAY
+            events.extend(parse('alternative_fng',payload(published=ts),ts))
+            polls.append({'source':'alternative_fng','ts':ts,'ok':True,'ttl_ms':DAY})
         archive=snapshot(events,polls)
         def fixture_features(section,*args,**kwargs):
             return {"features":[dict(F) for _ in section]}
@@ -283,6 +319,11 @@ class IntegrationTests(unittest.TestCase):
         self.assertIn("event_inputs_disabled",result["experiment_registry"]["variants"])
         self.assertEqual(result["event_comparison"]["net_pnl_difference"],
             result["holdout"]["net_pnl"]-result["event_comparison"]["price_context_only"]["holdout"]["net_pnl"])
+        self.assertGreater(result['event_data']['sentiment_holdout_candles'],0)
+        self.assertIn('sentiment_disabled',result['experiment_registry']['variants'])
+        self.assertFalse(result['sentiment_comparison']['selection_uses_comparison'])
+        self.assertEqual(result['sentiment_comparison']['net_pnl_difference'],
+            result['holdout']['net_pnl']-result['sentiment_comparison']['sentiment_disabled']['holdout']['net_pnl'])
 
     def test_study_resume_pins_event_inputs_and_changes_fingerprint_for_new_study(self):
         from lab.paper_store import save_state
@@ -293,6 +334,11 @@ class IntegrationTests(unittest.TestCase):
             job={}
             self.assertEqual(learner._pin_events(job,first),first)
             self.assertEqual(learner._pin_events(job,later),first)
+            self.assertEqual(learner._pin_events({},later),later)
+            empty=snapshot(polls=[]);empty_job={}
+            self.assertEqual(learner._pin_events(empty_job,empty),empty)
+            self.assertEqual(learner._pin_events(empty_job,later),empty)
+            self.assertIsNone(learner._pin_events({'event_snapshot_key':None},later))
             old=learner._fingerprint(candles(),"DOT-USD",DEFAULTS,event_snapshot=first)
             new=learner._fingerprint(candles(),"DOT-USD",DEFAULTS,event_snapshot=later)
             self.assertNotEqual(old,new)
