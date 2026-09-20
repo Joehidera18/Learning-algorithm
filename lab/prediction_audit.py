@@ -58,13 +58,27 @@ def entry_snapshot(forecast, signal_close_ts, decision_ts=None):
         if "calibration_policy" in result:
             mode = result["calibration_policy"]
             selected = result.get("selected_adjustment_r")
-            if (mode not in ("two_sided_experiment", "eligible_downside_only")
+            shrink_fields = {"shrunk_calibration_adjustment_r", "calibration_provisional"}
+            if mode == "eligible_downside_shrinkage" or shrink_fields.intersection(result):
+                if not shrink_fields.issubset(result):
+                    raise ValueError("Incomplete provisional forecast correction")
+                shrunk = result["shrunk_calibration_adjustment_r"]
+                if (not isinstance(shrunk, (int,float)) or not math.isfinite(shrunk)
+                        or not -3-1e-10 <= raw+shrunk <= 3+1e-10
+                        or (n == 0 and shrunk != 0)
+                        or (result["calibration_ready"] and not math.isclose(shrunk, adjustment, abs_tol=1e-10))
+                        or type(result["calibration_provisional"]) is not bool
+                        or result["calibration_provisional"] != (selected != 0 and not result["calibration_ready"])):
+                    raise ValueError("Invalid provisional forecast correction")
+            if (mode not in ("two_sided_experiment", "eligible_downside_only", "eligible_downside_shrinkage")
                     or not isinstance(selected, (int,float)) or not math.isfinite(selected)
                     or not math.isclose(raw+selected, result["estimated_net_r"], abs_tol=1e-10)
                     or result["calibration_applied"] != (selected != 0)
                     or (mode == "two_sided_experiment" and not math.isclose(selected, adjustment, abs_tol=1e-10))
                     or (mode == "eligible_downside_only" and not math.isclose(selected,
-                        min(0., adjustment) if raw > 0 and result.get("evidence_scope") == "cost_eligible" else 0., abs_tol=1e-10))):
+                        min(0., adjustment) if raw > 0 and result.get("evidence_scope") == "cost_eligible" else 0., abs_tol=1e-10))
+                    or (mode == "eligible_downside_shrinkage" and not math.isclose(selected,
+                        min(0., shrunk) if raw > 0 and result.get("evidence_scope") == "cost_eligible" else 0., abs_tol=1e-10))):
                 raise ValueError("Invalid selected forecast correction")
     if "failure_predictions" in result:
         from .failure_predictions import validate_forecasts
@@ -112,8 +126,9 @@ class PredictionAudit:
         self.families, self.bands = {}, {}
         self.missing = self.untrained = self.end_marks = 0
         self.raw_totals, self.paired_totals = empty_totals(), empty_totals()
+        self.selected_totals = empty_totals()
         self.raw_bands = {}
-        self.adjusted = self.applied = 0
+        self.adjusted = self.applied = self.provisional = 0
         self.lanes = {}
         self.lane_bands = {}
 
@@ -149,12 +164,15 @@ class PredictionAudit:
             trial = forecast["trial_estimated_net_r"]
             add(self.raw_totals,raw,actual)
             add(self.paired_totals,trial,actual)
+            add(self.selected_totals,predicted,actual)
             pair = self.raw_bands.setdefault(forecast_band(raw),
-                {"raw":empty_totals(),"corrected":empty_totals()})
+                {"raw":empty_totals(),"corrected":empty_totals(),"selected":empty_totals()})
             add(pair["raw"],raw,actual)
             add(pair["corrected"],trial,actual)
+            add(pair["selected"],predicted,actual)
             self.adjusted += int(abs(trial-raw)>1e-12)
-            self.applied += int(forecast["calibration_applied"] and abs(trial-raw)>1e-12)
+            self.applied += int(forecast["calibration_applied"] and abs(predicted-raw)>1e-12)
+            self.provisional += int(forecast.get("calibration_provisional",False) and abs(predicted-raw)>1e-12)
 
     def summary(self):
         return copy.deepcopy({**metrics(self.totals),
@@ -167,11 +185,14 @@ class PredictionAudit:
             "calibration":{"paired_samples":self.raw_totals["samples"],
                 "adjusted_forecasts":self.adjusted,
                 "applied_forecasts":self.applied,
+                "provisional_forecasts":self.provisional,
                 "raw":metrics(self.raw_totals), "corrected":metrics(self.paired_totals),
+                "selected":metrics(self.selected_totals),
                 "by_raw_forecast_band":{k:{n:metrics(t) for n,t in pair.items()}
                     for k,pair in self.raw_bands.items()},
-                "scope":"Raw and experimental corrected forecasts evaluated on the same entries, grouped by the raw "
-                    "entry estimate. applied_forecasts reports actual use in decisions. The normal policy can lower "
+                "scope":"Raw, selected and experimental corrected forecasts evaluated on the same entries, grouped by the raw "
+                    "entry estimate. applied_forecasts reports actual use in decisions; provisional_forecasts counts "
+                    "shrunk downside corrections before 30-sample readiness. The normal policy can lower "
                     "positive eligible estimates; two-sided corrections remain experimental. "
                     "This measures forecast error, not profit from another trading policy."},
             "selection_uses_summary":False,

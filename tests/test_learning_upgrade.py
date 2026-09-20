@@ -200,6 +200,8 @@ class HistoricalCoverageTests(unittest.TestCase):
 
 class ReviewPersistenceTests(unittest.TestCase):
     def setUp(self):
+        polling=patch('lab.event_store.EventCollector.start')
+        polling.start();self.addCleanup(polling.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.base = Path(self.temp.name)
         self.service = Service(self.base, db_path=self.base/"test.sqlite3", data_dir=self.base/"data")

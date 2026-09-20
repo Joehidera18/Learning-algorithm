@@ -404,10 +404,11 @@
         });
       });
       if (positiveRows.length) html+='<h4>Positive forecasts for affordable setups</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Forecast band</th><th>Scored exits</th><th>Mean prediction</th><th>Mean outcome</th><th>Forecast error</th><th>Zero forecast error</th></tr></thead><tbody>'+positiveRows.join('')+'</tbody></table></div><p class="footnote">These forecasts are separated from the many negative predictions for cost-blocked trades. Small groups do not establish reliable predictions.</p>';
-      if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Trial adjustments</th><th>Original forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
+      if (paired.length) html+='<h4>Learning from forecast mistakes</h4><div class="table-wrap"><table><thead><tr><th>Source</th><th>Compared exits</th><th>Decision corrections</th><th>Trial adjustments</th><th>Original forecast error</th><th>Selected forecast error</th><th>Trial correction error</th></tr></thead><tbody>'+
         paired.map(function(a) {const c=a[1].calibration;return '<tr><td>'+a[0]+'</td><td>'+num(c.paired_samples,0)+
-          '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
-        '</tbody></table></div><p class="footnote">Both errors use the same completed examples. Trial corrections study whether earlier estimates were too high or too low. Two-sided trial corrections do not control trading. The revised learner can only lower an optimistic forecast after enough relevant outcomes. Lower error is better; it does not establish profitable trading.</p>';
+          '</td><td>'+num(c.applied_forecasts,0)+(c.provisional_forecasts !== undefined ? ' ('+num(c.provisional_forecasts,0)+' sparse)' : '')+
+          '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num((c.selected || {}).rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
+        '</tbody></table></div><p class="footnote">All errors use the same completed examples. Selected forecasts are the estimates used for decisions. The revised learner can lower an optimistic forecast after the first matching resolved outcome, with a small correction when evidence is sparse. Two-sided trial corrections do not control trading. Lower forecast error does not establish profitable trading.</p>';
       if (r.forecast_calibration) html+='<p class="footnote">'+escape(r.forecast_calibration.rule)+' '+escape(r.forecast_calibration.scope || '')+'</p>';
       html+='</details>';
     }

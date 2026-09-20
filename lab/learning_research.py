@@ -28,7 +28,7 @@ from .failure_predictions import summary as failure_prediction_summary
 from .event_context import (attach_event_context, data_summary as event_summary,
     validate_snapshot, outcome_summary as event_outcomes)
 
-LEARNING_REPORT_VERSION = 20
+LEARNING_REPORT_VERSION = 21
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None,
@@ -333,7 +333,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
                 "Exit reviews and future candles are not entry inputs."},
         "entry_error_rule":"Save the forecast at entry in chronological development training as well as later tests. "
             "After at least 30 resolved forecasts in a model component, "
-            "its entry-time RMSE can raise the ranking error margin; it cannot reduce the existing margin. "
+            "its entry-time RMSE can raise the ranking error margin. Persistent positive mean entry error "
+            "also floors that margin without shrinking by sample count; neither can reduce the existing margin. "
             "Each realized reward still trains once. Diagnostic summaries cannot select a policy.",
         "symbol":symbol, "interval":interval, "created_at":int(time.time()),
         "data_selection":coverage,
@@ -381,8 +382,9 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "development_prediction_audit":trainer.predictions.summary(),
         "forecast_calibration":{**summarize_calibration({k:m.get("eligible_model", {}) for k,m in trained["models"].items()}),
             "enabled_for_selection":True,
-            "policy":"two_sided_experiment" if forecast_correction else "eligible_downside_only",
-            "scope":"The normal model only reduces positive forecasts after enough comparable cost-eligible outcomes. "
+            "policy":"two_sided_experiment" if forecast_correction else "eligible_downside_shrinkage",
+            "scope":"The normal model can reduce positive forecasts from the first comparable cost-eligible outcome, "
+                "with strong shrinkage and an explicit provisional flag before 30-sample readiness. "
                 "Two-sided corrections remain a separate research experiment. Saved entry errors also affect the ranking margin."},
         "pre_holdout_model_sha256":hashlib.sha256(json.dumps(initial,sort_keys=True).encode()).hexdigest(),
         "holdout_start_ts":rows[holdout_start]["ts"],

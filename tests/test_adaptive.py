@@ -359,6 +359,8 @@ class LearningPersistenceTests(unittest.TestCase):
 
 class AutomaticWorkflowTests(unittest.TestCase):
     def setUp(self):
+        polling=patch('lab.event_store.EventCollector.start')
+        polling.start();self.addCleanup(polling.stop)
         self.tmp=tempfile.TemporaryDirectory()
         self.service=Service(BASE,Path(self.tmp.name)/"api.sqlite3",Path(self.tmp.name)/"data")
         from lab.study_plan import DEFAULT_PRACTICE_SYMBOLS

@@ -77,7 +77,7 @@ class EligibleEvidenceTests(unittest.TestCase):
                 result=entry_snapshot(policy.forecast(p,v),200)
             self.assertLessEqual(result["estimated_net_r"],.4)
             self.assertEqual(result["calibration_samples"],40)
-            self.assertEqual(result["calibration_policy"],"eligible_downside_only")
+            self.assertEqual(result["calibration_policy"],"eligible_downside_shrinkage")
             if reward < 0:self.assertLess(result["estimated_net_r"],.4)
             else:self.assertGreater(result["trial_estimated_net_r"],result["estimated_net_r"])
 

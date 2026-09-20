@@ -62,6 +62,9 @@ class StudyPlanTests(unittest.TestCase):
 
 class MultiStudyTests(unittest.TestCase):
     def setUp(self):
+        # Source polling has separate adapter tests; replay control stays offline.
+        polling=patch('lab.event_store.EventCollector.start')
+        polling.start();self.addCleanup(polling.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.service = Service(BASE, self.root/'test.sqlite3', self.root/'data')
@@ -95,6 +98,24 @@ class MultiStudyTests(unittest.TestCase):
         with patch.object(self.a.downloader, '_history', side_effect=self.history), patch(
                 'lab.autolearn.learn_history', side_effect=self.learned):
             self.a.study(['BTC-USD'], self.settings, intervals=intervals)
+
+    def test_each_new_job_pins_news_collected_during_its_download(self):
+        from tests.test_market_events import event, T
+        sources=[]
+        def download(symbol, interval, *args, **kwargs):
+            if interval != '1d':
+                ts=T+len(sources)*1000
+                sources.append(interval)
+                self.service.events.store.record_poll('sec',ts,[event(observed=ts,identity=interval)])
+                self.service.events._reload()
+            return self.history(symbol,interval,*args,**kwargs)
+        with patch.object(self.a.downloader,'_history',side_effect=download), \
+             patch('lab.autolearn.learn_history',side_effect=self.learned) as learn:
+            self.a.study(['BTC-USD'],self.settings,intervals=['15m','1h'])
+        self.assertEqual(len(learn.call_args_list),2)
+        archives=[call.kwargs['event_snapshot'] for call in learn.call_args_list]
+        self.assertEqual([len(a['events']) for a in archives],[1,2])
+        self.assertEqual(archives[0]['events'][0]['observed_ts'],T)
 
     def test_secondary_only_study_cannot_postpone_primary_review(self):
         self.study_fixture(['6h'])

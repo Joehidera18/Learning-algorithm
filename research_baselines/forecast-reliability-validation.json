@@ -1,0 +1,27 @@
+{
+  "lab_source_sha256": "6f07243337116e2531f7c5847b20ab7d6e466e6511735b09d9f2d7db2b925fde",
+  "python_tests": {
+    "command": "python -m unittest discover -s tests -v",
+    "tests": 382,
+    "result": "passed",
+    "log_sha256": "ff21b40589c2b21b6a192e64fc31425f6cc92ece2da97f51457aaa46000f066b"
+  },
+  "dashboard_checks": [
+    {
+      "command": "node tests/check_learning_ui.js",
+      "result": "passed"
+    },
+    {
+      "command": "node tests/check_finances_ui.js",
+      "result": "passed"
+    }
+  ],
+  "paired_replays": {
+    "studies": 4,
+    "full_records": 8,
+    "selected_trade_economics_identical": true,
+    "all_still_unqualified": true,
+    "net_profit_improvement_observed": false
+  },
+  "scope": "No production deployment, runner restart or account change. Unit fixtures do not establish financial performance."
+}

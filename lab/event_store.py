@@ -98,6 +98,7 @@ class EventCollector:
         self.lock=threading.RLock()
         self.refresh_lock=threading.Lock()
         self.stop_event=threading.Event()
+        self.initial_poll=threading.Event()
         self.worker=None
         self.generation=0
         self.last_error=None
@@ -109,10 +110,35 @@ class EventCollector:
             self._snapshot=snapshot
             self.indexes={}
             self.generation+=1
+            if snapshot['polls']:
+                self.initial_poll.set()
 
     def snapshot(self):
         with self.lock:
             return copy.deepcopy(self._snapshot)
+
+    def prepare_for_study(self, timeout=15., cancelled=None):
+        """Bounded wait in the learning worker, never in an HTTP/status handler.
+
+        Even a failed collection is evidence about missing coverage. Return the
+        archive unchanged; observations retain their real receipt timestamps.
+        """
+        if cancelled and cancelled():
+            raise InterruptedError("Learning cancelled")
+        self.start()
+        deadline=time.monotonic()+max(0.,timeout)
+        while not self.initial_poll.is_set():
+            if cancelled and cancelled():
+                raise InterruptedError("Learning cancelled")
+            if self.stop_event.is_set() or not (self.worker and self.worker.is_alive()):
+                break
+            remaining=deadline-time.monotonic()
+            if remaining <= 0:
+                break
+            self.initial_poll.wait(min(.1,remaining))
+        if cancelled and cancelled():
+            raise InterruptedError("Learning cancelled")
+        return self.snapshot()
 
     def context(self, symbol, ts, clock="status"):
         with self.lock:
@@ -156,6 +182,9 @@ class EventCollector:
             return True
         finally:
             self.refresh_lock.release()
+            # Include a completed storage-error attempt in readiness. Historical
+            # learning can continue with explicitly unavailable event coverage.
+            self.initial_poll.set()
 
     def _run(self):
         while not self.stop_event.is_set():

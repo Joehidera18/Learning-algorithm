@@ -41,14 +41,14 @@ def update_bucket(bucket, raw, actual, available_ts):
 def correction(bucket):
     if not bucket:
         return {"samples":0, "effective_samples":0., "ready":False,
-                "adjustment_r":0., "last_label_ts":0}
+                "adjustment_r":0., "shrunk_adjustment_r":0., "last_label_ts":0}
     n, weight = bucket["samples"], bucket["weight"]
     effective = min(100., weight**2/max(bucket["weight_squared"],1e-12))
     ready = n >= MIN_CONTEXT_SAMPLES and effective >= MIN_CONTEXT_SAMPLES
-    adjustment = (bucket["weighted_residual"]/weight * effective/(effective+SHRINKAGE)
-                  if ready else 0.)
+    shrunk = bucket["weighted_residual"]/weight * effective/(effective+SHRINKAGE)
     return {"samples":n, "effective_samples":effective, "ready":ready,
-            "adjustment_r":adjustment, "last_label_ts":bucket["last_label_ts"]}
+            "adjustment_r":shrunk if ready else 0., "shrunk_adjustment_r":shrunk,
+            "last_label_ts":bucket["last_label_ts"]}
 
 
 def validate_buckets(buckets, maximum_samples, last_label_ts):
@@ -80,7 +80,9 @@ def summarize(models):
             "minimum_samples":MIN_CONTEXT_SAMPLES, "half_life_observations":50,
             "shrinkage":SHRINKAGE,
             "rule":"Match strategy parameters, cost burden and raw forecast band. "
-                "After at least 30 observations and 30 effective samples, apply a shrunk recent mean "
-                "of actual net return minus raw entry prediction. Corrections can raise or lower estimates. "
+                "The normal policy can lower a positive eligible forecast from the first resolved matching "
+                "example, shrinking by effective samples / (effective samples + 50). Sparse corrections "
+                "are marked provisional; readiness still requires 30 observations and 30 effective samples. "
+                "Only the separate research policy can raise estimates, after that readiness minimum. "
                 "Raw forecasts are stored before entry; unresolved trades never train the correction. "
                 "Final estimates remain bounded and existing cost, error and risk checks still apply."}
