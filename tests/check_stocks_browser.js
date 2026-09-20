@@ -44,6 +44,10 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
   }
   browser = await chromium.launch(launchOptions);
   const context = await browser.newContext({viewport: {width: 1440, height: 1000}, acceptDownloads: true});
+  const stubMarkets = async target => target.route('https://www.tradingview-widget.com/embed-widget/**', route => route.fulfill({
+    contentType: 'text/html', body: '<!doctype html><html><body style="background:#101a24;color:#b8c8d1;font:14px Arial;padding:20px">Market provider fixture · no real quotes</body></html>'
+  }));
+  await stubMarkets(context);
   const page = await context.newPage();
   page.on('pageerror', error => problems.push(error.message));
   const requests = [];
@@ -71,6 +75,54 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
     await hasText(page.locator('#researchFreshness'), /Sep 20, 2026/);
     await hasText(page.locator('#valuationDate'), /Sep 18, 2026/);
     await page.screenshot({path: path.join(artifacts, 'stocks-desktop.png')});
+  });
+  await check('The market board contains all 20 mapped stocks and shows data-delay context', async () => {
+    const source = new URL(await page.locator('#marketBoard iframe').getAttribute('src'));
+    assert.equal(source.origin, 'https://www.tradingview-widget.com');
+    const settings = JSON.parse(decodeURIComponent(source.hash.slice(1)));
+    const symbols = settings.tabs[0].symbols.map(s => s.s);
+    assert.equal(symbols.length, 20);
+    assert.equal(new Set(symbols).size, 20);
+    assert.ok(symbols.includes('NASDAQ:VRTX') && symbols.includes('NYSE:IONQ'));
+    assert.equal(await page.locator('#marketSymbol option').count(), 20);
+    await hasText(page.locator('#marketDataNote'), /delayed/);
+    assert.ok(!source.href.includes('stock-ui-test-token'));
+    assert.equal(await page.locator('#markets script[src]').count(), 0);
+    assert.equal(settings.hideAbsoluteChange, true);
+    await page.locator('[data-market-view="full"]').click();
+    const full = new URL(await page.locator('#marketBoard iframe').getAttribute('src'));
+    assert.ok(full.pathname.includes('market-quotes'));
+    assert.equal(JSON.parse(decodeURIComponent(full.hash.slice(1))).symbolsGroups[0].symbols.length, 20);
+    await page.locator('[data-market-view="summary"]').click();
+  });
+  await check('Charts switch stocks, preserve dollar and percentage settings, and link back to research', async () => {
+    await page.locator('#marketSymbol').selectOption('IONQ');
+    let source = new URL(await page.locator('#marketChart iframe').getAttribute('src'));
+    let settings = JSON.parse(decodeURIComponent(source.hash.slice(1)));
+    assert.equal(settings.symbols[0][1], 'NYSE:IONQ|1D');
+    assert.equal(settings.changeMode, 'price-and-percent');
+    assert.equal(settings.showVolume, true);
+    assert.equal(settings.hideMarketStatus, false);
+    await page.locator('#marketResearchLink').click();
+    await hasText(page.locator('#detailTitle'), /IONQ/);
+    await page.locator('[data-chart-stock="IONQ"]').click();
+    await page.locator('#stockDetail').waitFor({state: 'hidden'});
+    assert.equal(await page.locator('#marketSymbol').inputValue(), 'IONQ');
+    await page.locator('#marketChart iframe').evaluate(frame => frame.dataset.preserved = 'true');
+    await page.locator('#reloadResearch').click();
+    await page.waitForFunction(() => !document.getElementById('reloadResearch').disabled);
+    assert.equal(await page.locator('#marketChart iframe').getAttribute('data-preserved'), 'true');
+    await page.locator('#reloadMarkets').click();
+    assert.equal(await page.locator('#marketChart iframe').getAttribute('data-preserved'), null);
+    assert.equal(await page.locator('#marketSymbol').inputValue(), 'IONQ');
+  });
+  await check('Offline state warns about stale quotes without replacing them with dated research values', async () => {
+    await context.setOffline(true);
+    await page.waitForFunction(() => document.getElementById('marketConnectionStatus').textContent.includes('offline'));
+    assert.equal(await page.locator('#markets iframe').count(), 2);
+    assert.equal(await page.locator('#markets').getByText('$249.39', {exact: true}).count(), 0);
+    await context.setOffline(false);
+    await page.waitForFunction(() => document.getElementById('marketConnectionStatus').textContent.includes('Updates supplied'));
   });
   await check('Search, theme, profile and focus filters combine and reset', async () => {
     await page.locator('#stockSector').selectOption('Biotech'); await count(page, 7);
@@ -155,6 +207,7 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
   });
   await check('Mobile page and detail fit the viewport; favorites work when storage is blocked', async () => {
     const mobile = await browser.newContext({viewport: {width: 390, height: 844}, isMobile: true, deviceScaleFactor: 1, hasTouch: true});
+    await stubMarkets(mobile);
     await mobile.addInitScript(() => {
       if (location.protocol === 'http:') sessionStorage.setItem('cryptoAccessToken', 'stock-ui-test-token');
       Object.defineProperty(window, 'localStorage', {get() { throw new Error('Storage disabled'); }});
@@ -163,6 +216,9 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
     phone.on('pageerror', error => problems.push(error.message));
     await phone.goto(`${base}/stocks`); await count(phone, 20);
     assert.ok(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    assert.equal(await phone.locator('#markets iframe').count(), 2);
+    const marketBox = await phone.locator('#marketBoard iframe').boundingBox();
+    assert.ok(marketBox.width <= 390 && marketBox.x >= 0);
     await hasText(phone.locator('#savedScope'), /browser storage is unavailable/);
     await phone.screenshot({path: path.join(artifacts, 'stocks-mobile.png')});
     await phone.locator('#stockGrid [data-save-stock="BEAM"]').click();

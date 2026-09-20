@@ -4,6 +4,7 @@
   const $ = id => document.getElementById(id);
   const savedKey = 'cryptoStockFavorites.v1';
   const state = {data: null, saved: new Set(), view: 'all', detail: null, loadId: 0, persistent: true};
+  const market = {key: '', selected: null, boardView: 'summary', timers: new Map()};
   const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
   const dateLabel = value => {
     const date = new Date(`${value}T00:00:00Z`);
@@ -22,6 +23,112 @@
   const statusLabel = catalyst => ({scheduled: 'Scheduled decision', target: 'Company target', monitor: 'Monitoring', review_needed: 'Date passed · review outcome', date_today: 'Scheduled today · outcome unverified', window_open: 'Target window · outcome unverified'}[catalyst.calendar_status] || 'Outcome unverified');
   const saveButton = stock => `<button class="save-stock" data-save-stock="${escape(stock.ticker)}" aria-pressed="${state.saved.has(stock.ticker)}" aria-label="${state.saved.has(stock.ticker) ? 'Unsave' : 'Save'} ${escape(stock.ticker)}">${state.saved.has(stock.ticker) ? 'Saved ✓' : '+ Save'}</button>`;
   const profileTags = stock => `<span class="stock-tags"><span class="stock-tag">${escape(stock.sector)}</span><span class="stock-tag ${escape(stock.exposure)}">${escape(state.data.exposures[stock.exposure])}</span></span>`;
+
+  // These are the cross-origin frames created by TradingView's official embed
+  // loaders. Keep provider code out of the app origin and its access-token storage.
+  function mountMarketFrame(hostId, widget, settings, title) {
+    const host = $(hostId);
+    const status = $(`${hostId}Status`);
+    clearTimeout(market.timers.get(hostId));
+    const url = new URL(`https://www.tradingview-widget.com/embed-widget/${widget}/`);
+    url.searchParams.set('locale', 'en');
+    url.hash = encodeURIComponent(JSON.stringify({
+      width: '100%', height: '100%', colorTheme: 'dark', isTransparent: false, backgroundColor: '#101a24',
+      ...settings, 'page-uri': location.origin + location.pathname,
+      utm_source: location.hostname, utm_medium: 'widget', utm_campaign: widget
+    }));
+    const frame = document.createElement('iframe');
+    frame.src = url.href;
+    frame.title = title;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation');
+    frame.setAttribute('allow', 'fullscreen');
+    frame.setAttribute('allowtransparency', 'true');
+    frame.setAttribute('scrolling', 'no');
+    status.textContent = 'Loading TradingView display…';
+    status.hidden = false;
+    // Frame load is not proof of a fresh quote. The provider owns the quote-time,
+    // closed-market, delayed-feed, and unavailable-symbol indicators inside it.
+    frame.addEventListener('load', () => {
+      if (host.firstElementChild !== frame) return;
+      clearTimeout(market.timers.get(hostId));
+      status.textContent = 'Check quote time and availability inside the display.';
+    });
+    frame.addEventListener('error', () => {
+      if (host.firstElementChild !== frame) return;
+      clearTimeout(market.timers.get(hostId));
+      status.textContent = 'Market display could not load. Retry or open the TradingView link.';
+    });
+    host.replaceChildren(frame);
+    market.timers.set(hostId, setTimeout(() => {
+      if (host.firstElementChild === frame) status.textContent = 'This market display is taking longer to load. Retry or open the TradingView link.';
+    }, 20000));
+  }
+  function marketStocks() {
+    return state.data.stocks.filter(s => /^(NASDAQ|NYSE):[A-Z0-9.]+$/.test(s.market_symbol || ''));
+  }
+  function renderMarketChart(ticker) {
+    const stock = marketStocks().find(s => s.ticker === ticker);
+    if (!stock) return;
+    market.selected = ticker;
+    $('marketSymbol').value = ticker;
+    $('marketResearchLink').dataset.openStock = ticker;
+    $('marketResearchLink').href = `#${ticker}`;
+    $('marketExternalLink').href = `https://www.tradingview.com/symbols/${stock.market_symbol.replace(':', '-')}/`;
+    $('marketExternalLink').textContent = `${ticker} chart by TradingView ↗`;
+    mountMarketFrame('marketChart', 'symbol-overview', {
+      symbols: [[stock.ticker, `${stock.market_symbol}|1D`]],
+      chartOnly: false, showVolume: true, hideDateRanges: false,
+      hideMarketStatus: false, hideSymbolLogo: false, chartType: 'area',
+      changeMode: 'price-and-percent', dateRanges: ['1d|1', '1m|30', '3m|60', '12m|1D', '60m|1W', 'all|1M'],
+      scalePosition: 'right', scaleMode: 'Normal', fontFamily: 'Arial, sans-serif',
+      lineColor: '#50cfb8', topColor: 'rgba(80,207,184,0.25)', bottomColor: 'rgba(80,207,184,0)',
+      noTimeScale: false, valuesTracking: '1'
+    }, `${stock.name}: price, dollar and percentage change, volume and chart`);
+  }
+  function renderMarketBoard() {
+    const stocks = marketStocks();
+    const chartUrl = `${location.origin}/stocks?tvwidgetsymbol={symbolname}#marketChartArea`;
+    const full = market.boardView === 'full';
+    $('marketTableHint').hidden = !full;
+    document.querySelectorAll('[data-market-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.marketView === market.boardView)));
+    mountMarketFrame('marketBoard', full ? 'market-quotes' : 'market-overview', full ? {
+      symbolsGroups: [{name: 'Research watchlist', symbols: stocks.map(s => ({name: s.market_symbol, displayName: `${s.ticker} · ${s.name}`}))}],
+      showSymbolLogo: true, largeChartUrl: chartUrl
+    } : {
+      tabs: [{title: 'Research watchlist', symbols: stocks.map(s => ({s: s.market_symbol, d: s.name}))}],
+      showChart: false, showSymbolLogo: true, showFloatingTooltip: true,
+      hideAbsoluteChange: true, onlyDescription: false, dateRange: '1D', largeChartUrl: chartUrl
+    }, full ? '20-stock detailed market board: prices, dollar changes and percentage changes' : '20-stock market board: prices and percentage changes');
+  }
+  function renderMarkets(force = false) {
+    const stocks = marketStocks();
+    const key = stocks.map(s => s.market_symbol).join(',');
+    if (!stocks.length || (!force && market.key === key)) return;
+    market.key = key;
+    $('marketSymbol').innerHTML = stocks.map(s => `<option value="${escape(s.ticker)}">${escape(s.ticker)} · ${escape(s.name)}</option>`).join('');
+    const requested = new URLSearchParams(location.search).get('tvwidgetsymbol');
+    const selected = stocks.find(s => s.ticker === market.selected) || stocks.find(s => s.market_symbol === requested) || stocks[0];
+    renderMarketBoard();
+    renderMarketChart(selected.ticker);
+    connectionStatus();
+  }
+  function viewMarket(ticker) {
+    if (!marketStocks().some(s => s.ticker === ticker)) return;
+    if ($('stockDetail').open) $('stockDetail').close();
+    renderMarketChart(ticker);
+    const url = new URL(location.href);
+    url.searchParams.set('tvwidgetsymbol', getStock(ticker).market_symbol);
+    url.hash = 'marketChartArea';
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+    $('marketChartArea').scrollIntoView({behavior: 'auto', block: 'start'});
+    $('marketSymbol').focus({preventScroll: true});
+  }
+  function connectionStatus() {
+    $('marketConnectionStatus').textContent = navigator.onLine
+      ? 'Updates supplied by TradingView · Stock data may be delayed.'
+      : 'You are offline. Displayed quotes may be out of date; reconnect and reload the displays.';
+  }
 
   let token = '';
   try { token = sessionStorage.getItem('cryptoAccessToken') || ''; } catch (_) { /* Token can still be used for this visit. */ }
@@ -74,8 +181,8 @@
   function renderDetail(stock) {
     const valuation = state.data.valuation_checks.find(v => v.ticker === stock.ticker);
     $('stockDetailBody').innerHTML = `<div class="detail-heading"><p class="eyebrow">RESEARCH PRIORITY ${stock.priority} · ${escape(stock.horizon)}</p><h2 id="detailTitle">${escape(stock.ticker)}</h2><p>${escape(stock.name)}</p>${profileTags(stock)}</div>
-      <div class="detail-actions">${saveButton(stock)}${externalLink(stock.quote_url, 'Open latest quote')}</div>
-      <p class="detail-dates">Research: ${dateLabel(state.data.research_as_of)} · Market snapshot: ${dateLabel(state.data.market_data_as_of)} · No live quote</p>
+      <div class="detail-actions">${saveButton(stock)}<button class="small" data-chart-stock="${escape(stock.ticker)}">View price &amp; chart</button>${externalLink(stock.quote_url, 'Open quote source')}</div>
+      <p class="detail-dates">Research: ${dateLabel(state.data.research_as_of)} · Valuation snapshot: ${dateLabel(state.data.market_data_as_of)} · Updating quotes are in Markets &amp; charts</p>
       <p>${escape(stock.summary)}</p>
       <div class="detail-catalyst"><span class="badge catalyst-status ${escape(stock.catalyst.calendar_status)}">${escape(statusLabel(stock.catalyst))}</span><h3>${escape(stock.catalyst.title)}</h3><p>${escape(stock.catalyst.window)}. ${escape(stock.catalyst.interpretation)}</p></div>
       ${stock.blocks.map(block => `<section class="detail-block"><h3>${escape(block.title)}</h3>${block.paragraphs.map(p => `<p>${escape(p)}</p>`).join('')}</section>`).join('')}
@@ -139,6 +246,7 @@
     $('earlierNote').textContent = data.earlier_candidates_note;
     $('earlierStocks').innerHTML = data.earlier_candidates.map(stock => `<div><strong>${externalLink(stock.quote_url, stock.ticker)}</strong><span>${escape(stock.name)}</span><small>Needs updated research</small></div>`).join('');
     $('stockContent').hidden = false;
+    renderMarkets();
     $('downloadReport').disabled = false;
     $('downloadWatchlist').disabled = false;
     renderStocks();
@@ -193,6 +301,10 @@
   ['stockSector', 'stockExposure', 'stockSort'].forEach(id => $(id).addEventListener('change', () => state.data && renderStocks()));
   ['clearStockFilters', 'emptyClearFilters'].forEach(id => $(id).addEventListener('click', clearFilters));
   $('reloadResearch').addEventListener('click', loadResearch);
+  $('reloadMarkets').addEventListener('click', () => state.data && renderMarkets(true));
+  $('marketSymbol').addEventListener('change', () => viewMarket($('marketSymbol').value));
+  window.addEventListener('offline', connectionStatus);
+  window.addEventListener('online', connectionStatus);
   $('downloadReport').addEventListener('click', () => download('/api/stocks/research/report', `stock-research-${state.data.research_as_of}.md`, $('downloadReport')));
   $('downloadWatchlist').addEventListener('click', () => download('/api/stocks/research/export', 'stock-research-watchlist.json', $('downloadWatchlist')));
   $('closeStockDetail').addEventListener('click', () => $('stockDetail').close());
@@ -203,10 +315,14 @@
   window.addEventListener('hashchange', syncHash);
   document.addEventListener('click', event => {
     const open = event.target.closest('[data-open-stock]');
+    const chart = event.target.closest('[data-chart-stock]');
     const save = event.target.closest('[data-save-stock]');
     const view = event.target.closest('[data-stock-view]');
-    if (open) { event.preventDefault(); openDetail(open.dataset.openStock); }
+    const marketView = event.target.closest('[data-market-view]');
+    if (chart) { event.preventDefault(); viewMarket(chart.dataset.chartStock); }
+    else if (open) { event.preventDefault(); openDetail(open.dataset.openStock); }
     else if (save) toggleSaved(save.dataset.saveStock, Boolean(save.closest('dialog')));
+    else if (marketView && ['summary', 'full'].includes(marketView.dataset.marketView)) { market.boardView = marketView.dataset.marketView; renderMarketBoard(); }
     else if (view) { state.view = view.dataset.stockView; renderStocks(); }
   });
   loadResearch();

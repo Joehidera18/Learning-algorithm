@@ -3,6 +3,9 @@
 **New: Stock research.** Open **Stock research** in the top navigation for the
 20-stock research universe, five growth priorities, company investment cases,
 source links, catalyst calendar, dated valuation checks, and a saved watchlist.
+The **Markets & charts** section displays updating TradingView prices, dollar and
+percentage changes, and a selectable price/volume chart for all 20 US listings.
+Stock feeds may be delayed; the provider's quote time and market-status labels apply.
 Download the full report or export the list from the same page. The research is
 dated September 20, 2026; market snapshots are September 18. See
 [the section guide](STOCK_RESEARCH.md). The crypto engine remains V11.16.

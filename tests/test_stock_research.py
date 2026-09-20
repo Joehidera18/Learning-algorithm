@@ -34,6 +34,7 @@ class ResearchEditionTests(unittest.TestCase):
                 self.assertTrue(stock['sources'])
                 self.assertIn(stock['sector'], data['sectors'])
                 self.assertIn(stock['exposure'], data['exposures'])
+                self.assertRegex(stock['market_symbol'], r'^(NASDAQ|NYSE):' + stock['ticker'] + r'$')
                 for url in [stock['quote_url'], *[s['url'] for s in stock['sources']]]:
                     parsed = urlparse(url)
                     self.assertEqual(parsed.scheme, 'https')

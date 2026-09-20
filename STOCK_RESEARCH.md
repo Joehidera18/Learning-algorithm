@@ -13,6 +13,53 @@ research ranking, not a profit probability. Market figures refer to September 18
 2026; quote links open the external source for current information. Reload fetches
 the edition packaged with the app, not new news or live prices.
 
+## Updating market displays
+
+**Markets & charts** shows a 20-symbol TradingView market board plus a company
+selector with a price/volume chart and dollar/percentage changes. The compact
+**Prices & %** view fits phones; **Full quote table** adds absolute change, open,
+high, low, and previous close, with sideways scrolling for narrow screens. Each research
+profile has **View price & chart**, and the chart links back to its research.
+`?tvwidgetsymbol=NYSE:IONQ#marketChartArea` selects a chart on arrival; only symbols
+in the research catalog are accepted. **Reload market displays** reconnects the
+two frames without reloading the page or resetting the research filters.
+
+Stock quotes can be delayed. The provider's quote timestamp, feed-delay, and
+market-status indicators remain visible; the app never invents a market-open
+status from weekday/hour calculations. An offline message warns that quotes can
+be stale. Loading a frame is not evidence that quotes are current. If a feed or
+symbol is unavailable, the provider's message and external chart links remain the
+fallback; dated report numbers are never substituted into the market display.
+
+The app embeds the cross-origin frame URLs produced by TradingView's official
+widget loaders, using the catalog's `market_symbol` values. It retains provider
+branding and attribution. Provider JavaScript runs inside its own origin, without
+access to this app's session token or saved stocks. Two frames are mounted, rather
+than one feed per research card. Research reloads preserve an existing chart.
+No API key, paid data subscription, or server-side quote polling is introduced.
+
+The research API's `live_quotes: false` means the **JSON response is not a quote
+feed**. `market_display` describes the separate embedded display. JSON/report
+downloads and valuation comparisons retain their explicit research dates; market
+data is neither harvested from the frames nor exported as research data.
+
+Provider references, checked September 20, 2026:
+
+- [Market Overview widget](https://www.tradingview.com/widget-docs/widgets/watchlists/market-overview/)
+- [Market Data widget](https://www.tradingview.com/widget-docs/widgets/watchlists/market-data/)
+- [Symbol Overview widget](https://www.tradingview.com/widget-docs/widgets/charts/symbol-overview/)
+- [Data delay and availability FAQ](https://www.tradingview.com/widget-docs/faq/data/)
+- [Official embedding tutorial](https://www.tradingview.com/widget-docs/tutorials/iframe/build-page/widget-integration/)
+
+The official loaders used to verify the frame configuration are
+`https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js`,
+`https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js`, and
+`https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js`.
+The stock-display update passed seven focused Python tests and 14 browser
+scenarios. Browser regression checks use a clearly labelled provider fixture for
+deterministic integration checks. A separate provider check received real prices
+and percentage changes for all 20 stocks, each marked delayed by TradingView.
+
 ## Data and updates
 
 - `research/stock_watchlist.json` contains the structured research and sources.

@@ -80,7 +80,8 @@
         "end_date": "2026-11-30",
         "kind": "scheduled",
         "interpretation": "Approval, the eventual label, and paid uptake matter; a scheduled decision is not an approval."
-      }
+      },
+      "market_symbol": "NASDAQ:VRTX"
     },
     {
       "ticker": "ALNY",
@@ -129,7 +130,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Watch whether revised sales expectations stabilize and translate into earnings."
-      }
+      },
+      "market_symbol": "NASDAQ:ALNY"
     },
     {
       "ticker": "AVGO",
@@ -178,7 +180,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Look for durable customer demand and earnings that support the valuation."
-      }
+      },
+      "market_symbol": "NASDAQ:AVGO"
     },
     {
       "ticker": "GOOGL",
@@ -232,7 +235,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Exclude exceptional investment gains when assessing recurring profitability."
-      }
+      },
+      "market_symbol": "NASDAQ:GOOGL"
     },
     {
       "ticker": "TSM",
@@ -281,7 +285,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Capacity needs to earn attractive returns; Taiwan-related geopolitical risk remains material."
-      }
+      },
+      "market_symbol": "NYSE:TSM"
     },
     {
       "ticker": "ETN",
@@ -330,7 +335,8 @@
         "end_date": "2027-03-31",
         "kind": "target",
         "interpretation": "Assess the economics of all resulting holdings, including any distributed securities."
-      }
+      },
+      "market_symbol": "NYSE:ETN"
     },
     {
       "ticker": "NVDA",
@@ -379,7 +385,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "High expectations, export restrictions, and custom-chip competition can change the case."
-      }
+      },
+      "market_symbol": "NASDAQ:NVDA"
     },
     {
       "ticker": "ARGX",
@@ -437,7 +444,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "The overall endpoint was positive; benefit was not equally established across subgroups."
-      }
+      },
+      "market_symbol": "NASDAQ:ARGX"
     },
     {
       "ticker": "CEG",
@@ -486,7 +494,8 @@
         "end_date": "2027-12-31",
         "kind": "target",
         "interpretation": "Watch operating reliability and restart execution; later contracts are not next-year revenue."
-      }
+      },
+      "market_symbol": "NASDAQ:CEG"
     },
     {
       "ticker": "INSM",
@@ -535,7 +544,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "The valuation requires sustained launch success and a credible path to cash generation."
-      }
+      },
+      "market_symbol": "NASDAQ:INSM"
     },
     {
       "ticker": "VRT",
@@ -584,7 +594,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "The premium price leaves less room for project delays or slower infrastructure spending."
-      }
+      },
+      "market_symbol": "NYSE:VRT"
     },
     {
       "ticker": "IBM",
@@ -637,7 +648,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "A roadmap is not delivered hardware; core business performance matters near term."
-      }
+      },
+      "market_symbol": "NYSE:IBM"
     },
     {
       "ticker": "BEAM",
@@ -691,7 +703,8 @@
         "end_date": "2026-12-31",
         "kind": "target",
         "interpretation": "A filing is not approval. BEAM-302 biomarkers do not establish durable prevention of organ disease."
-      }
+      },
+      "market_symbol": "NASDAQ:BEAM"
     },
     {
       "ticker": "CRSP",
@@ -740,7 +753,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Global CASGEVY sales are not all CRSP revenue; biomarker improvements need later clinical evidence."
-      }
+      },
+      "market_symbol": "NASDAQ:CRSP"
     },
     {
       "ticker": "ASML",
@@ -789,7 +803,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Export restrictions, order timing, and capital spending can outweigh technical progress."
-      }
+      },
+      "market_symbol": "NASDAQ:ASML"
     },
     {
       "ticker": "KEYS",
@@ -843,7 +858,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Quantum control is a real role, but its eventual revenue contribution remains uncertain."
-      }
+      },
+      "market_symbol": "NYSE:KEYS"
     },
     {
       "ticker": "ANET",
@@ -897,7 +913,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Particularly demanding valuation and customer concentration require strong execution."
-      }
+      },
+      "market_symbol": "NYSE:ANET"
     },
     {
       "ticker": "RBRK",
@@ -946,7 +963,8 @@
         "end_date": null,
         "kind": "monitor",
         "interpretation": "Positive free cash flow does not remove GAAP losses, competition, or dilution risk."
-      }
+      },
+      "market_symbol": "NYSE:RBRK"
     },
     {
       "ticker": "VKTX",
@@ -995,7 +1013,8 @@
         "end_date": "2026-12-31",
         "kind": "target",
         "interpretation": "Funding, tolerability, manufacturing, and competition matter alongside trial progress."
-      }
+      },
+      "market_symbol": "NASDAQ:VKTX"
     },
     {
       "ticker": "IONQ",
@@ -1049,7 +1068,8 @@
         "end_date": "2027-12-31",
         "kind": "target",
         "interpretation": "Revenue guidance includes acquired SkyWater; deliveries and fault-tolerance dates remain targets."
-      }
+      },
+      "market_symbol": "NYSE:IONQ"
     }
   ],
   "valuation_checks": [
@@ -1277,5 +1297,13 @@
       "quote_url": "https://stockanalysis.com/stocks/sdgr/"
     }
   ],
-  "earlier_candidates_note": "These five companies were in your earlier screenshot. They are retained here for follow-up; the full 20-company research edition does not establish a current investment case for them. The screenshot prices are not used as current quotes."
+  "earlier_candidates_note": "These five companies were in your earlier screenshot. They are retained here for follow-up; the full 20-company research edition does not establish a current investment case for them. The screenshot prices are not used as current quotes.",
+  "market_display": {
+    "provider": "TradingView",
+    "mode": "embedded",
+    "refresh": "provider_managed",
+    "api_quotes": false,
+    "quote_note": "Stock quotes can be delayed. Check the provider timestamp, delay indicator, and market status. The research and exported valuation figures remain dated snapshots.",
+    "documentation": "https://www.tradingview.com/widget-docs/faq/data/"
+  }
 }
