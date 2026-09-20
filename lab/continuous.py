@@ -179,6 +179,12 @@ class ContinuousLearner:
             p.setdefault("last_quote_ts", None)
             recovered[r["product_id"]] = p
         self.open_positions = recovered
+        con = db_connect(self.db_path)
+        try:
+            counts = con.execute("SELECT SUM(pnl>0),SUM(pnl<0),SUM(pnl=0) FROM paper_trades WHERE status='CLOSED'").fetchone()
+            self.portfolio.update(wins=counts[0] or 0, losses=counts[1] or 0, break_even_trades=counts[2] or 0)
+        finally:
+            con.close()
 
     def _persist(self, con, portfolio=None, positions=None):
         for key, value in {
@@ -775,6 +781,9 @@ class ContinuousLearner:
                 return None
             opened_at = now_ms()
             entry_decision = {**choice, "params": p}
+            entry_decision["execution_costs"] = {"fee_rate":fee, "slippage_rate":slip,
+                "entry_bid":tick["best_bid"], "entry_ask":tick["best_ask"], "quote_ts":tick["ts"],
+                "scope":"Paper fills include spread and modeled slippage; fees are charged separately."}
             if self.events:
                 signal_rows = self.market[pid].get('bars',{}).get(self.settings['decision_interval'],[])
                 signal_close = (signal_rows[-1]['ts']+INTERVAL_MS[self.settings['decision_interval']]
@@ -877,6 +886,10 @@ class ContinuousLearner:
                 reviewed.update(mfe_price=pos["review_mfe_price"],mae_price=pos["review_mae_price"])
             reviewed["review"] = close_review(reviewed)
             decision = {**pos["decision"], "trade_review":reviewed["review"]}
+            from .finances import execution_audit
+            decision["execution_audit"] = execution_audit({"entry":pos["entry"], "exit":exit_price,
+                "qty":pos["qty"], "pnl":pnl, "risk_usd":pos["risk_usd"], "result_r":result,
+                "direction":d}, decision.get("execution_costs"))
             if self.events and decision.get('event_review'):
                 # Local observation time, distinct from the exchange quote time.
                 reviewed_at = now_ms()
@@ -888,8 +901,10 @@ class ContinuousLearner:
             portfolio["balance"] += pnl
             portfolio["realized_pnl"] += pnl
             portfolio["completed_trades"] += 1
+            decision["account_sequence"] = portfolio["completed_trades"]
             portfolio["wins"] += int(pnl > 0)
-            portfolio["losses"] += int(pnl <= 0)
+            portfolio["losses"] += int(pnl < 0)
+            portfolio["break_even_trades"] = portfolio.get("break_even_trades",0) + int(pnl == 0)
             portfolio["peak_balance"] = max(portfolio["peak_balance"], portfolio["balance"])
             positions = {key: value for key, value in self.open_positions.items() if key != pid}
             old_cooldown = dict(self.cooldown_until)
@@ -1009,7 +1024,7 @@ class ContinuousLearner:
             p["equity_stale"] = any(x["price_stale"] for x in positions)
             p["return_pct"] = (p["equity"] / p["starting_balance"] - 1) * 100
             p["drawdown_pct"] = max(0, (p["peak_balance"] - p["equity"]) / max(p["peak_balance"], 1e-9) * 100)
-            total = p["wins"] + p["losses"]
+            total = p["wins"] + p["losses"] + p.get("break_even_trades",0)
             p["win_rate"] = p["wins"] / total * 100 if total else None
             p["open_risk_usd"] = self._current_total_risk()
             p["gross_exposure_usd"] = sum(x["entry"] * x["qty"] for x in positions)
@@ -1028,11 +1043,18 @@ class ContinuousLearner:
                     "validated_profiles": stored_profiles, "active_profiles": active_profiles}
 
     def analytics(self):
-        from .finances import closed_trade_totals
+        from .finances import closed_trade_totals, paper_account_audit
+        # Journal and portfolio must refer to the same committed account state.
+        with self.lock:
+            return self._analytics_snapshot(closed_trade_totals, paper_account_audit)
+
+    def _analytics_snapshot(self, closed_trade_totals, paper_account_audit):
         con = db_connect(self.db_path)
         rows = [dict(r) for r in con.execute(
             "SELECT * FROM paper_trades WHERE status='CLOSED' ORDER BY closed_at,id")]
         con.close()
+        from .finances import ordered_paper_rows
+        rows,_ = ordered_paper_rows(rows)
         wins = sum(r["pnl"] > 0 for r in rows)
         profit = sum(max(0, r["pnl"]) for r in rows)
         loss = -sum(min(0, r["pnl"]) for r in rows)
@@ -1054,6 +1076,7 @@ class ContinuousLearner:
         for group in families.values():
             group["expectancy_r"] = group["sum_r"] / group["trades"]
         return {"trade_finances":closed_trade_totals(r["pnl"] for r in rows),
+                "account_audit":paper_account_audit(rows,self.portfolio),
                 "closed_trades": len(rows), "win_rate": wins / len(rows) * 100 if rows else None,
                 "net_pnl": profit - loss, "profit_factor": profit / loss if loss else None,
                 "profit_factor_note": "No losing trades yet" if rows and not loss else None,

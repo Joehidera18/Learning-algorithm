@@ -4,6 +4,7 @@
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
   let practiceSelectionLoaded = false;
+  let forwardState = null;
   let learningDetail = null, learningDetailLoading = null, learningDetailRequest = 0;
   const practiceIntervals=["5m","15m","1h","6h"];
   const financeData = {paper:null,coinbase:null,history:null};
@@ -48,6 +49,10 @@
       finally {
         button.disabled = (id==="startBtn" || id==="practiceBtn") && learningState ?
           !!learningState.enabled || learningState.phase==="stopping" : false;
+        if (id==="forwardStart" || id==="forwardStop") {
+          const active=!!(forwardState && forwardState.studies.some(function(s){return s.status==='active';}));
+          button.disabled=id==="forwardStop" ? !active : active;
+        }
       }
     });
   }
@@ -105,6 +110,10 @@
     $("financeBreakEven").textContent=count(totals && totals.break_even_trades);
     $("financeRate").textContent=pct(totals && totals.win_rate);
     $("financeNote").textContent=note;
+    const audit=source==="paper" && saved && saved.value && saved.value.account_audit;
+    $("financeAudit").textContent=audit ? "Account reconciliation: "+audit.status+" · "+audit.checked_trades+
+      " fills checked · "+audit.unknown_trades+" with missing cost evidence · "+audit.problem_count+" discrepancies. "+audit.scope : "";
+    $("financeAudit").className="footnote"+(audit && audit.problem_count ? " negative" : "");
     $("financeUpdated").className="badge"+(saved && saved.failed ? " negative" : "");
     $("financeUpdated").textContent=saved && saved.failed ? (saved.at ? "Update failed · showing totals from "+new Date(saved.at).toLocaleTimeString() : "Totals unavailable · retrying") :
       saved && saved.at ? (totals ? "Updated " : "Unavailable · checked ")+new Date(saved.at).toLocaleTimeString() : "Loading totals…";
@@ -204,8 +213,12 @@
         'R; realized '+num(t.result_r,3)+'R. An estimate is not a win probability.</p>' : '';
       const detail=review && review.outcome ? '<details><summary>At-close review</summary><p>'+escape(review.outcome.replace(/_/g," "))+
         '; fees '+num(review.fee_r,3)+'R; best observed net mark '+num(review.best_net_r,3)+'R; giveback '+num(review.giveback_r,3)+
-        'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p><p class="footnote">Observed quotes may not capture every price between updates.</p></details>' : '';
-      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+eventReview(t.event_review)+ "</td></tr>";
+        'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p>'+
+        (review.questions || []).map(function(q){return '<p>'+escape(q)+'</p>';}).join('')+
+        '<p class="footnote">'+escape(review.interpretation || 'Observed quotes may not capture every price between updates.')+'</p></details>' : '';
+      const audit=t.execution_audit ? '<p class="footnote">Fill reconciliation: '+escape(t.execution_audit.status)+
+        '; fees '+money(t.execution_audit.fees_paid)+'; recomputed net '+money(t.execution_audit.expected_net_pnl)+'.</p>' : '';
+      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+audit+eventReview(t.event_review)+ "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
   function rejectionSummary(counts) {
@@ -634,17 +647,44 @@
     }).join('');
     $("eventsScope").textContent=data.scope || '';
   }
+  function renderForward(data) {
+    forwardState=data;
+    const studies=data.studies || [], active=studies.some(function(s){return s.status==='active';});
+    const reports=(learningState && learningState.results || []).filter(function(r){return !r.error && ['15m','1h'].includes(r.interval) && r.fingerprint;});
+    const selected=$('forwardModel').value;
+    const options='<option value="">Choose a completed model</option>'+reports.map(function(r){return '<option value="'+escape(r.fingerprint)+'">'+escape(r.symbol+' · '+r.interval)+'</option>';}).join('');
+    if ($('forwardModel').innerHTML!==options) {$('forwardModel').innerHTML=options;$('forwardModel').value=selected;}
+    $('forwardStatus').textContent=(data.registered_studies || 0)+' studies registered'+(active ? ' · collecting' : '');
+    $('forwardStart').disabled=active || !reports.length;
+    $('forwardStop').disabled=!active;
+    $('forwardExport').disabled=!studies.length;
+    $('forwardResults').innerHTML=studies.map(function(s,index){
+      const p=s.protocol || {}, r=s.result || {}, accounts=r.accounts || {};
+      return '<details'+(index===0 ? ' open' : '')+'><summary>'+escape(p.symbol+' · '+p.interval+' · '+s.status)+
+        '</summary><p>'+escape(date(p.start_ts,true)+' to '+date(p.end_ts,true))+'</p>'+
+        (s.last_error ? '<p class="negative">'+escape(s.last_error)+'</p>' : '')+
+        '<p>Completed candles: '+num(r.observed_execution_candles,0)+'; missing: '+num(r.missing_execution_candles,0)+
+        '. Last candle: '+escape(date(r.last_candle_close_ts,true))+'.</p>'+
+        '<div class="table-wrap"><table><thead><tr><th>Account</th><th>Closed trades</th><th>Realized net</th><th>Open net mark</th><th>Equity</th><th>Drawdown</th><th>Learning updates</th></tr></thead><tbody>'+
+        ['updating','frozen'].map(function(k){const a=accounts[k] || {}, m=a.metrics || {};return '<tr><td>'+k+'</td><td>'+num((a.closed || {}).closed_trades,0)+
+          '</td><td>'+money((a.closed || {}).net_pnl)+'</td><td>'+money(a.open_mark_pnl)+'</td><td>'+money(m.ending_balance)+
+          '</td><td>'+pct(m.max_drawdown_pct)+'</td><td>'+num(a.model_updates,0)+'</td></tr>';}).join('')+
+        '</tbody></table></div><p>Updating minus frozen equity: '+money(r.equity_pnl_difference)+'. Holding cash: $0.00 net.</p>'+
+        '<p class="footnote">'+escape(r.scope || 'Waiting for new completed prices. No trading outcome is known yet.')+'</p>'+
+        '<button data-forward-export="'+escape(s.id)+'">Download this study</button></details>';
+    }).join('') || '<p class="empty">No forward study registered yet.</p>';
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
     try {
       const responses = await Promise.allSettled([
         api("/api/continuous/status"), api("/api/continuous/analytics"),
-        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status")
+        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status")
       ]);
       const renderers = [renderState,renderAnalytics,renderJournal,function (rows) {
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
-      },renderResearch,renderLearning,renderEvents];
+      },renderResearch,renderLearning,renderEvents,renderForward];
       let firstError = null;
       responses.forEach(function (response,i) {
         if (response.status === "fulfilled") renderers[i](response.value);
@@ -652,6 +692,7 @@
           if (i===1) updateFinances("paper",null,true);
           if (i===5) updateFinances("history",null,true);
           if (i===6) $("eventsStatus").textContent="Event status unavailable";
+          if (i===7) $("forwardStatus").textContent="Study update unavailable · displayed results may be stale";
           if (!firstError) firstError=response.reason;
         }
       });
@@ -668,6 +709,21 @@
   bind("eventsStart",async function () { await api("/api/events/start",{}); await refresh(); });
   bind("eventsStop",async function () { await api("/api/events/stop",{}); await refresh(); });
   bind("eventsExport",function () { return download("/api/events/export","market-events.json"); });
+  bind("forwardStart",async function () {
+    const report=(learningState && learningState.results || []).find(function(r){return r.fingerprint===$('forwardModel').value;});
+    if (!report) throw new Error('Choose a completed 15m or 1h model first.');
+    await api('/api/forward/start',{symbol:report.symbol,interval:report.interval,fingerprint:report.fingerprint});await refresh();
+  });
+  bind("forwardStop",async function () {await api('/api/forward/stop',{});await refresh();});
+  bind("forwardExport",function () {
+    const study=forwardState && forwardState.studies[0];
+    if (study) return download('/api/forward/export?id='+encodeURIComponent(study.id),'forward-study.json');
+  });
+  $('forwardResults').addEventListener('click',async function(event){
+    const button=event.target.closest('[data-forward-export]');if(!button)return;
+    try {await download('/api/forward/export?id='+encodeURIComponent(button.dataset.forwardExport),'forward-study.json');}
+    catch(e){notice(e.message,true);}
+  });
   bind("startBtn",async function () {
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");

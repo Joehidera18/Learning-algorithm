@@ -1,0 +1,10 @@
+{
+  "passed": [
+    "dashboard, assets and public health served by real Gunicorn",
+    "forward endpoints authenticate, reject invalid inputs and stay idle; empty ledger reconciles",
+    "private API requires access token",
+    "invalid study plans and 6h trading interval rejected",
+    "settings survive restart; runners remain stopped"
+  ],
+  "scope": "Fresh temporary database; local HTTP and Gunicorn only. No runners, external market calls, deployment or orders."
+}

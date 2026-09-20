@@ -1,8 +1,10 @@
-# CryptO V11.13 — observed news and trade reviews
+# CryptO V11.14 — future-price studies and reconciled finances
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.13 expands the news/calendar collector to 14 sources, including world reporting and official project publications. Fifteen timestamped event inputs include topic coverage. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). Policy v17 and report 19 require fresh practice. No event-related trading benefit has yet been demonstrated.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.14 adds a registered 30-day comparison of continued learning against an identical frozen seed on prices following registration. Each uses its own $500 candle simulation. The source, seed, costs and end date stay fixed; early stops and failures remain recorded. It also repairs exact break-even counts and same-second closing order, independently checks paper fill arithmetic and account balances, and adds concrete questions to loss reviews. An optional Massive downloader creates separate historical crypto bundles. Read [the design, sources, usage and limitations](FORWARD_STUDY.md). The supplied XRP replay still loses $12.75; these changes do not establish profitability. Engine V11.14/report 20 require fresh practice for trading qualification; the numeric policy remains v17.
+
+V11.13's news/calendar collector remains included with 14 sources, including world reporting and official project publications. Fifteen timestamped event inputs include topic coverage. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). No event-related trading benefit has yet been demonstrated.
 
 This version also repairs stale fair-value gaps, inverse-gap retirement, repeated structure breaks and mismatched timestamps in the relative-return helper. Those structure helpers are outside the simplified adaptive training path; fixing them does not add all the screenshot concepts as learned predictors. [The concept review](NEWS_AND_CONCEPT_REVIEW.md) distinguishes implemented fixes from remaining experiments and unverified course rules.
 
@@ -26,6 +28,7 @@ The predeployment review also corrects time-based exits that ran one candle late
 2. Enter your actual Coinbase fee per side. The initial 0.4% is an assumption until confirmed.
 3. Click **Start event collection** and check source freshness. Then edit **Coins to practice on** (or choose **Use suggested 30 coins**), choose the timeframes and history length, then click **Practice on real market history**.
 4. Review the historical results, then use **Start learning & paper trading** for ongoing practice on new prices.
+5. To measure whether continued learning helps, choose a saved 15m or 1h model under **Does continued learning help?** and click **Begin 30-day study**. This starts a separate research comparison, including when the seed is unqualified. Its results never install a trading profile. Download the full record for reproduction; [the study guide](FORWARD_STUDY.md) explains missing prices, open-position marks and early stops.
 
 Historical practice now suggests 30 Coinbase USD markets spanning established coins, smart-contract networks, DeFi, scaling networks and more volatile tokens. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
 
@@ -40,6 +43,8 @@ Larger plans can take hours. Coins and timeframes are processed sequentially; un
 Each decision uses only information available at the past signal close, and learning waits for the outcome. Gaps are never replaced with generated prices. Indicators restart with 240 observed candles of warmup after each gap; daily-context strategies require 21 consecutive complete UTC days. A training position interrupted by missing prices has no known outcome and cannot teach the model; an account test interrupted while holding a position is incomplete and cannot qualify.
 
 Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
+
+The separate 30-day research collector resumes a registered active study after a server restart when its code still matches. **End study early** stops that study while retaining its protocol and observations. The main paper-account Stop control and this research control have separate purposes.
 
 ## Trade finances on the main screen
 

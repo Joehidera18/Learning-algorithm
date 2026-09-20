@@ -31,6 +31,12 @@ class Service:
         from .event_store import EventCollector
         self.events = EventCollector(self.db_path)
         self.agent.events = self.events
+        from .forward_study import ForwardStudies
+        self.forward = ForwardStudies(self.db_path,self.autolearn,self.events)
+        try:
+            self.forward.resume()
+        except RuntimeError:
+            pass  # A different process holds this study's worker lease.
         if self.events.store.enabled():
             self.events.start()
 
@@ -97,6 +103,19 @@ class Service:
                         raise ValueError("Sync a recent supported Coinbase fee tier first")
                     settings = self.agent.configure({"fee_rate":float(snapshot["taker_fee_rate"])})
                     return 200,{"ok":True,"settings":settings},{}
+            if path == "/api/forward/status" and method == "GET":
+                return 200,self.forward.status(),{}
+            if path == "/api/forward/start" and method == "POST":
+                if set(body)!={"symbol","interval","fingerprint"}:
+                    raise ValueError("Choose one saved report for a fixed 30-day study")
+                ident=self.forward.start(body["symbol"],body["interval"],body["fingerprint"])
+                return 202,{"id":ident},{}
+            if path == "/api/forward/stop" and method == "POST":
+                self.forward.stop()
+                return 200,{"ok":True},{}
+            if path == "/api/forward/export" and method == "GET":
+                return 200,json.dumps(self.forward.export(query.get("id")),allow_nan=False).encode(),{
+                    "Content-Type":"application/json","Content-Disposition":'attachment; filename="forward-study.json"'}
             if path == "/api/events/status" and method == "GET":
                 return 200,self.events.status(),{}
             if path == "/api/events/export" and method == "GET":

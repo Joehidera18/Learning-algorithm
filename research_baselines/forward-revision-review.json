@@ -1,0 +1,25 @@
+{
+  "version": "V11.14",
+  "source_code_sha256": "8b23909cb69f5e1565db5e511c583dacc768ac5dba3d5a0c4f770bcdcbb5f0d0",
+  "python_tests": {
+    "passed": 372,
+    "seconds": 115.82,
+    "full_discovery": true
+  },
+  "javascript_checks": [
+    "tests/check_learning_ui.js",
+    "tests/check_finances_ui.js"
+  ],
+  "other_checks": [
+    "Python compilation",
+    "JavaScript syntax",
+    "git diff --check",
+    "local real-Gunicorn startup and restart"
+  ],
+  "historical_replay": "research_baselines/forward-revision-replay.json",
+  "historical_metrics_match": true,
+  "registered_study_future_results_collected": false,
+  "live_coinbase_candle_check": "Timed out; no new prices collected",
+  "massive_live_check": "No key used; provider-shaped fixtures only",
+  "scope": "Software and reproducibility checks. No profit improvement, new live fill evidence, hosted deployment, merge or order claimed."
+}

@@ -60,6 +60,11 @@ assert.equal(element("financeTrades").textContent,"127");
 assert.equal(element("financeNet").textContent,"-$18.75");
 assert.equal(element("financeNet").className,"negative");
 assert.equal(element("financeMarketLabel").hidden,true);
+update('paper',{trade_finances:{...totals,closed_trades:127,money_won:12.5,money_lost:31.25,net_pnl:-18.75},
+  account_audit:{status:'mismatch',checked_trades:126,unknown_trades:1,problem_count:2,scope:'<img src=x>'}});
+assert.match(element('financeAudit').textContent,/126 fills checked/);
+assert.match(element('financeAudit').textContent,/2 discrepancies/);
+assert.match(element('financeAudit').className,/negative/);
 update("history",{results:[]});
 assert.equal(element("financeNet").textContent,"-$18.75");
 update("paper",null,true);

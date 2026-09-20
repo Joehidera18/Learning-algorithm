@@ -85,6 +85,7 @@ def recent_trades(path,limit=100):
             item['entry_forecast'] = forecast if isinstance(forecast,dict) else None
             events = decision.get('event_review')
             item['event_review'] = events if isinstance(events,dict) else None
+            item['execution_audit'] = decision.get('execution_audit')
         except (ValueError,TypeError,AttributeError):
             item['entry_forecast'] = None
             item['event_review'] = None

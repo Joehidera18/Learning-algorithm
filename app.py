@@ -24,6 +24,7 @@ atexit.register(app.service.research.cancel)
 atexit.register(app.service.coinbase.stop)
 atexit.register(app.service.autolearn.stop)
 atexit.register(app.service.events.stop, persist=False)
+atexit.register(app.service.forward.shutdown)
 
 if __name__ == "__main__":
     from socketserver import ThreadingMixIn

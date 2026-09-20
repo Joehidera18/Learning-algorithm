@@ -107,6 +107,31 @@ class PaperAccountTests(unittest.TestCase):
         expected = ((exit_price-p["entry"]) - (exit_price+p["entry"])*p["fee_rate"])*p["qty"]
         self.assertAlmostEqual(result["pnl"],expected)
 
+    def test_exact_break_even_is_not_a_loss_and_survives_restart(self):
+        self.agent.configure({"fee_rate":0.,"slippage_rate":0.})
+        position=self.open()
+        self.agent._close_position(self.pid,position["entry"],int(time.time()*1000),"MANUAL")
+        for agent in (self.agent,ContinuousLearner(self.db,self.agent.data_dir)):
+            p=agent.status()["portfolio"]
+            self.assertEqual((p["wins"],p["losses"],p["break_even_trades"]),(0,0,1))
+            self.assertEqual(p["win_rate"],0)
+            self.assertEqual(agent.analytics()["account_audit"]["status"],"reconciled")
+
+    def test_fill_audit_detects_corruption_and_keeps_committed_close_order(self):
+        one=self.open()
+        self.quote("ETH-USD");two=self.open("ETH-USD")
+        stamp=int(time.time()*1000)
+        self.agent._close_position("ETH-USD",101.,stamp,"MANUAL")
+        self.agent._close_position(self.pid,102.,stamp,"MANUAL")
+        self.assertEqual(self.agent.analytics()["account_audit"]["status"],"reconciled")
+        self.assertEqual(self.agent.analytics()["equity_curve"][-1]["balance"],self.agent.portfolio["balance"])
+        con=db_connect(self.db)
+        with con:con.execute("UPDATE paper_trades SET pnl=pnl+1 WHERE id=?",(one['trade_id'],))
+        con.close()
+        audit=self.agent.analytics()["account_audit"]
+        self.assertEqual(audit["status"],"mismatch")
+        self.assertIn("fill_profit",[p['check'] for p in audit['problems']])
+
     def test_no_duplicate_position_and_position_cap_is_real(self):
         self.agent.configure({"fee_rate":0,"slippage_rate":0})
         p = self.open(f={"_atr":.2,"_close":100.})

@@ -1,3 +1,12 @@
+# V11.14 registered studies and accounting — 20 September 2026 UTC
+
+- Register a fixed 30-day comparison of an updating model, its frozen seed and cash. Save the source, model, costs, dates, immutable candle/features and every attempt. Keep both $500 candle simulations separate from trading accounts.
+- Separate normally completed trades from open-position end marks; retain missing-data, source-change and early-stop records. Add dashboard controls, exact exports and a reproduction command.
+- Fix exact break-even counts and same-second closure ordering. Independently reconcile frozen fill costs, net P&L, R and the full paper-account balance, with explicit missing evidence on legacy rows.
+- Add testable entry/exit questions to loss and near-break-even reviews, while preserving actual net-return rewards and existing risk limits.
+- Add optional, paced Massive historical crypto downloads with provider manifests and gap reporting. Keep these datasets separate from Coinbase training and execution.
+- Engine V11.14/report 20 require fresh trading qualification; the numerical policy remains v17. All 372 Python tests, dashboard checks and local server startup/restart pass. The supplied XRP historical result remains a $12.75 loss; no prospective profit result exists yet. See [the guide](FORWARD_STUDY.md) and [verification](VERIFICATION.md).
+
 # V11.13 observed news and structure repairs — 20 September 2026 UTC
 
 - Expand to 14 sources with BBC World, Ethereum Foundation publications and Bitcoin/AVAX/DOT/XRP/SOL client releases. Fixed project asset tags, immutable GUID-based revisions and tracking-URL deduplication preserve source identity. Client releases do not imply network activation.
