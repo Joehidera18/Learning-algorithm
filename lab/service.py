@@ -14,6 +14,7 @@ from .research import ResearchManager
 from .coinbase_broker import CoinbaseAdapter
 from .coinbase_live import CoinbaseTrader
 from .autolearn import AutoLearner
+from .stock_research import EDITION as STOCK_RESEARCH_EDITION
 
 
 class Service:
@@ -62,13 +63,38 @@ class Service:
                     return 400, {"error": "Request body must be a JSON object"}, {}
             if method == "GET" and path == "/":
                 return 200, (self.base_dir / "templates/index.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
-            if method == "GET" and path in ("/static/app.js", "/static/coinbase.js", "/static/style.css"):
+            if method == "GET" and path in ("/stocks", "/stocks/"):
+                return 200, (self.base_dir / "templates/stocks.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
+            if method == "GET" and path in ("/static/app.js", "/static/coinbase.js", "/static/style.css",
+                                           "/static/stocks.js", "/static/stocks.css"):
                 name = path.rsplit("/", 1)[-1]
                 mime = "application/javascript; charset=utf-8" if name.endswith(".js") else "text/css; charset=utf-8"
                 return 200, (self.base_dir / "static" / name).read_bytes(), {"Content-Type": mime}
             if method == "GET" and path == "/api/health":
                 return 200, {"ok": True, "api_version": "11.0", "default_mode": "paper",
-                             "live_capable":True, "starting_balance":500}, {}
+                             "live_capable":True, "starting_balance":500,
+                             "stock_research_version":STOCK_RESEARCH_EDITION}, {}
+            if method == "GET" and path.startswith("/api/stocks/research"):
+                from .stock_research import research_payload, report_bytes, REPORT_NAME
+                if path == "/api/stocks/research/report":
+                    return 200, report_bytes(self.base_dir), {"Content-Type": "text/markdown; charset=utf-8",
+                        "Content-Disposition": f'attachment; filename="{REPORT_NAME}"'}
+                if path in ("/api/stocks/research", "/api/stocks/research/export"):
+                    data = research_payload(self.base_dir)
+                    if path.endswith("/export"):
+                        return 200, json.dumps(data, indent=2, allow_nan=False).encode(), {
+                            "Content-Type": "application/json",
+                            "Content-Disposition": 'attachment; filename="stock-research-watchlist.json"'}
+                    return 200, data, {}
+                if path.startswith("/api/stocks/research/"):
+                    ticker = path.removeprefix("/api/stocks/research/").upper()
+                    data = research_payload(self.base_dir)
+                    stock = next((item for item in data["stocks"] if item["ticker"] == ticker), None)
+                    if stock:
+                        return 200, {"stock": stock, "research_as_of": data["research_as_of"],
+                            "market_data_as_of": data["market_data_as_of"], "review": data["review"],
+                            "live_quotes": False, "trading_enabled": False}, {}
+                return 404, {"error": "Stock research not found"}, {}
             if (path == "/api/continuous/backup" and len(self.token)<16 and
                 (self.coinbase.state.get("snapshot") or self.coinbase.trades(1))):
                 raise RuntimeError("Set APP_ACCESS_TOKEN (at least 16 characters) before exporting private Coinbase account data")
