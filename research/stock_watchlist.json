@@ -1,0 +1,1281 @@
+{
+  "schema_version": 1,
+  "edition": "2026-09-20.1",
+  "research_as_of": "2026-09-20",
+  "market_data_as_of": "2026-09-18",
+  "review_interval_days": 30,
+  "title": "Stocks for the months and years ahead",
+  "focus_tickers": [
+    "VRTX",
+    "AVGO",
+    "ALNY",
+    "VRT",
+    "BEAM"
+  ],
+  "focus_note": "The focused growth shortlist from our latest discussion. VRTX and AVGO carry the strongest overall conviction here; BEAM is the speculative breakthrough candidate. Focus is an editorial research priority, not a probability or trading signal.",
+  "methodology": "Research combines public company results, clinical and technical announcements, dated market snapshots, and research judgment. Rankings reflect research priority, not modeled chances of profit. Forecasts are company targets; none are guaranteed outcomes.",
+  "scope": "Stock research and a watchlist. These are not holdings, live stock quotes, backtested stock signals, or automated stock orders.",
+  "valuation_note": "Dated screening calculations, not fair-value estimates. Equity / revenue excludes debt and cash adjustments. Guidance, trailing figures, fiscal years, and non-GAAP definitions differ. Vendor share counts may lag acquisitions or issuance.",
+  "sectors": [
+    "Biotech",
+    "Quantum & enablers",
+    "AI infrastructure",
+    "Power & cooling",
+    "Data security"
+  ],
+  "exposures": {
+    "established": "Established business",
+    "growth": "Growth / valuation sensitive",
+    "speculative": "Speculative"
+  },
+  "stocks": [
+    {
+      "ticker": "VRTX",
+      "name": "Vertex Pharmaceuticals",
+      "priority": 1,
+      "focus": true,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "An established genetic-disease business with additional opportunities in pain and kidney disease.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 revenue reached about $3.33 billion. The existing cystic-fibrosis business remains dominant, while JOURNAVX and CASGEVY provide newer commercial opportunities. Vertex reported an FDA target decision date of November 30, 2026 for povetacicept in IgA nephropathy. A scheduled decision is not an approval. Its August revenue outlook excluded the then-pending Crinetics acquisition; Vertex subsequently announced completion in September. Q2 results and pipeline, Vertex investor announcements"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "This is my first biotech research priority because a substantial operating business supports several distinct ways to create value. I do not need to assume every pipeline program succeeds. Kidney disease and pain could make the company less dependent on cystic fibrosis if clinical and commercial execution support expansion."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Watch the kidney decision, paid uptake of newer products, and updated acquisition economics. I would not value the combined company using pre-acquisition cash or guidance without adjustment. My thesis weakens if new launches disappoint persistently, acquisition spending fails to earn an adequate return, or the core franchise deteriorates. A single approval would not settle those questions."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 results and pipeline",
+          "url": "https://investors.vrtx.com/news-releases/news-release-details/vertex-reports-second-quarter-2026-financial-results"
+        },
+        {
+          "title": "Vertex investor announcements",
+          "url": "https://investors.vrtx.com/"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/vrtx/",
+      "catalyst": {
+        "title": "Povetacicept FDA target decision",
+        "window": "November 30, 2026",
+        "start_date": "2026-11-30",
+        "end_date": "2026-11-30",
+        "kind": "scheduled",
+        "interpretation": "Approval, the eventual label, and paid uptake matter; a scheduled decision is not an approval."
+      }
+    },
+    {
+      "ticker": "ALNY",
+      "name": "Alnylam Pharmaceuticals",
+      "priority": 2,
+      "focus": true,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "growth",
+      "horizon": "12–24 months",
+      "summary": "RNA-interference medicines with substantial product sales and room to reach more patients.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "AMVUTTRA generated about $1.01 billion in Q2 product sales. Nevertheless, management reduced its 2026 TTR-franchise guidance to $4.2–$4.5 billion as second-line US cardiomyopathy demand normalized after the initial launch surge. Cash and marketable securities were approximately $3.3 billion at June 30. Q2 release"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "RNA interference is commercially established here, giving the platform more credibility than a purely preclinical investment. I see a plausible path to higher earnings if the treated population grows and development produces additional useful medicines."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The next two sales reports matter more to me than a large long-term market estimate. The preliminary equity valuation is around 5.8 times the midpoint of current total-revenue guidance, including collaboration revenue. That is not enterprise value or a profit multiple. Another meaningful guidance cut would weaken my confidence. Competition, reimbursement, financing obligations, and dependence on AMVUTTRA also constrain the upside case."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 release",
+          "url": "https://investors.alnylam.com/press-release?id=29986"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/alny/",
+      "catalyst": {
+        "title": "AMVUTTRA demand after the guidance cut",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Watch whether revised sales expectations stabilize and translate into earnings."
+      }
+    },
+    {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "priority": 3,
+      "focus": true,
+      "sector": "AI infrastructure",
+      "tags": [
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–36 months",
+      "summary": "Custom AI chips and networking, backed by substantial cash generation.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q3 fiscal 2026 revenue was about $29.6 billion; AI semiconductor revenue reached $16.7 billion. Free cash flow was approximately $13.7 billion, and management guided the following quarter's total revenue to $34.8 billion. These are reported results and a forecast, respectively. Q3 earnings release"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Custom accelerators and networking give Broadcom a credible route to benefit as large computing customers pursue performance, power efficiency, and control of their costs. I particularly value the evidence that demand is producing cash."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I want successive generations of customer programs to translate into durable revenue, with cash conversion holding up. The stock is already a very large company, so “AI will grow” is insufficient by itself. Customer concentration, customers designing more internally, manufacturing constraints, acquisition debt, and a slowdown in capital spending are meaningful risks. I would reduce conviction if growth increasingly relied on a narrowing customer base without corresponding returns on investment."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q3 earnings release",
+          "url": "https://investors.broadcom.com/node/64671/pdf"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/avgo/",
+      "catalyst": {
+        "title": "AI customer programs and cash conversion",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Look for durable customer demand and earnings that support the valuation."
+      }
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "priority": 4,
+      "focus": false,
+      "sector": "Quantum & enablers",
+      "tags": [
+        "Quantum & enablers",
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months; quantum longer",
+      "summary": "An established advertising and cloud business with AI investment and a longer-term quantum opportunity.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 revenue rose 24% to $119.8 billion. Headline profit also benefited from a very large investment gain, so a simple trailing price-to-earnings ratio can misrepresent recurring profitability. Separately, Google expanded its quantum research to neutral-atom systems alongside superconducting hardware. AP earnings report, Google quantum research update"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Alphabet gives me a way to own a substantial existing business with exposure to AI infrastructure and a longer-term quantum opportunity. The quantum program is additional upside; I do not assign it a material contribution to next year's earnings."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I would evaluate recurring operating earnings, cash remaining after infrastructure spending, cloud economics, and whether new AI usage monetizes. I would remove exceptional investment gains before deciding the shares look inexpensive. The thesis weakens if AI erodes search profitability faster than new businesses compensate, investment requires persistently poor returns, or regulation materially damages economics. A research milestone alone would not offset those operating problems."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "AP earnings report",
+          "url": "https://apnews.com/article/f914606d842d4c6848019083d667fc3a"
+        },
+        {
+          "title": "Google quantum research update",
+          "url": "https://blog.google/innovation-and-ai/technology/research/neutral-atom-quantum-computers/"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/googl/",
+      "catalyst": {
+        "title": "Recurring earnings and returns on AI spending",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Exclude exceptional investment gains when assessing recurring profitability."
+      }
+    },
+    {
+      "ticker": "TSM",
+      "name": "Taiwan Semiconductor Manufacturing",
+      "priority": 5,
+      "focus": false,
+      "sector": "AI infrastructure",
+      "tags": [
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "Advanced semiconductor manufacturing serving multiple competing chip designers.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "TSMC reported Q2 US-dollar revenue of $40.2 billion and guided Q3 to $44.6–$45.8 billion. Its manufacturing business is benefiting from demand for advanced semiconductor capacity. Q2 results and outlook"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "I like exposure to the manufacturing stage because competing chip designers can each create demand for sophisticated fabrication. The upside case does not require me to identify only one successful AI-chip architecture. Execution, yields, reliable delivery, and returns on expansion remain central."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Watch whether advanced capacity generates durable earnings after its enormous capital requirements. Valuation comparisons must account correctly for the relationship between US depositary shares and local shares, as well as currency; I have not used inconsistent vendor market-cap ratios here. Taiwan-related geopolitical risk is a major part of the investment case. Export restrictions, customer concentration, and expensive overseas expansion also matter. My thesis weakens if capacity additions outrun demand or pricing and utilization deteriorate together."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 results and outlook",
+          "url": "https://investor.tsmc.com/english/quarterly-results/2026/q2"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/tsm/",
+      "catalyst": {
+        "title": "Advanced capacity, utilization, and margins",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Capacity needs to earn attractive returns; Taiwan-related geopolitical risk remains material."
+      }
+    },
+    {
+      "ticker": "ETN",
+      "name": "Eaton",
+      "priority": 6,
+      "focus": false,
+      "sector": "Power & cooling",
+      "tags": [
+        "Power & cooling"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "Electrical equipment that supports data centers and broader infrastructure investment.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 revenue increased 21% to $8.5 billion, including 14% organic growth. The rolling 12-month electrical order measure in the Americas rose 41%. Management's full-year adjusted EPS guidance was $13.40–$13.60. The planned Mobility separation was expected in Q1 2027. Q2 release"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Eaton addresses the practical need to move and manage electricity safely. I favor a business that can benefit from several forms of infrastructure investment, with data centers one important source of demand."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "At about 31.5 times the midpoint of adjusted EPS guidance, the market already expects strong execution. Orders need to become profitable deliveries without a sharp reversal in pricing or margins. Acquisition integration and the separation create additional work. For investment performance around the separation, count any distributed securities as well as the remaining share price. My thesis weakens if order growth masks cancellations or earnings growth falls well behind the expectations embedded in valuation."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 release",
+          "url": "https://www.eaton.com/us/en-us/company/news-insights/news-releases/2026/eaton-reports-record-second-quarter-2026-results.html"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/etn/",
+      "catalyst": {
+        "title": "Planned Mobility separation",
+        "window": "Q1 2027",
+        "start_date": "2027-01-01",
+        "end_date": "2027-03-31",
+        "kind": "target",
+        "interpretation": "Assess the economics of all resulting holdings, including any distributed securities."
+      }
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "priority": 7,
+      "focus": false,
+      "sector": "AI infrastructure",
+      "tags": [
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "AI computing hardware and software with substantial current commercial demand.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 fiscal 2027 revenue was $96.2 billion, including $89.0 billion from data centers. The next-quarter revenue outlook was $108 billion, plus or minus 2%. The company changed its non-GAAP treatment to include stock-based compensation beginning in fiscal Q1 2027, which matters when comparing periods and peers. Q2 results"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "NVIDIA has a strong route to benefit from computing demand through hardware, networking, and its software ecosystem. The scale of current revenue makes the investment case much more concrete than the claim that AI might eventually become useful."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I would track customer spending, system delivery, inference economics, margins, and recurring cash generation. I would not annualize a single exceptional quarter and treat it as a reliable forecast. Custom chips, export restrictions, customer concentration, and lower returns on customers' infrastructure investment could all damage the thesis. Large earnings growth can coexist with a falling share price if expectations had been even higher."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 results",
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/nvda/",
+      "catalyst": {
+        "title": "System deliveries, margins, and customer spending",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "High expectations, export restrictions, and custom-chip competition can change the case."
+      }
+    },
+    {
+      "ticker": "ARGX",
+      "name": "argenx",
+      "priority": 8,
+      "focus": false,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "growth",
+      "horizon": "12–24 months",
+      "summary": "An established autoimmune franchise with a recent randomized Phase 3 myositis result.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "The company has marketed VYVGART-family medicines for autoimmune disease. In August, the randomized Phase 3 ALKIVIA study met its overall primary endpoint in autoimmune myositis. The IMNM subgroup was positive; the smaller dermatomyositis subgroup did not achieve statistical significance. The result therefore should not be presented as equally proven across all disease subgroups. Company product/pipeline overview, ALKIVIA results"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Expansion across related immune disorders could create repeated opportunities around established development and commercial capabilities. That is attractive when compared with depending entirely on a single first approval."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I want to see a credible regulatory path from the new result, sustained commercial uptake, and evidence that expansion creates value per share. The preliminary vendor equity value of about $62.5 billion implies substantial expectations; I have not established a full acquisition-adjusted fair value or current cash model. Market-data snapshot",
+            "The main thesis breakers are disappointing uptake, competition, a narrower useful population than investors assume, or paying a premium that subsequent earnings cannot support."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Company product/pipeline overview",
+          "url": "https://argenx.com/"
+        },
+        {
+          "title": "ALKIVIA results",
+          "url": "https://argenx.com/news/2026/press-release-3345813.html"
+        },
+        {
+          "title": "Market-data snapshot",
+          "url": "https://stockanalysis.com/stocks/argx/"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/argx/",
+      "catalyst": {
+        "title": "Regulatory path following ALKIVIA",
+        "window": "Next regulatory update",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "The overall endpoint was positive; benefit was not equally established across subgroups."
+      }
+    },
+    {
+      "ticker": "CEG",
+      "name": "Constellation Energy",
+      "priority": 9,
+      "focus": false,
+      "sector": "Power & cooling",
+      "tags": [
+        "Power & cooling"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months and beyond",
+      "summary": "Existing generation assets and long-term contracting for dependable electricity.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Management increased 2026 adjusted operating EPS guidance to $11.50–$12.50. The Crane Clean Energy Center restart was targeted for 2027. Newly discussed long-term agreements covering 920 MW begin in 2029–2032, so they should not be counted as next year's revenue. Calpine is now part of the company. Q2 report, August 6"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Existing generating assets and actual contracting provide a tangible way to invest in demand for dependable power. I find the financial path easier to assess than a business dependent entirely on a future reactor design reaching commercialization."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The share price is roughly 21.2 times the midpoint of adjusted operating EPS guidance. That measure differs from GAAP earnings. Watch operating reliability, contract economics, restart execution, debt, and integration spending. Generation outages, regulation, adverse power prices, and overruns can overwhelm favorable demand. My thesis weakens if higher contracted revenue fails to produce adequate cash after financing and investment requirements."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 report, August 6",
+          "url": "https://investors.constellationenergy.com/static-files/980078c9-ab31-49ce-8498-8044c0794cd7"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/ceg/",
+      "catalyst": {
+        "title": "Crane Clean Energy Center restart target",
+        "window": "During 2027",
+        "start_date": "2027-01-01",
+        "end_date": "2027-12-31",
+        "kind": "target",
+        "interpretation": "Watch operating reliability and restart execution; later contracts are not next-year revenue."
+      }
+    },
+    {
+      "ticker": "INSM",
+      "name": "Insmed",
+      "priority": 10,
+      "focus": false,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "growth",
+      "horizon": "12–24 months",
+      "summary": "Respiratory medicines with encouraging commercial uptake and further development opportunities.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 product revenue was approximately $425 million. Management increased full-year BRINSUPRI guidance to $1.25–$1.40 billion, alongside $450–$470 million for ARIKAYCE. An ARIKAYCE supplemental application had been submitted for an additional patient population; submission is not approval. Cash and marketable securities were about $1.2 billion at June 30. Q2 business update"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Insmed interests me because commercial uptake is beginning to test the market opportunity directly. Its respiratory-development portfolio offers additional upside without requiring every new program to succeed."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "At approximately 14.7 times the midpoint of guided annual product revenue, much success is already expected. I want continued paid adoption and evidence that expanding revenue can support the cost base. A net-income figure alone would not settle the cash-generation question. Launch deceleration, reimbursement obstacles, development spending, or disappointing pulmonary-hypertension results would weaken my case. This is an attractive business-development story with substantial price sensitivity."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 business update",
+          "url": "https://investor.insmed.com/2026-08-06-Insmed-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Business-Update"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/insm/",
+      "catalyst": {
+        "title": "BRINSUPRI adoption and operating spending",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "The valuation requires sustained launch success and a credible path to cash generation."
+      }
+    },
+    {
+      "ticker": "VRT",
+      "name": "Vertiv",
+      "priority": 11,
+      "focus": true,
+      "sector": "Power & cooling",
+      "tags": [
+        "Power & cooling"
+      ],
+      "exposure": "growth",
+      "horizon": "12–36 months",
+      "summary": "Cooling and power equipment that addresses physical requirements of expanding computing infrastructure.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 sales were about $3.27 billion, up 24%, including 18% organic growth. Full-year adjusted EPS guidance was $6.65–$6.75. Vertiv also raised its outlook across its key metrics. Q2 report"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Greater computing density raises the importance of getting power and heat management right. I see an investable route through equipment and service spending when customers construct and upgrade facilities."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The price is approximately 37.2 times the midpoint of annual adjusted EPS guidance. That is a demanding starting point. Watch whether reported demand becomes deliveries and sustained cash generation, and distinguish organic growth from acquisitions. Cooling technology changes, competition, customer delays, and a cloud-spending slowdown are key risks. I would become less positive if revenue remains strong but margins and cash conversion deteriorate, or if buyers delay a meaningful proportion of expected projects."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 report",
+          "url": "https://investors.vertiv.com/news/news-details/2026/Vertiv-Reports-Strong-Second-Quarter-2026-with-Diluted-EPS-Growth-of-53-Adjusted-Diluted-EPS-Growth-of-60-Raises-Full-Year-2026-Guidance-Across-All-Key-Metrics/default.aspx"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/vrt/",
+      "catalyst": {
+        "title": "Order conversion, margins, and cash flow",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "The premium price leaves less room for project delays or slower infrastructure spending."
+      }
+    },
+    {
+      "ticker": "IBM",
+      "name": "IBM",
+      "priority": 12,
+      "focus": false,
+      "sector": "Quantum & enablers",
+      "tags": [
+        "Quantum & enablers"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months; quantum longer",
+      "summary": "Enterprise software and services supporting a longer-term quantum research program.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 revenue was about $17.2 billion, up 1%; software grew 5%. Management's full-year constant-currency growth outlook was 4%–5%. IBM describes a fault-tolerant quantum-computing target for 2029. Its recent research discussion presents selected computational demonstrations, including limitations and the evolving classical comparison. Q2 financial report, Quantum research assessment"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "IBM offers quantum exposure inside an operating enterprise-technology business. That allows the investment case to develop without requiring near-term quantum revenue to fund the company."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Software growth, cash generation, acquisition returns, and debt are the relevant near-term tests. My quantum interest would increase with repeatable useful computations and verifiable progress toward error correction. A roadmap milestone is not an accomplished engineering result. Slow core growth or disappointing acquisition integration would weaken the equity case even if quantum research progresses. This is a lower-dependence route to the theme, not a low-risk investment or a pure quantum stock."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 financial report",
+          "url": "https://newsroom.ibm.com/2026-07-22-IBM-RELEASES-SECOND-QUARTER-RESULTS"
+        },
+        {
+          "title": "Quantum research assessment",
+          "url": "https://www.ibm.com/quantum/blog/quantum-advantage"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/ibm/",
+      "catalyst": {
+        "title": "Core software execution and quantum milestones",
+        "window": "Next reports; quantum target 2029",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "A roadmap is not delivered hardware; core business performance matters near term."
+      }
+    },
+    {
+      "ticker": "BEAM",
+      "name": "Beam Therapeutics",
+      "priority": 13,
+      "focus": true,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "speculative",
+      "horizon": "3–5 years; nearer catalysts",
+      "summary": "Base-editing medicines with encouraging early human evidence and a separate program approaching a possible filing.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "September's BEAM-302 update in alpha-1 antitrypsin deficiency showed encouraging protein-related results in an early, open-label study, with 29 patients evaluable for efficacy at the stated cutoff. Liver-enzyme elevations and infusion reactions require continued attention. These data do not yet establish durable prevention of lung or liver disease. September clinical update",
+            "Separately, Beam anticipated a risto-cel regulatory filing as early as year-end 2026. June cash and marketable securities were about $1.15 billion. Management's runway into mid-2029 included an expected additional $200 million financing-facility draw. Q2 update"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "This is my most interesting speculative biotech here: early human evidence, a defined genetic target, and another program approaching a filing create several ways to reduce uncertainty."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I want reproducible results in more patients, manageable safety, and an accepted regulatory strategy. Cash is not a valuation floor: development consumes it, financing has conditions, and shareholders can be diluted. Serious safety concerns, uncertain durability, manufacturing problems, or a weaker approval path would break the thesis."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "September clinical update",
+          "url": "https://investors.beamtx.com/news-releases/news-release-details/beam-therapeutics-presents-updated-clinical-data-phase-12-trial"
+        },
+        {
+          "title": "Q2 update",
+          "url": "https://investors.beamtx.com/news-releases/news-release-details/beam-therapeutics-reports-second-quarter-2026-financial-results"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/beam/",
+      "catalyst": {
+        "title": "Possible risto-cel regulatory filing",
+        "window": "As early as year-end 2026",
+        "start_date": null,
+        "end_date": "2026-12-31",
+        "kind": "target",
+        "interpretation": "A filing is not approval. BEAM-302 biomarkers do not establish durable prevention of organ disease."
+      }
+    },
+    {
+      "ticker": "CRSP",
+      "name": "CRISPR Therapeutics",
+      "priority": 14,
+      "focus": false,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "speculative",
+      "horizon": "3–5 years",
+      "summary": "Gene editing with approved-product validation and early programs beyond the initial commercial therapy.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "The CASGEVY collaboration provides commercial validation of gene editing. Q2 global product revenue was about $76 million, recorded by Vertex; it is not all CRISPR Therapeutics' reported revenue. CRSP held about $2.36 billion in cash and marketable securities at June 30, following substantial convertible-note financing. Early cardiovascular programs provide additional development opportunities. Q2 update"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "I see potential in extending gene editing to useful applications beyond the initial commercial product. The existing approval reduces uncertainty about whether this general approach can ever reach the market, while leaving major product-specific risks."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Watch actual treatment uptake, collaboration economics, safety, and whether early lipid-related results lead to meaningful later evidence. A biomarker improvement does not prove fewer heart attacks. Gross cash must be evaluated alongside debt and future spending. Treatment burden, access, long-term safety, irreversibility, and dilution remain material. My thesis weakens if technical success repeatedly fails to translate into a practical treatment experience and sustainable economics."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 update",
+          "url": "https://crisprtx.gcs-web.com/news-releases/news-release-details/crispr-therapeutics-provides-business-update-and-reports-15"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/crsp/",
+      "catalyst": {
+        "title": "CASGEVY uptake and early pipeline evidence",
+        "window": "Next commercial and clinical updates",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Global CASGEVY sales are not all CRSP revenue; biomarker improvements need later clinical evidence."
+      }
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML",
+      "priority": 15,
+      "focus": false,
+      "sector": "AI infrastructure",
+      "tags": [
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "Advanced lithography equipment that supports successive chip manufacturing generations.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 sales were €9.3 billion and net income €2.9 billion. Management guided 2026 sales to €43–€45 billion and outlined additional capacity for lithography equipment. Q2 results"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Advanced manufacturing creates demand for increasingly capable lithography. I like the combination of difficult engineering, accumulated expertise, and customers' need to execute successive manufacturing generations."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "I would track customer investment, equipment acceptance, service demand, margins, and cash through the cycle. Quarterly orders can be uneven, so one strong booking period is not a complete investment case. Valuation needs consistent currency and share-class treatment; I have not divided a US-dollar equity value by euro revenue. Export restrictions, customers delaying projects, high development costs, and a premium valuation can all reduce returns. My thesis weakens if technical leadership remains intact but customer economics no longer justify the expected spending pace."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 results",
+          "url": "https://www.asml.com/en/news/press-releases/2026/q2-2026-financial-results"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/asml/",
+      "catalyst": {
+        "title": "Customer investment and equipment acceptance",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Export restrictions, order timing, and capital spending can outweigh technical progress."
+      }
+    },
+    {
+      "ticker": "KEYS",
+      "name": "Keysight Technologies",
+      "priority": 16,
+      "focus": false,
+      "sector": "Quantum & enablers",
+      "tags": [
+        "Quantum & enablers",
+        "AI infrastructure"
+      ],
+      "exposure": "established",
+      "horizon": "12–24 months",
+      "summary": "Test, measurement, and quantum-control tools serving several technology investment cycles.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q3 fiscal 2026 revenue was about $1.85 billion and orders $2.09 billion. The company supplies test and measurement equipment and has delivered a quantum control system to Japan's AIST. That establishes an actual role in quantum development without proving how large the resulting revenue stream will become. Q3 earnings report, Quantum control deployment"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Keysight can participate in several technology investment cycles through the tools engineers need to design and validate systems. That reduces dependence on identifying the single winning quantum-computer architecture."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Watch order conversion, recurring software/service economics, acquisition contributions, and the durability of customers' research spending. I would not value the whole business as if its revenue were quantum-related. A cyclical fall in electronics investment or reduced customer budgets can hurt results before long-term technical opportunities arrive. My thesis weakens if current growth largely reflects temporary spending or acquisitions without sustained organic returns."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q3 earnings report",
+          "url": "https://investor.keysight.com/investor-news-and-events/financial-press-releases/press-release-details/2026/Keysight-Technologies-Reports-Third-Quarter-2026-Results/default.aspx"
+        },
+        {
+          "title": "Quantum control deployment",
+          "url": "https://www.keysight.com/us/en/assets/6125-1253/videos/Keysight-Installs-Largest-Quantum-Control-System-at-AIST.html"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/keys/",
+      "catalyst": {
+        "title": "Orders becoming revenue and sustainable organic growth",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Quantum control is a real role, but its eventual revenue contribution remains uncertain."
+      }
+    },
+    {
+      "ticker": "ANET",
+      "name": "Arista Networks",
+      "priority": 17,
+      "focus": false,
+      "sector": "AI infrastructure",
+      "tags": [
+        "AI infrastructure"
+      ],
+      "exposure": "growth",
+      "horizon": "12–24 months",
+      "summary": "Networking that helps large AI computing systems operate efficiently.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 revenue reached $3.04 billion, up 37.7%, and management expected approximately $3.3 billion in Q3. The company introduced a 1.6-terabit portfolio for AI network infrastructure. Q2 report"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Connecting large computing systems efficiently can be just as necessary as adding processors. Arista has a credible commercial route to benefit from that requirement."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The preliminary market-data screen implies roughly 24 times trailing revenue, which is demanding even for an excellent business. That is why its research rank is below the strength of its operating performance alone. Market-data snapshot",
+            "I want profitable adoption across more customers, good execution on new platforms, and durable differentiation. Concentration among major buyers, competing network approaches, supplier reliance, and a slowdown in deployments are significant risks. A useful technology trend does not excuse weak expected returns at an excessive purchase price."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 report",
+          "url": "https://www.arista.com/en/company/news/press-release/24401-pr-20260804"
+        },
+        {
+          "title": "Market-data snapshot",
+          "url": "https://stockanalysis.com/stocks/anet/"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/anet/",
+      "catalyst": {
+        "title": "Adoption of faster AI networking platforms",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Particularly demanding valuation and customer concentration require strong execution."
+      }
+    },
+    {
+      "ticker": "RBRK",
+      "name": "Rubrik",
+      "priority": 18,
+      "focus": false,
+      "sector": "Data security",
+      "tags": [
+        "Data security"
+      ],
+      "exposure": "growth",
+      "horizon": "12–24 months",
+      "summary": "Recurring data-security and recovery services for software-dependent organizations.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Q2 fiscal 2027 revenue rose 38% to $427 million, while subscription annual recurring revenue increased 33% to $1.66 billion. Free cash flow was positive, but GAAP earnings remained negative. Management guided full-year revenue to $1.685–$1.693 billion and free cash flow to $323–$333 million. Q2 results"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Organizations need recoverable, governed data as more processes depend on software. I find the recurring commercial model more tangible than buying a company merely because it uses “AI security” language."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The preliminary screen is about 13.1 times guided revenue and a 1.5% guided free-cash-flow yield on equity value. The valuation leaves limited room for persistent disappointment. Watch retention, large-customer growth, cash generation, and dilution from share compensation. Competition, operational failures, and weaker renewal economics could break the thesis. Data recovery is valuable, but it does not establish that Rubrik solves every cybersecurity problem or the threat of future cryptographic attacks."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 results",
+          "url": "https://ir.rubrik.com/news-events/press-releases/news-details/2026/Rubrik-Reports-Second-Quarter-Fiscal-Year-2027-Financial-Results/default.aspx"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/rbrk/",
+      "catalyst": {
+        "title": "Renewals, cash flow, and share dilution",
+        "window": "Next two reporting periods",
+        "start_date": null,
+        "end_date": null,
+        "kind": "monitor",
+        "interpretation": "Positive free cash flow does not remove GAAP losses, competition, or dilution risk."
+      }
+    },
+    {
+      "ticker": "VKTX",
+      "name": "Viking Therapeutics",
+      "priority": 19,
+      "focus": false,
+      "sector": "Biotech",
+      "tags": [
+        "Biotech"
+      ],
+      "exposure": "speculative",
+      "horizon": "2027+; development may take several years",
+      "summary": "Injectable and oral obesity medicines with potential differentiation if pivotal evidence and access support it.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "Its injectable obesity program's Phase 3 trials were fully enrolled, and management planned to begin oral Phase 3 development in Q4 2026. Cash and marketable securities were approximately $502 million at June 30, versus $706 million at year-end; Q2 net loss was about $128 million. Net loss and cash burn are different measures. Q2 development and financial update"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "The opportunity is an effective, tolerable treatment that patients can access and continue using. An oral option or useful maintenance strategy could improve that proposition if the evidence supports it."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "Funding through expensive trials is central. I would not use the cash balance divided by one quarter's loss as a reliable runway estimate, or assume an acquisition rescues the investment. Watch safety, discontinuations, financing terms, manufacturing, and eventual pivotal results. Cross-trial weight-loss comparisons cannot establish superiority. The thesis breaks if clinical differentiation is weak, economics become unattractive, or raising capital transfers too much prospective value away from current shareholders."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Q2 development and financial update",
+          "url": "https://ir.vikingtherapeutics.com/2026-07-29-Viking-Therapeutics-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/vktx/",
+      "catalyst": {
+        "title": "Planned oral Phase 3 initiation",
+        "window": "Q4 2026",
+        "start_date": "2026-10-01",
+        "end_date": "2026-12-31",
+        "kind": "target",
+        "interpretation": "Funding, tolerability, manufacturing, and competition matter alongside trial progress."
+      }
+    },
+    {
+      "ticker": "IONQ",
+      "name": "IonQ",
+      "priority": 20,
+      "focus": false,
+      "sector": "Quantum & enablers",
+      "tags": [
+        "Quantum & enablers"
+      ],
+      "exposure": "speculative",
+      "horizon": "3–5+ years",
+      "summary": "Integrated quantum control and manufacturing with potential value if systems scale reliably.",
+      "asset_class": "stock",
+      "blocks": [
+        {
+          "title": "Evidence",
+          "paragraphs": [
+            "September's updated 2026 revenue outlook was $450–$460 million and included SkyWater after its July acquisition close. The increase therefore cannot be treated entirely as organic quantum-computing adoption. Updated outlook",
+            "Superion's announcement described fabricated integrated processors and early prototype progress, with customer deliveries planned for 2027. Fault-tolerance dates remain targets. Superion development announcement"
+          ]
+        },
+        {
+          "title": "My thesis",
+          "paragraphs": [
+            "Integrated control and manufacturing could become valuable if they produce reliable, scalable machines. IonQ is the pure quantum-oriented name I would investigate first from this screen, but it has my lowest confidence for a one-year investment outcome."
+          ]
+        },
+        {
+          "title": "Next test and valuation",
+          "paragraphs": [
+            "The preliminary equity valuation is roughly 34 times updated annual revenue guidance, with the denominator now containing an acquired foundry business. Post-acquisition cash, fully diluted shares, and segment economics need reconciliation before an entry decision. Delivery delays, weak logical-error performance, integration costs, and dilution can damage returns. I would require stronger evidence than qubit counts, bookings, roadmaps, or narrow benchmark wins."
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "title": "Updated outlook",
+          "url": "https://www.ionq.com/news/ionq-announces-increased-full-year-2026-financial-outlook-following-skywater-acquisition"
+        },
+        {
+          "title": "Superion development announcement",
+          "url": "https://www.ionq.com/news/ionq-launches-superion-product-line-industry-leading-upgradeable-platform-designed-to-scale-manufacturable-fault-tolerant-quantum-computing"
+        }
+      ],
+      "quote_url": "https://stockanalysis.com/stocks/ionq/",
+      "catalyst": {
+        "title": "Planned Superion customer deliveries",
+        "window": "During 2027",
+        "start_date": "2027-01-01",
+        "end_date": "2027-12-31",
+        "kind": "target",
+        "interpretation": "Revenue guidance includes acquired SkyWater; deliveries and fault-tolerance dates remain targets."
+      }
+    }
+  ],
+  "valuation_checks": [
+    {
+      "ticker": "ALNY",
+      "numerator": "$32.06bn equity value",
+      "denominator": "$5.50bn FY2026 total-revenue guidance midpoint",
+      "result": "5.8× equity / revenue",
+      "note": "Includes product sales plus collaboration/royalties; not enterprise value.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/alny/",
+      "guidance_source": "https://investors.alnylam.com/press-release?id=29986"
+    },
+    {
+      "ticker": "INSM",
+      "numerator": "$26.21bn equity value",
+      "denominator": "$1.785bn FY2026 product-revenue guidance midpoint",
+      "result": "14.7× equity / revenue",
+      "note": "Substantial launch success is already expected.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/insm/",
+      "guidance_source": "https://investor.insmed.com/2026-08-06-Insmed-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Business-Update"
+    },
+    {
+      "ticker": "VRT",
+      "numerator": "$249.39 reference close",
+      "denominator": "$6.70 FY2026 adjusted-EPS guidance midpoint",
+      "result": "37.2× adjusted earnings",
+      "note": "Adjusted earnings differ from GAAP earnings.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/vrt/",
+      "guidance_source": "https://investors.vertiv.com/news/news-details/2026/Vertiv-Reports-Strong-Second-Quarter-2026-with-Diluted-EPS-Growth-of-53-Adjusted-Diluted-EPS-Growth-of-60-Raises-Full-Year-2026-Guidance-Across-All-Key-Metrics/default.aspx"
+    },
+    {
+      "ticker": "ETN",
+      "numerator": "$424.77 reference close",
+      "denominator": "$13.50 FY2026 adjusted-EPS guidance midpoint",
+      "result": "31.5× adjusted earnings",
+      "note": "Account for the planned separation when comparing future holdings.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/etn/",
+      "guidance_source": "https://www.eaton.com/us/en-us/company/news-insights/news-releases/2026/eaton-reports-record-second-quarter-2026-results.html"
+    },
+    {
+      "ticker": "CEG",
+      "numerator": "$254.71 reference close",
+      "denominator": "$12.00 FY2026 adjusted operating-EPS guidance midpoint",
+      "result": "21.2× adjusted operating earnings",
+      "note": "Operating, debt, and commodity-price risks remain.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/ceg/",
+      "guidance_source": "https://investors.constellationenergy.com/static-files/980078c9-ab31-49ce-8498-8044c0794cd7"
+    },
+    {
+      "ticker": "ANET",
+      "numerator": "$251.48bn equity value",
+      "denominator": "$10.54bn vendor trailing revenue",
+      "result": "23.9× equity / revenue",
+      "note": "Trailing revenue is a different basis from forward guidance.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/anet/",
+      "guidance_source": "https://www.arista.com/en/company/news/press-release/24401-pr-20260804"
+    },
+    {
+      "ticker": "RBRK",
+      "numerator": "$22.12bn equity value",
+      "denominator": "$1.689bn FY2027 revenue / $328mn free-cash-flow guidance midpoints",
+      "result": "13.1× revenue · 1.48% FCF yield",
+      "note": "FY2027 basis; consider stock-based compensation and dilution.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/rbrk/",
+      "guidance_source": "https://ir.rubrik.com/news-events/press-releases/news-details/2026/Rubrik-Reports-Second-Quarter-Fiscal-Year-2027-Financial-Results/default.aspx"
+    },
+    {
+      "ticker": "IONQ",
+      "numerator": "$15.55bn equity value",
+      "denominator": "$455mn FY2026 revenue guidance midpoint",
+      "result": "34.2× equity / revenue",
+      "note": "Includes acquired SkyWater revenue; reconcile post-acquisition shares.",
+      "price_as_of": "2026-09-18",
+      "market_source": "https://stockanalysis.com/stocks/ionq/",
+      "guidance_source": "https://www.ionq.com/news/ionq-announces-increased-full-year-2026-financial-outlook-following-skywater-acquisition"
+    }
+  ],
+  "themes": [
+    {
+      "title": "Computing needs more than processors",
+      "body": "Power delivery, cooling, networking, manufacturing, and testing address constraints on deploying more computing. My thesis depends on those orders producing durable earnings and cash, and on customers earning enough from AI to sustain their spending.",
+      "tickers": [
+        "AVGO",
+        "TSM",
+        "ETN",
+        "NVDA",
+        "CEG",
+        "VRT",
+        "ASML",
+        "KEYS",
+        "ANET"
+      ],
+      "sources": [
+        {
+          "title": "IEA Energy and AI — April 2025 base case",
+          "url": "https://www.iea.org/reports/energy-and-ai/executive-summary"
+        }
+      ]
+    },
+    {
+      "title": "Medicines moving from mechanism to patients",
+      "body": "A defined target, meaningful human outcomes, feasible delivery, and reimbursement create a stronger case than an interesting laboratory result alone. Commercial sales, randomized clinical results, and early biomarkers are different levels of evidence.",
+      "tickers": [
+        "VRTX",
+        "ALNY",
+        "ARGX",
+        "INSM",
+        "BEAM",
+        "CRSP"
+      ],
+      "sources": [
+        {
+          "title": "Q2 release",
+          "url": "https://investors.alnylam.com/press-release?id=29986"
+        },
+        {
+          "title": "Company product/pipeline overview",
+          "url": "https://argenx.com/"
+        },
+        {
+          "title": "September clinical update",
+          "url": "https://investors.beamtx.com/news-releases/news-release-details/beam-therapeutics-presents-updated-clinical-data-phase-12-trial"
+        }
+      ]
+    },
+    {
+      "title": "Obesity treatment: differentiation matters",
+      "body": "An effective treatment needs tolerability, access, manufacturing capacity, and economics that can compete. A large market alone does not guarantee another product will capture it. Cross-trial weight-loss comparisons do not establish superiority.",
+      "tickers": [
+        "VKTX"
+      ],
+      "sources": [
+        {
+          "title": "Q2 development and financial update",
+          "url": "https://ir.vikingtherapeutics.com/2026-07-29-Viking-Therapeutics-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update"
+        }
+      ]
+    },
+    {
+      "title": "Quantum progress needs useful computation",
+      "body": "Physical-qubit counts, selected benchmarks, and roadmaps do not establish broad commercial advantage. Error correction, reliability, speed, and comparison with the best classical approach matter. Existing businesses support Alphabet, IBM, and Keysight today; IonQ depends more heavily on future milestones.",
+      "tickers": [
+        "GOOGL",
+        "IBM",
+        "KEYS",
+        "IONQ"
+      ],
+      "sources": [
+        {
+          "title": "IBM assessment of quantum demonstrations",
+          "url": "https://www.ibm.com/quantum/blog/quantum-advantage"
+        },
+        {
+          "title": "Google neutral-atom research expansion",
+          "url": "https://blog.google/innovation-and-ai/technology/research/neutral-atom-quantum-computers/"
+        }
+      ]
+    },
+    {
+      "title": "Recoverable data is an operating need",
+      "body": "Organizations increasingly depend on software and need to recover and govern their data. Recurring customer adoption and cash generation support the case; this does not establish that one vendor solves every cybersecurity threat.",
+      "tickers": [
+        "RBRK"
+      ],
+      "sources": [
+        {
+          "title": "Q2 results",
+          "url": "https://ir.rubrik.com/news-events/press-releases/news-details/2026/Rubrik-Reports-Second-Quarter-Fiscal-Year-2027-Financial-Results/default.aspx"
+        }
+      ]
+    }
+  ],
+  "quantum_explainer": "A physical qubit is a hardware element. A logical qubit protects information through an error-correction scheme using physical resources. More physical qubits alone do not demonstrate more useful computation. Customer deliveries and independently assessed useful performance matter more than roadmap size.",
+  "biotech_explainer": "Separate target engagement, meaningful patient benefit, regulatory approval, and viable delivery economics. A biomarker change is not proof of long-term clinical benefit; a filing is not an approval.",
+  "decision_framework": [
+    {
+      "horizon": "Next 3–6 months",
+      "text": "Watch scheduled decisions, trial updates, deliveries, and earnings surprises. Share-price confidence is lower over a short window."
+    },
+    {
+      "horizon": "Next 1–3 years",
+      "text": "Track sustained earnings and cash growth, adoption, and whether returns support the purchase price."
+    },
+    {
+      "horizon": "3–5 years and beyond",
+      "text": "Early genetic medicines and quantum systems may need this long or longer to mature commercially. Stocks can move much earlier, in either direction."
+    }
+  ],
+  "earlier_candidates": [
+    {
+      "ticker": "TWST",
+      "name": "Twist Bioscience",
+      "review_status": "needs_research",
+      "quote_url": "https://stockanalysis.com/stocks/twst/"
+    },
+    {
+      "ticker": "XYL",
+      "name": "Xylem",
+      "review_status": "needs_research",
+      "quote_url": "https://stockanalysis.com/stocks/xyl/"
+    },
+    {
+      "ticker": "TXG",
+      "name": "10x Genomics",
+      "review_status": "needs_research",
+      "quote_url": "https://stockanalysis.com/stocks/txg/"
+    },
+    {
+      "ticker": "TMO",
+      "name": "Thermo Fisher Scientific",
+      "review_status": "needs_research",
+      "quote_url": "https://stockanalysis.com/stocks/tmo/"
+    },
+    {
+      "ticker": "SDGR",
+      "name": "Schrödinger",
+      "review_status": "needs_research",
+      "quote_url": "https://stockanalysis.com/stocks/sdgr/"
+    }
+  ],
+  "earlier_candidates_note": "These five companies were in your earlier screenshot. They are retained here for follow-up; the full 20-company research edition does not establish a current investment case for them. The screenshot prices are not used as current quotes."
+}

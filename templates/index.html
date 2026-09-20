@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CryptO — Automatic Learning &amp; Coinbase</title>
+<title>CryptO — Crypto + Stocks</title>
 <link rel="stylesheet" href="/static/style.css">
 <script src="/static/app.js" defer></script>
 <script src="/static/coinbase.js" defer></script>
@@ -10,9 +10,11 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.16</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>CRYPTO + STOCKS · V11.16</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
+<nav class="market-nav" aria-label="Asset sections"><a href="/" aria-current="page">Crypto trading</a><a href="/stocks">Stock research <span>20</span></a></nav>
+<aside class="stock-entry"><div><strong>Explore the longer view.</strong><p>20 stocks, five growth priorities, and the catalysts behind each investment case.</p></div><a href="/stocks">Explore stock research <span aria-hidden="true">↗</span></a></aside>
 <div id="notice" class="notice" role="status" hidden></div>
 <div id="accessPanel" class="panel" hidden><form id="accessForm" class="inline-form"><label>App access token <input id="accessToken" type="password" autocomplete="current-password" required></label><button class="primary">Connect</button></form></div>
 <section class="panel finance-panel" aria-labelledby="financeHeading">

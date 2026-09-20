@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="CryptO stock research: growth theses, clinical and technical catalysts, valuation context, and sources across 20 companies.">
+<title>Stock research · CryptO — Crypto + Stocks</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/stocks.css">
+<script src="/static/stocks.js" defer></script>
+</head>
+<body class="stocks-page">
+<a class="skip-link" href="#stockResearch">Skip to stock research</a>
+<div class="shell">
+<header>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>CRYPTO + STOCKS</small></span></a>
+  <span class="research-mode"><span aria-hidden="true"></span>Stock research</span>
+</header>
+<nav class="market-nav" aria-label="Asset sections"><a href="/">Crypto trading</a><a href="/stocks" aria-current="page">Stock research <span>20</span></a></nav>
+<main id="stockResearch">
+<section class="stock-hero" aria-labelledby="stockTitle">
+  <div><p class="eyebrow">THE LONGER VIEW</p><h1 id="stockTitle">Stocks for the<br><span>months and years ahead.</span></h1><p class="hero-copy">Explore the growth case, the next catalyst, and what could change it. Biotech, quantum computing, and the infrastructure behind tomorrow’s demand.</p></div>
+  <div class="hero-index" aria-label="Research coverage"><div><strong>20</strong><span>research profiles</span></div><div><strong>05</strong><span>growth priorities</span></div><div><strong>05</strong><span>market themes</span></div></div>
+</section>
+<div class="research-toolbar"><p id="researchFreshness" class="freshness" role="status">Loading research edition…</p><div class="top-actions"><button id="reloadResearch" class="small">Reload research</button><button id="downloadReport" class="small" disabled>Download full report</button><button id="downloadWatchlist" class="small" disabled>Export watchlist</button></div></div>
+<p class="research-scope">Research watchlist · Prices and financial figures in the notes are dated snapshots. Open a company’s quote link for current market information. Stock orders and live stock signals are not available here.</p>
+<div id="stockNotice" class="notice" role="status" hidden></div>
+<section id="stockAccessPanel" class="panel" hidden aria-labelledby="accessTitle"><h2 id="accessTitle">Connect to your app</h2><p class="muted">Use the same access token as the crypto dashboard.</p><form id="stockAccessForm" class="inline-form"><label class="grow">App access token<input id="stockAccessToken" type="password" autocomplete="current-password" required></label><button class="primary">Connect</button></form></section>
+<noscript><p class="callout">Enable JavaScript to load the watchlist and use its research filters.</p></noscript>
+<div id="stockContent" hidden>
+<section class="focus-panel" aria-labelledby="focusTitle"><div class="focus-heading"><div><p class="eyebrow">START YOUR RESEARCH HERE</p><h2 id="focusTitle">Five growth priorities</h2></div><span class="muted">Focused shortlist</span></div><p id="focusNote" class="muted"></p><div id="focusStocks" class="focus-stocks"></div></section>
+<nav class="research-sections" aria-label="Stock research sections"><a href="#watchlist">Watchlist</a><a href="#catalysts">Catalyst calendar</a><a href="#outlook">Market outlook</a><a href="#valuations">Valuation checks</a></nav>
+<section id="watchlist" class="stock-section" aria-labelledby="watchlistTitle">
+<div class="section-heading"><div><p class="eyebrow">THE RESEARCH UNIVERSE</p><h2 id="watchlistTitle">Find your next company to study.</h2></div><p id="stockCount" class="muted" role="status" aria-live="polite"></p></div>
+<div class="stock-filters"><label class="stock-search">Search companies<input id="stockSearch" type="search" placeholder="Ticker, company, or growth theme" autocomplete="off"></label><label>Theme<select id="stockSector"><option value="all">All themes</option></select></label><label>Business profile<select id="stockExposure"><option value="all">All profiles</option><option value="established">Established business</option><option value="growth">Growth / valuation sensitive</option><option value="speculative">Speculative</option></select></label><label>Sort by<select id="stockSort"><option value="priority">Research priority</option><option value="ticker">Ticker A–Z</option><option value="sector">Theme</option></select></label></div>
+<div class="watchlist-controls"><div class="view-options" role="group" aria-label="Watchlist view"><button data-stock-view="all" aria-pressed="true">All 20</button><button data-stock-view="focus" aria-pressed="false">Growth priorities</button><button data-stock-view="saved" aria-pressed="false">Saved <span id="savedCount">0</span></button></div><button id="clearStockFilters" class="text-button">Clear filters</button></div>
+<p id="savedScope" class="footnote">Saved stocks are kept in this browser. Research priority is an editorial ranking, not a profit probability.</p>
+<div id="stockGrid" class="stock-grid"></div><div id="stockEmpty" class="empty panel" hidden><h3>No stocks match this view.</h3><p>Try another search or theme. Use Save on a company to add it to your saved list.</p><button id="emptyClearFilters">Show all companies</button></div>
+</section>
+<section class="earlier-candidates panel" aria-labelledby="earlierTitle"><h2 id="earlierTitle">From your earlier watchlist</h2><p id="earlierNote" class="muted"></p><div id="earlierStocks" class="earlier-stocks"></div></section>
+<section id="catalysts" class="stock-section" aria-labelledby="catalystsTitle"><div class="section-heading"><div><p class="eyebrow">DATES TO REVISIT</p><h2 id="catalystsTitle">Catalysts, with context.</h2></div><span class="badge">COMPANY TARGETS</span></div><p class="muted">Dates describe expected events. A passed date is marked for review; it does not establish an approval, successful trial, or delivered system.</p><div id="catalystList" class="catalyst-list"></div></section>
+<section id="outlook" class="stock-section" aria-labelledby="outlookTitle"><div class="section-heading"><div><p class="eyebrow">FOLLOW THE UNDERLYING NEED</p><h2 id="outlookTitle">Where demand could grow.</h2></div></div><div id="themeGrid" class="theme-grid"></div><div class="evidence-grid"><article class="panel"><h3>What counts as a biotech breakthrough?</h3><p id="biotechExplainer" class="muted"></p></article><article class="panel"><h3>What counts as a quantum breakthrough?</h3><p id="quantumExplainer" class="muted"></p></article></div><div id="horizonGrid" class="horizon-grid"></div></section>
+<section id="valuations" class="stock-section" aria-labelledby="valuationsTitle"><div class="section-heading"><div><p class="eyebrow">THE PRICE STILL MATTERS</p><h2 id="valuationsTitle">What the market already expects.</h2></div><span id="valuationDate" class="badge"></span></div><p id="valuationNote" class="muted"></p><div class="table-wrap valuation-wrap" tabindex="0" role="region" aria-label="Dated valuation comparisons"><table><thead><tr><th>Stock</th><th>Screening result</th><th>Value used</th><th>Comparison basis</th><th>Interpretation</th></tr></thead><tbody id="valuationRows"></tbody></table></div></section>
+<section class="methodology panel" aria-labelledby="methodologyTitle"><h2 id="methodologyTitle">How to read this research</h2><p id="researchMethodology" class="muted"></p><p class="muted">Several companies share the same AI spending cycle or biotech financing risks. A successful innovation can still produce a disappointing stock return when expectations are too high.</p><p class="footnote">The full report includes each investment case, source references, financing considerations, and research limits.</p></section>
+</div>
+</main>
+<footer>CryptO · Crypto + Stocks<span>Crypto learning and trading · Stocks research</span></footer>
+</div>
+<dialog id="stockDetail" aria-labelledby="detailTitle"><button id="closeStockDetail" class="dialog-close" aria-label="Close company research">Close <span aria-hidden="true">×</span></button><div id="stockDetailBody"></div></dialog>
+</body>
+</html>
