@@ -25,7 +25,7 @@ def main():
     sys.path.insert(0,str(root))
     from lab.continuous import DEFAULTS
     from lab.evaluation import dataset_digest
-    from lab.event_context import validate_snapshot, digest
+    from lab.event_context import validate_snapshot, digest, INPUT_NAMES
     from lab.learning_research import learn_history
     old=json.loads(args.baseline.read_text())['result']
     def decode(archive,name):
@@ -64,12 +64,12 @@ def main():
     assert without_scope(result['prediction_audit'])==without_scope(old['prediction_audit'])
     assert result['forecast_calibration']==old['forecast_calibration']
     for key,model in result['model']['models'].items():
-        assert model['weights'][-7:]==[0.]*7
-        assert model['weights'][:-7]==old['model']['models'][key]['weights']
+        assert model['weights'][-len(INPUT_NAMES):]==[0.]*len(INPUT_NAMES)
+        assert model['weights'][:-len(INPUT_NAMES)]==old['model']['models'][key]['weights']
         for group in ('eligible_model',):
             if group in model:
-                assert model[group]['weights'][-7:]==[0.]*7
-                assert model[group]['weights'][:-7]==old['model']['models'][key][group]['weights']
+                assert model[group]['weights'][-len(INPUT_NAMES):]==[0.]*len(INPUT_NAMES)
+                assert model[group]['weights'][:-len(INPUT_NAMES)]==old['model']['models'][key][group]['weights']
     source=hashlib.sha256()
     for path in sorted((root/'lab').glob('*.py')):
         source.update(path.name.encode()+b'\0'+path.read_bytes())

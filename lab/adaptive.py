@@ -20,7 +20,7 @@ from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, corr
 from . import failure_predictions
 from .event_context import INPUT_NAMES as EVENT_INPUT_NAMES, vector as event_vector
 
-POLICY_VERSION = "online-net-r-v16-event-context"
+POLICY_VERSION = "online-net-r-v17-observed-news"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15

@@ -28,7 +28,7 @@ from .failure_predictions import summary as failure_prediction_summary
 from .event_context import (attach_event_context, data_summary as event_summary,
     validate_snapshot, outcome_summary as event_outcomes)
 
-LEARNING_REPORT_VERSION = 18
+LEARNING_REPORT_VERSION = 19
 
 
 def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None,

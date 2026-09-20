@@ -9,7 +9,7 @@ from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from zoneinfo import ZoneInfo
 
-from .event_context import DAY, HOUR, digest, source_url
+from .event_context import DAY, HOUR, digest, canonical_url
 
 SOURCES = {
     "fed_monetary":{"name":"Federal Reserve monetary policy", "kind":"rss", "category":"macro",
@@ -26,7 +26,29 @@ SOURCES = {
         "url":"https://status.coinbase.com/history.atom", "ttl_ms":HOUR},
     "coindesk":{"name":"CoinDesk headlines (reporting)", "kind":"rss", "category":"crypto",
         "url":"https://www.coindesk.com/arc/outboundfeeds/rss", "ttl_ms":HOUR},
+    "bbc_world":{"name":"BBC world news (reporting)", "kind":"rss", "category":"world",
+        "url":"https://feeds.bbci.co.uk/news/world/rss.xml", "ttl_ms":HOUR, "assets":["*"]},
+    "ethereum_blog":{"name":"Ethereum Foundation announcements", "kind":"rss", "category":"project",
+        "url":"https://blog.ethereum.org/en/feed.xml", "ttl_ms":DAY, "assets":["ETH-USD"]},
 }
+# Client release announcements are not assertions of mainnet activation.
+for source, name, repo, asset in (
+    ('bitcoin_releases','Bitcoin Core','bitcoin/bitcoin','BTC-USD'),
+    ('avalanche_releases','AvalancheGo','ava-labs/avalanchego','AVAX-USD'),
+    ('polkadot_releases','Polkadot SDK','paritytech/polkadot-sdk','DOT-USD'),
+    ('xrpl_releases','XRPL rippled','XRPLF/rippled','XRP-USD'),
+    ('solana_releases','Solana Agave','anza-xyz/agave','SOL-USD')):
+    SOURCES[source] = {'name':name+' client releases', 'kind':'rss', 'category':'project',
+                      'url':'https://github.com/'+repo+'/releases.atom', 'ttl_ms':DAY, 'assets':[asset]}
+for source, definition in SOURCES.items():
+    definition['origin'] = ('reporting' if source in ('bbc_world','coindesk') else
+                            'project_publication' if definition['category']=='project' else 'official_publication')
+    definition['poll_seconds'] = 300 if source in ('bbc_world','coindesk','coinbase_status') else 900
+
+
+def source_info():
+    return {s:{'category':d['category'], 'assets':list(d.get('assets',['*'])), 'origin':d['origin']}
+            for s,d in SOURCES.items()}
 # Whole names and unambiguous tickers only. Unknown assets remain broad context;
 # this deliberately does not treat ordinary words such as "near" or "link" as tickers.
 ALIASES = {"BTC-USD":("bitcoin","btc"), "ETH-USD":("ethereum","ether","eth"),
@@ -57,13 +79,14 @@ def record(source, identity, title, url, published, observed, event_ts=None,
     if not title or not identity:
         raise ValueError("Event identity/title missing")
     if assets is None:
-        assets = [symbol for symbol,names in ALIASES.items()
+        assets = SOURCES[source].get('assets') or [symbol for symbol,names in ALIASES.items()
                   if any(re.search(r"\b"+re.escape(name)+r"\b",title,re.I) for name in names)]
         # Macro and regulatory announcements can affect the whole trading universe.
         if SOURCES[source]["category"] in ("macro","regulation") or not assets:
             assets = ["*"]
     data = {"id":digest([source,identity]), "source":source, "title":title,
-        "url":source_url(url), "published_ts":published, "event_ts":published if event_ts is None else event_ts,
+        "url":canonical_url(url), "published_ts":published, "event_ts":published if event_ts is None else event_ts,
+        "origin":SOURCES[source]['origin'],
         "category":SOURCES[source]["category"], "status":status, "precision":precision, "assets":sorted(assets)}
     # Do not include retrieval time in the revision: an unchanged poll is not new news.
     data["revision"] = digest(data)
@@ -86,7 +109,7 @@ def rss(source, raw, observed):
                          and e.attrib.get("rel","alternate")=="alternate"),None)
         published = date_ms(values.get("updated") or values.get("pubDate") or
                             values.get("published") or values.get("date") or "")
-        result.append(record(source,link or values.get("guid") or values.get("id"),
+        result.append(record(source,values.get("guid") or values.get("id") or canonical_url(link),
             values.get("title"),link,published,observed))
     return result
 

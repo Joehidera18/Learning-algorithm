@@ -28,12 +28,32 @@ assert.doesNotMatch(element('eventsRecent').innerHTML,/javascript:|<img/);
 assert.match(element('eventsUpcoming').innerHTML,/date only/);
 assert.match(element('eventsSources').innerHTML,/&lt;script/);
 assert.match(element('eventsSources').innerHTML,/Unavailable or stale/);
+context.testUI.renderEvents({sources:[],projects:[{title:'<script>release</script>',url:'javascript:bad()',
+  source:'avalanche_releases',origin:'project_publication',published_ts:1789862572845,observed_ts:1789862572846}],
+  category_coverage:{world:0,project:null}});
+assert.match(element('eventsProjects').innerHTML,/&lt;script/);
+assert.doesNotMatch(element('eventsProjects').innerHTML,/javascript:|<script/);
+assert.match(element('eventsCategories').textContent,/world: 0/);
+assert.match(element('eventsCategories').textContent,/project: no configured source/);
+context.testUI.renderJournal([{product_id:'BTC-USD',status:'CLOSED',event_review:{
+  signal:{coverage:1,recent:[{title:'<img src=x>',url:'https://example.org/news',source:'<script>',origin:'reporting'}]},
+  entry:{coverage:.5,upcoming:[{title:'Known meeting',status:'scheduled',precision:'day',event_ts:1789862572845}]},
+  after_entry:{versions_observed:1,truncated:true,items:[{title:'Later update',url:'javascript:bad()'}]},
+  scope:'<img src=x>'}}]);
+assert.match(element('journalTable').innerHTML,/News known at this trade/);
+assert.match(element('journalTable').innerHTML,/Observed after entry/);
+assert.match(element('journalTable').innerHTML,/Known meeting/);
+assert.match(element('journalTable').innerHTML,/date only/);
+assert.match(element('journalTable').innerHTML,/&lt;img/);
+assert.doesNotMatch(element('journalTable').innerHTML,/javascript:|<img|<script/);
 const original=process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2],"utf8")) :
   {results:[],historical_examples:0,phase:"completed",message:"Fixture"};
 context.testUI.renderLearning(original);
-assert.equal(element("practiceInterval1h").checked,true);
-assert.equal(element("practiceInterval6h").checked,true);
-assert.equal(element("practiceInterval5m").checked,false);
+const savedIntervals=original.practice_intervals || original.default_practice_intervals || ["15m","1h","6h"];
+for (const iv of ["5m","15m","1h","6h"]) {
+  assert.equal(element("practiceInterval"+iv).checked,savedIntervals.includes(iv));
+  element("practiceInterval"+iv).checked=iv !== "5m";
+}
 element("autoFee").value="0.4";
 element("autoFee").reportValidity=()=>true;
 element("practiceSymbols").value="BTC, eth, BTC-USD";

@@ -1,0 +1,226 @@
+{
+  "reviewed_at_utc": "2026-09-20",
+  "baseline_commit": "29314bf6b135beeafd429c588406f40f8395bf88",
+  "source_code_sha256": "09a340156e4f909713b49dcc91080553a01519e14ac63527a7ad64f127a17993",
+  "versions": {
+    "engine": "market-structure-v11.13-observed-news",
+    "policy": "online-net-r-v17-observed-news",
+    "report": 19
+  },
+  "tests": {
+    "full_discovery": {
+      "passed": 353,
+      "runtime_seconds": 115.939
+    },
+    "additional_after_discovery": {
+      "passed": 1,
+      "name": "test_world_and_project_inputs_update_from_resolved_net_outcome"
+    },
+    "distinct_python_tests_passed": 354,
+    "learning_ui": "passed with supplied report 8",
+    "finance_ui": "passed",
+    "startup": {
+      "passed": [
+        "dashboard, assets and public health served by real Gunicorn",
+        "private API requires access token",
+        "invalid study plans and 6h trading interval rejected",
+        "settings survive restart; runners remain stopped"
+      ],
+      "scope": "Fresh temporary database; local HTTP and Gunicorn only. No runners, external market calls, deployment or orders."
+    }
+  },
+  "adapters": {
+    "asof_ts": 1789866779415,
+    "configured": 14,
+    "healthy": 13,
+    "versions": 1163,
+    "archive_sha256": "172d9606dfd2fcf5eb69878f2e36433f621f9323c4db844aa8cb7f7deac29ea2",
+    "category_coverage": {
+      "macro": 1.0,
+      "regulation": 1.0,
+      "crypto": 1.0,
+      "exchange": 0.0,
+      "world": 1.0,
+      "project": 1.0
+    },
+    "sources": [
+      {
+        "id": "fed_monetary",
+        "url": "https://www.federalreserve.gov/feeds/press_monetary.xml",
+        "category": "macro",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "fed_regulation",
+        "url": "https://www.federalreserve.gov/feeds/press_bcreg.xml",
+        "category": "regulation",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "sec",
+        "url": "https://www.sec.gov/news/pressreleases.rss",
+        "category": "regulation",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "bls_calendar",
+        "url": "https://www.bls.gov/schedule/news_release/bls.ics",
+        "category": "macro",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "fomc_calendar",
+        "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+        "category": "macro",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "coinbase_status",
+        "url": "https://status.coinbase.com/history.atom",
+        "category": "exchange",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 300,
+        "healthy": false,
+        "error": "The read operation timed out"
+      },
+      {
+        "id": "coindesk",
+        "url": "https://www.coindesk.com/arc/outboundfeeds/rss",
+        "category": "crypto",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 300,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "bbc_world",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "category": "world",
+        "assets": [
+          "*"
+        ],
+        "poll_seconds": 300,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "ethereum_blog",
+        "url": "https://blog.ethereum.org/en/feed.xml",
+        "category": "project",
+        "assets": [
+          "ETH-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "bitcoin_releases",
+        "url": "https://github.com/bitcoin/bitcoin/releases.atom",
+        "category": "project",
+        "assets": [
+          "BTC-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "avalanche_releases",
+        "url": "https://github.com/ava-labs/avalanchego/releases.atom",
+        "category": "project",
+        "assets": [
+          "AVAX-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "polkadot_releases",
+        "url": "https://github.com/paritytech/polkadot-sdk/releases.atom",
+        "category": "project",
+        "assets": [
+          "DOT-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "xrpl_releases",
+        "url": "https://github.com/XRPLF/rippled/releases.atom",
+        "category": "project",
+        "assets": [
+          "XRP-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      },
+      {
+        "id": "solana_releases",
+        "url": "https://github.com/anza-xyz/agave/releases.atom",
+        "category": "project",
+        "assets": [
+          "SOL-USD"
+        ],
+        "poll_seconds": 900,
+        "healthy": true,
+        "error": null
+      }
+    ]
+  },
+  "available_report": {
+    "name": "learning-results 8.json",
+    "sha256": "353061f7bb42fc547aa50cc991456734ac4f9fbadd0fd1bae78aa3b2f2f07b51",
+    "current_policy_version": "online-net-r-v14-corrected-deadlines",
+    "current_report_version": 16,
+    "completed_studies": 42,
+    "total_studies": 120,
+    "historical_examples": 356350,
+    "forward_learning_trades": 0,
+    "paper_running": false,
+    "phase": "downloading",
+    "qualified_markets": 0,
+    "scope": "Earlier unfinished report; not a replacement for the unavailable newer report."
+  },
+  "unavailable_inputs": [
+    "learning-results 9(1).json",
+    "AVAX-USD_5m_learning-data.zip"
+  ],
+  "replay_record": "observed-news-replay.json",
+  "event_inputs": 15,
+  "total_inputs": 47,
+  "gap_max_age_bars": 240,
+  "scope": "Software fixes and expanded prospective metadata collection. Structure helpers remain outside simplified adaptive training. No new candle retrieval, new-report audit, semantic article interpretation, course-rule verification, deployed change or improved profitability is established."
+}

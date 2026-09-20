@@ -1,0 +1,58 @@
+{
+  "source_code_sha256": "09a340156e4f909713b49dcc91080553a01519e14ac63527a7ad64f127a17993",
+  "baseline_sha256": "c2c5b934fd3b1896060dff3efcb4b5d9283e454acba3f55a23fb8b4fecfb2f6e",
+  "bundle_sha256": "74de647f52ef1cc658ea46ccad053d79e68faa1d76617f4ef0959d4f3955e2e9",
+  "events_sha256": "172d9606dfd2fcf5eb69878f2e36433f621f9323c4db844aa8cb7f7deac29ea2",
+  "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+  "symbol": "XRP-USD",
+  "candles": 105062,
+  "event_versions": 1163,
+  "first_event_observation_ts": 1789866756198,
+  "candle_test_end_ts": 1789534800000,
+  "event_data": {
+    "source": "recorded_event_observations",
+    "data_sha256": "172d9606dfd2fcf5eb69878f2e36433f621f9323c4db844aa8cb7f7deac29ea2",
+    "versions": 1163,
+    "first_observation_ts": 1789866756198,
+    "covered_candles": 0,
+    "holdout_candles": 21013,
+    "holdout_covered_candles": 0,
+    "holdout_full_coverage_candles": 0,
+    "rule": "Only revisions observed by the signal close are included. Missing/stale collection is unknown. Upcoming events contain schedules, not unreleased results. Event associations do not establish why a market moved.",
+    "enabled": true
+  },
+  "comparisons": {
+    "holdout": {
+      "trades": 6,
+      "net_pnl": -12.749657329177012,
+      "gross_pnl": -8.187137461096537,
+      "fees_paid": 4.562519868080525,
+      "win_rate": 16.666666666666664,
+      "max_drawdown_pct": 3.5110542924745385
+    },
+    "holdout_stressed": {
+      "trades": 0,
+      "net_pnl": 0.0,
+      "gross_pnl": 0,
+      "fees_paid": 0,
+      "win_rate": null,
+      "max_drawdown_pct": 0
+    },
+    "frozen_holdout": {
+      "trades": 3,
+      "net_pnl": 8.3292711419316,
+      "gross_pnl": 10.865555320588141,
+      "fees_paid": 2.5362841786565222,
+      "win_rate": 66.66666666666666,
+      "max_drawdown_pct": 1.0930624484919462
+    }
+  },
+  "matching_entry_forecast_audits_except_scope_text": true,
+  "matching_calibration": true,
+  "matching_original_model_weights": true,
+  "new_event_weights_zero": true,
+  "observations": 13832,
+  "qualified": false,
+  "runtime_seconds": 29.425426208000317,
+  "scope": "Previously reviewed market prices. Current news has zero historical coverage. Matching results test causality; they do not establish profit or predictive benefit from events."
+}

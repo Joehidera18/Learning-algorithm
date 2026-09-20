@@ -80,10 +80,14 @@ def recent_trades(path,limit=100):
         raw = item.pop('decision_json')
         item['trade_review']=review_from_decision(raw)
         try:
-            forecast = (json.loads(raw or '{}').get('learning') or {}).get('forecast')
+            decision = json.loads(raw or '{}')
+            forecast = (decision.get('learning') or {}).get('forecast')
             item['entry_forecast'] = forecast if isinstance(forecast,dict) else None
+            events = decision.get('event_review')
+            item['event_review'] = events if isinstance(events,dict) else None
         except (ValueError,TypeError,AttributeError):
             item['entry_forecast'] = None
+            item['event_review'] = None
         result.append(item)
     return result
 

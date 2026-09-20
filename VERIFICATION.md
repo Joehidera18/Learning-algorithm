@@ -1,3 +1,19 @@
+# 20 September 2026 V11.13 observed news and structure repair
+
+**353 Python tests passed in 115.939 seconds**, followed by one additional passing test that checks the four new world/project count/coverage coefficients update only after a resolved net outcome. This is 354 distinct passing Python tests; the last test was added after full discovery. Both dashboard JavaScript checks pass, including rendering the earlier supplied report 8, saved timeframe selection, project publications, known schedules, source coverage, journal snapshots, escaping and unsafe-link rejection. These are actual-renderer mocked-DOM checks, not browser screenshots.
+
+The local real-Gunicorn startup/restart check passes with an isolated temporary database: public dashboard/assets/health, private API authentication, input rejection and persistent settings, with runners stopped. No hosted deployment or exchange order was performed.
+
+New regressions reproduce and fix gaps escaping the last-25 update window, inverse-gap retirement and expiry, repeated structure breaks, mismatched peer timestamps and conflicting poll histories. Other tests cover asset-specific topic coverage, stable publisher identities, tracking-link deduplication, thirty-day project expiry, source-specific retry intervals and paper event evidence across entry/closure/restart. A later announcement cannot rewrite the original signal or entry record. The UI harness was also corrected to accept saved nondefault timeframes in uploaded reports; production selection behavior did not change.
+
+The adapter check records **1,163 versions from 13 of 14 configured sources**. Coinbase status timed out; exchange-topic coverage is zero. All seven added sources loaded. Five-minute reporting/incident checks and fifteen-minute checks elsewhere remain subject to publisher, fetch and scheduler delays. Local availability does not establish Render availability or comprehensive news coverage.
+
+The real XRP 15m causality replay covers **105,062 supplied candles**. All collected observations are later than the test period, giving **zero covered historical candles**. All 15 news weights stay zero; original weights, calibration and forecast values match the V11.11 baseline, excluding only old descriptive scope strings. Primary results remain **six trades, −$12.749657 net, $4.562520 fees, no qualification**; the higher-cost primary selects zero trades. The frozen diagnostic is unchanged at three trades and +$8.329271 and is not promoted. This does not demonstrate a news-related edge.
+
+The final `lab/*.py` source hash matches the replay exactly: `09a340156e4f909713b49dcc91080553a01519e14ac63527a7ad64f127a17993`. Runtime was 29.425 seconds for the primary replay workflow, not all experiments; no speed claim is made. See [the replay record](research_baselines/observed-news-replay.json), [review record](research_baselines/observed-news-review.json) and [event design](MARKET_EVENTS.md). UI/test/documentation changes after the replay do not alter these learning/execution modules.
+
+Policy v17/report 19 require fresh practice. Structure repairs remain outside the simplified learner's inputs. The newer report 9(1) and AVAX 5m bundle were unavailable and remain unanalyzed; report 8 and the older XRP bundle are explicitly identified as fallback inputs. Full article interpretation, historical event coverage, complete course rules and profitability are not established. The earlier V11.12 verification below remains a historical record.
+
 # 20 September 2026 V11.12 event context
 
 **336 Python tests passed in 106.331 seconds** on the final implementation. Both dashboard JavaScript checks, compilation and diff whitespace checks passed. The local real-Gunicorn startup/restart check passed: public assets/health, private API authentication, input rejection and persistent settings. No hosted deployment or exchange order was performed.

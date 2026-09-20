@@ -773,10 +773,23 @@ class ContinuousLearner:
             if not math.isfinite(qty) or qty <= 0 or qty * entry < 1:
                 self.market[pid]["last_decision"] = "Portfolio risk or available exposure is fully used"
                 return None
+            opened_at = now_ms()
+            entry_decision = {**choice, "params": p}
+            if self.events:
+                signal_rows = self.market[pid].get('bars',{}).get(self.settings['decision_interval'],[])
+                signal_close = (signal_rows[-1]['ts']+INTERVAL_MS[self.settings['decision_interval']]
+                                if signal_rows else None)
+                # Separate audit clocks. The learned vector remains the one saved
+                # at signal close; newer observations are not relabeled as inputs.
+                entry_decision['event_review'] = {
+                    'signal_close_ts':signal_close, 'entry_ts':opened_at, 'quote_ts':tick['ts'],
+                    'signal':copy.deepcopy(f.get('event_context')),
+                    'entry':copy.deepcopy(self.events.context(pid,opened_at,'entry')),
+                    'scope':'Signal-time news may be model input. Entry-time and later news are review only; no causal attribution.'}
             position = {"product_id": pid, "family": p["family"], "direction": direction,
-                "opened_at": now_ms(), "entry": entry, "stop": stop, "target": target, "qty": qty,
+                "opened_at": opened_at, "entry": entry, "stop": stop, "target": target, "qty": qty,
                 "risk_usd": qty * unit_risk, "planned_net_rr":quality["net_rr"], "stop_dist": stop_dist, "mode": mode, "context_key": ctx["key"],
-                "context": ctx, "decision": {**choice, "params": p}, "mfe_r": 0.0, "mae_r": 0.0,
+                "context": ctx, "decision": entry_decision, "mfe_r": 0.0, "mae_r": 0.0,
                 "review_features":{k:f.get(k) for k in ("regime","rsi","volume_z","adx","daily","event_context")},
                 "review_mfe_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
                 "review_mae_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
@@ -864,6 +877,12 @@ class ContinuousLearner:
                 reviewed.update(mfe_price=pos["review_mfe_price"],mae_price=pos["review_mae_price"])
             reviewed["review"] = close_review(reviewed)
             decision = {**pos["decision"], "trade_review":reviewed["review"]}
+            if self.events and decision.get('event_review'):
+                # Local observation time, distinct from the exchange quote time.
+                reviewed_at = now_ms()
+                after = self.events.observed_between(pid,pos['opened_at'],max(pos['opened_at'],reviewed_at))
+                decision['event_review'] = {**decision['event_review'],
+                    'closed_quote_ts':ts, 'close_decision_ts':reviewed_at, 'after_entry':after}
             portfolio = dict(self.portfolio)
             # Keep real arithmetic: do not silently clamp losses out of the ledger.
             portfolio["balance"] += pnl

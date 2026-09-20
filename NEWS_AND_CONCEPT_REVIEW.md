@@ -1,8 +1,30 @@
 # News, market data and trading-concept review
 
-Reviewed 2026-09-20 against commit `5390393a2e1634173a6f85dc2426ff8d5109071c` (draft PR #15).
+Initial review: 2026-09-20 against commit `5390393a2e1634173a6f85dc2426ff8d5109071c` (draft PR #15). V11.13 implementation follow-up: later the same day.
 
-This is a code review and proposed implementation specification. It does not change trading behavior, add working feeds, establish profitability, or claim that the newly uploaded AVAX results were analyzed. The workspace disconnected before those attachments could be opened or Python tests run. The previous verification results in VERIFICATION.md apply to the earlier executable source.
+## Current implementation status
+
+The workspace connection recovered. The V11.13 follow-up implements and tests the repairs below; it supersedes the earlier documentation-only status. [Verification](VERIFICATION.md), [the event design](MARKET_EVENTS.md) and [the measured review record](research_baselines/observed-news-review.json) describe the current source. This remains a draft for review, without a merge or deployment.
+
+| Reviewed issue | V11.13 result |
+| --- | --- |
+| Older gaps escaped the last-25 update window | Every retained gap is advanced; filled/expired states are removed |
+| Inverse gaps persisted indefinitely | Retire on a close through the opposite boundary; all gaps expire after a fixed 240 bars |
+| Repeated closes reset structure-break age | A confirmed swing can produce only one fresh break |
+| Relative-return helper compared mismatched times | Require ordered unique timestamps and a complete paired window; explicitly identify missing coverage |
+| Poll conflicts rewrote past source health | Reject duplicate source/timestamp records atomically |
+| Missing dedicated world/project inputs | Add BBC World and six project publication feeds, with per-topic and asset-specific source coverage |
+| News between signal, entry and closure was missing | Persist separate signal, entry and after-entry records; later observations remain review-only |
+
+The 240-bar lifetime is a predeclared software definition, not a horizon selected for profit or a verified TJR rule. The relative-return helper is still not a confirmed-swing SMT strategy. These structure helpers remain outside the simplified adaptive training path; their repair is not evidence that they caused or fixed the primary learner's historical losses.
+
+The live adapter check reached 13 of 14 sources and recorded 1,163 versions; Coinbase status timed out. On 105,062 previously supplied XRP candles, these later observations have zero historical coverage and reproduce the prior six-trade −$12.749657 result. No profitability improvement is established.
+
+The newer `learning-results 9(1).json` and `AVAX-USD_5m_learning-data.zip` did not survive in the accessible workspace and remain unread. The surviving `learning-results 8.json` is an earlier unfinished report: 42/120 studies, 356,350 historical examples, no qualified markets and no forward trades. It is not a substitute for the newer report. Full course videos/transcripts remain unverified. Actual/consensus surprises, semantic article interpretation, verified upgrade/unlock schedules, full-depth market data and a forward price-only shadow account remain separate work.
+
+## Historical inspection and proposed experiments
+
+The sections below preserve the original pre-fix findings and concept map. References to missing functionality describe that inspected revision unless the current status above says it remains outstanding. The initial workspace interruption prevented a new-upload audit and executable tests at that time.
 
 ## Main finding
 
@@ -122,4 +144,4 @@ The primary research paper [The Probability of Backtest Overfitting](https://www
 6. Compare out-of-sample net expectancy, calibration, drawdown, cost sensitivity and adequate sample coverage. Use time-block uncertainty estimates where outcomes overlap. News benefit must survive identical-period controls; a profitable event anecdote is insufficient.
 7. Run Python/UI/startup tests and exact-bundle reproduction, then publish measured results. Promotion/deployment remains a separate step.
 
-No new executable changes, deployed feeds, new-report conclusions or profitability improvement are claimed by this review.
+The initial review made no executable changes. The V11.13 status above records the subsequent tested implementation; neither stage claims a deployment, new-report conclusions or improved profitability.

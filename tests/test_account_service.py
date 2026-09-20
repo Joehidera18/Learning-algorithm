@@ -70,6 +70,34 @@ class PaperAccountTests(unittest.TestCase):
         self.assertGreater(recovered.cooldown_until[self.pid],time.time())
         self.assertEqual(recent_trades(self.db)[0]["status"],"CLOSED")
 
+    def test_paper_news_journal_keeps_signal_entry_and_later_observations_separate(self):
+        from lab.event_store import EventCollector
+        from lab.event_feeds import record
+        collector=EventCollector(self.db)
+        self.agent.events=collector
+        now=int(time.time()*1000)
+        def add(offset,identity):
+            ts=now+offset
+            e=record('sec',identity,identity,'https://example.org/'+identity,now-2000,ts)
+            collector.store.record_poll('sec',ts,[e]);collector._reload()
+        add(-1000,'signal-news');add(-100,'entry-news')
+        f={**self.f,'event_context':collector.context(self.pid,now-500)}
+        before=copy.deepcopy(f)
+        with patch('lab.continuous.now_ms',return_value=now):position=self.open(f=f)
+        self.assertIsNotNone(position)
+        entry=recent_trades(self.db)[0]['event_review']
+        self.assertEqual(len(entry['signal']['recent']),1)
+        self.assertEqual(len(entry['entry']['recent']),2)
+        recovered=ContinuousLearner(self.db,self.agent.data_dir)
+        self.assertEqual(recovered.open_positions[self.pid]['decision']['event_review'],entry)
+        add(100,'during-position');add(300,'after-close')
+        self.quote(ts=now+199)
+        with patch('lab.continuous.now_ms',return_value=now+200):self.agent.close_manual(self.pid)
+        final=recent_trades(self.db)[0]['event_review']
+        self.assertEqual(final['entry'],entry['entry'])
+        self.assertEqual([e['title'] for e in final['after_entry']['items']],['during-position'])
+        self.assertEqual(f,before)
+
     def test_fees_and_slippage_are_frozen_for_open_trades(self):
         p = self.open()
         self.agent.configure({"fee_rate":.02,"slippage_rate":.01})

@@ -8,14 +8,20 @@ import bisect
 import hashlib
 import json
 import math
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
 VERSION = 1
 HOUR = 3600000
 DAY = 24*HOUR
-CATEGORIES = ("macro", "regulation", "crypto", "exchange")
+BASE_CATEGORIES = ("macro", "regulation", "crypto", "exchange")
+CATEGORIES = BASE_CATEGORIES + ("world", "project")
 INPUT_NAMES = ("event_coverage", "event_macro_24h", "event_regulation_24h",
-               "event_crypto_24h", "event_exchange_24h", "event_upcoming_24h", "event_upcoming_7d")
+               "event_crypto_24h", "event_exchange_24h", "event_upcoming_24h", "event_upcoming_7d",
+               "event_world_24h", "event_project_30d") + tuple("event_"+c+"_coverage" for c in CATEGORIES)
+
+
+def news_window(category):
+    return 30*DAY if category == 'project' else DAY
 
 
 def digest(value):
@@ -39,6 +45,15 @@ def source_url(value):
     return value
 
 
+def canonical_url(value):
+    """Remove known tracking fields, preserving parameters identifying articles."""
+    parsed = urlsplit(source_url(value))
+    query = [(k,v) for k,v in parse_qsl(parsed.query,keep_blank_values=True)
+             if not k.lower().startswith('utm_') and k.lower() not in
+             ('at_medium','at_campaign','fbclid','gclid','mc_cid','mc_eid')]
+    return urlunsplit((parsed.scheme,parsed.netloc,parsed.path,urlencode(sorted(query)),''))
+
+
 def validate_snapshot(snapshot):
     if not isinstance(snapshot, dict) or snapshot.get("version") != VERSION:
         raise ValueError("Unsupported event archive version")
@@ -46,6 +61,16 @@ def validate_snapshot(snapshot):
     if (not isinstance(sources, list) or not 1 <= len(sources) <= 50 or
             any(not isinstance(s,str) or not s or len(s)>80 for s in sources) or len(set(sources)) != len(sources)):
         raise ValueError("Invalid event archive sources")
+    info = snapshot.get("source_info", {})
+    if not isinstance(info,dict) or not set(info).issubset(sources):
+        raise ValueError("Invalid event source definitions")
+    for definition in info.values():
+        if not isinstance(definition,dict) or definition.get('category') not in CATEGORIES:
+            raise ValueError("Invalid source category")
+        assets = definition.get('assets')
+        if (not isinstance(assets,list) or not assets or len(assets)>100 or
+                any(not isinstance(a,str) or not a or len(a)>30 for a in assets)):
+            raise ValueError("Invalid source asset scope")
     events, polls = snapshot.get("events"), snapshot.get("polls")
     if not isinstance(events,list) or not isinstance(polls,list) or len(events)+len(polls)>500000:
         raise ValueError("Event archive is too large or incomplete")
@@ -75,12 +100,17 @@ def validate_snapshot(snapshot):
         if key in seen:
             raise ValueError("Ambiguous event revisions at the same timestamp")
         seen.add(key)
+    seen_polls = set()
     for p in polls:
         if not isinstance(p,dict) or p.get("source") not in sources or type(p.get("ok")) is not bool:
             raise ValueError("Invalid event collection record")
         timestamp(p.get("ts"))
         if type(p.get("ttl_ms")) is not int or not HOUR//4 <= p["ttl_ms"] <= 7*DAY:
             raise ValueError("Invalid event freshness interval")
+        key = (p['source'],p['ts'])
+        if key in seen_polls:
+            raise ValueError("Ambiguous source polls at the same timestamp")
+        seen_polls.add(key)
     return snapshot
 
 
@@ -90,16 +120,28 @@ class EventIndex:
         self.snapshot = validate_snapshot(snapshot)
         self.symbol = symbol
         self.events = sorted(snapshot["events"], key=lambda e:(e["available_ts"],e["source"],e["id"]))
+        self.available = [e['available_ts'] for e in self.events]
         self.polls = sorted(snapshot["polls"], key=lambda p:(p["ts"],p["source"]))
         changes = {0}
         for e in self.events:
-            changes.update((e["available_ts"], e["published_ts"]+DAY))
+            changes.update((e["available_ts"], e["published_ts"]+news_window(e['category'])))
             if e["status"] == "scheduled":
                 changes.update((max(0,e["event_ts"]-7*DAY), max(0,e["event_ts"]-DAY), e["event_ts"]+1))
         for p in self.polls:
             changes.update((p["ts"],p["ts"]+p["ttl_ms"]))
         self.changes = sorted(changes)
         self.reset()
+
+    def observed_between(self, start, end, limit=20):
+        """After-entry revisions for review only, never retrospective features."""
+        timestamp(start); timestamp(end)
+        if end < start or type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError('Invalid event observation window')
+        begin, finish = bisect.bisect_right(self.available,start), bisect.bisect_right(self.available,end)
+        records = [e for e in self.events[begin:finish]
+                   if self.symbol == '*' or '*' in e['assets'] or self.symbol in e['assets']]
+        return {'versions_observed':len(records), 'truncated':len(records)>limit,
+                'items':records[-limit:], 'start_exclusive_ts':start, 'end_inclusive_ts':end}
 
     def reset(self):
         self.ei = self.pi = 0
@@ -128,16 +170,26 @@ class EventIndex:
                 continue
             if e["status"] == "scheduled" and 0 <= e["event_ts"]-ts <= 7*DAY:
                 upcoming.append(e)
-            elif e["status"] == "announcement" and ts-DAY < e["published_ts"] <= ts:
+            elif e["status"] == "announcement" and ts-news_window(e['category']) < e["published_ts"] <= ts:
                 recent.append(e)
         # Revisions and repeated copies of the same URL count once, not as sentiment votes.
-        recent = list({e["url"]:e for e in sorted(recent,key=lambda e:e["available_ts"])}.values())
+        recent = list({canonical_url(e["url"]):e for e in sorted(recent,key=lambda e:e["available_ts"])}.values())
         upcoming.sort(key=lambda e:(e["event_ts"],e["id"]))
         recent.sort(key=lambda e:e["published_ts"], reverse=True)
+        definitions = self.snapshot.get('source_info',{})
+        category_coverage = {}
+        for category in CATEGORIES:
+            relevant = [s for s,d in definitions.items() if d['category']==category and
+                        (self.symbol=='*' or '*' in d['assets'] or self.symbol in d['assets'])]
+            category_coverage[category] = (sum(s in healthy for s in relevant)/len(relevant)
+                                           if relevant else None)
         self.cached = {"coverage":len(healthy)/len(self.snapshot["sources"]), "healthy_sources":healthy,
+            "category_coverage":category_coverage,
             "recent_counts":{c:sum(e["category"]==c for e in recent) for c in CATEGORIES},
             "upcoming_24h":sum(e["event_ts"]-ts <= DAY for e in upcoming), "upcoming_7d":len(upcoming),
-            "recent":recent[:12], "upcoming":upcoming[:12]}
+            "recent":[e for e in recent if e['category']!='project'][:12],
+            "projects":[e for e in recent if e['category']=='project'][:8],
+            "upcoming":upcoming[:12]}
         pos = bisect.bisect_right(self.changes,ts)
         self.next_change = self.changes[pos] if pos < len(self.changes) else math.inf
         return self.cached
@@ -147,8 +199,10 @@ def vector(context):
     if not context or not context.get("coverage"):
         return [0.]*len(INPUT_NAMES)
     # Missing source coverage is an explicit input. Counts have no directional sign.
-    return [context["coverage"]] + [min(1.,context["recent_counts"].get(c,0)/10) for c in CATEGORIES] + [
-        min(1.,context["upcoming_24h"]/5), min(1.,context["upcoming_7d"]/10)]
+    return [context["coverage"]] + [min(1.,context["recent_counts"].get(c,0)/10) for c in BASE_CATEGORIES] + [
+        min(1.,context["upcoming_24h"]/5), min(1.,context["upcoming_7d"]/10)] + [
+        min(1.,context['recent_counts'].get(c,0)/10) for c in ('world','project')] + [
+        context.get('category_coverage',{}).get(c) or 0. for c in CATEGORIES]
 
 
 def attach_event_context(rows, features, step, snapshot, symbol):

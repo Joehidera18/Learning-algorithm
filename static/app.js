@@ -170,6 +170,32 @@
       return "<tr><td>" + escape(family(x.family)) + "</td><td>" + x.trades + '</td><td class="' + tone(x.net_pnl) + '">' + money(x.net_pnl) + "</td><td>" + num(x.expectancy_r) + "</td></tr>";
     }).join("") + "</tbody></table></div>" : '<p class="empty">No closed trades to summarize.</p>';
   }
+  function eventLink(url,label) {
+    return /^https:\/\/[^\s"'<>]+$/.test(url || "") ? '<a href="'+escape(url)+'" target="_blank" rel="noopener noreferrer">'+escape(label)+'</a>' : escape(label);
+  }
+  function eventItems(rows) {
+    return (rows || []).map(function(e) {
+      const schedule=e.status === 'scheduled' ? ' · scheduled '+(e.precision === 'day' ?
+        new Date(e.event_ts).toLocaleDateString('en-US',{timeZone:'America/New_York'})+' (date only)' : date(e.event_ts,true)) : '';
+      return '<div class="activity-row">'+eventLink(e.url,e.title)+'<small>'+escape(e.source)+
+        ' · '+escape(e.origin || 'Origin unspecified')+' · published '+escape(date(e.published_ts,true))+
+        ' · first observed '+escape(date(e.observed_ts,true))+escape(schedule)+'</small></div>';
+    }).join('');
+  }
+  function eventReview(review) {
+    if (!review) return '';
+    function snapshot(label,data,ts) {
+      const known=data || {}, coverage=known.coverage;
+      return '<h4>'+escape(label)+' · '+escape(date(ts,true))+'</h4><p>Source coverage '+
+        (coverage == null ? 'unknown' : pct(coverage*100))+'</p>'+eventItems((known.recent || []).concat(known.projects || [],known.upcoming || []));
+    }
+    const after=review.after_entry;
+    return '<details><summary>News known at this trade</summary>'+snapshot('Signal close',review.signal,review.signal_close_ts)+
+      snapshot('Entry decision · review only',review.entry,review.entry_ts)+
+      (after ? '<h4>Observed after entry · review only</h4><p>'+num(after.versions_observed,0)+' event versions'+
+        (after.truncated ? '; showing the most recent records' : '')+'.</p>'+eventItems(after.items) : '')+
+      '<p class="footnote">'+escape(review.scope || '')+'</p></details>';
+  }
   function renderJournal(rows) {
     $("journalTable").innerHTML = rows.length ? rows.map(function (t) {
       const review=t.trade_review;
@@ -179,7 +205,7 @@
       const detail=review && review.outcome ? '<details><summary>At-close review</summary><p>'+escape(review.outcome.replace(/_/g," "))+
         '; fees '+num(review.fee_r,3)+'R; best observed net mark '+num(review.best_net_r,3)+'R; giveback '+num(review.giveback_r,3)+
         'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p><p class="footnote">Observed quotes may not capture every price between updates.</p></details>' : '';
-      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+ "</td></tr>";
+      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+eventReview(t.event_review)+ "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
   function rejectionSummary(counts) {
@@ -588,20 +614,22 @@
     $("eventsStop").disabled=!data.running;
     $("eventsCoverage").textContent=sources.filter(function(s){return s.healthy;}).length+" of "+sources.length+
       " sources recently checked · "+num(data.versions,0)+" saved event versions. Missing feeds are unknown. Historical coverage starts when collection is first recorded.";
-    function link(url,label) {
-      return /^https:\/\/[^\s"'<>]+$/.test(url || "") ? '<a href="'+escape(url)+'" target="_blank" rel="noopener noreferrer">'+escape(label)+'</a>' : escape(label);
-    }
     function entries(rows,upcoming) {
       return rows.length ? rows.map(function(e) {
         const when=upcoming && e.precision==='day' ? new Date(e.event_ts).toLocaleDateString('en-US',{timeZone:'America/New_York'})+' (date only)' : date(upcoming ? e.event_ts : e.published_ts,true);
-        return '<div class="activity-row">'+link(e.url,e.title)+'<small>'+escape(when)+' · '+escape(e.category)+
-          ' · '+escape(e.source)+(upcoming ? ' · schedule may change' : '')+'</small></div>';
+        return '<div class="activity-row">'+eventLink(e.url,e.title)+'<small>'+escape(when)+' · '+escape(e.category)+
+          ' · '+escape(e.source)+' · '+escape(e.origin || 'Origin unspecified')+
+          (upcoming ? ' · schedule may change' : ' · first observed '+escape(date(e.observed_ts,true)))+'</small></div>';
       }).join('') : '<p class="empty">'+(upcoming ? 'No upcoming events recorded in this window.' : 'No recent announcements recorded. Check source coverage below.')+'</p>';
     }
     $("eventsRecent").innerHTML=entries(data.recent || [],false);
     $("eventsUpcoming").innerHTML=entries(data.upcoming || [],true);
+    $("eventsProjects").innerHTML=entries(data.projects || [],false);
+    $("eventsCategories").textContent='Coverage by topic: '+Object.entries(data.category_coverage || {}).map(function(pair) {
+      return pair[0]+': '+(pair[1] == null ? 'no configured source' : pct(pair[1]*100));
+    }).join(' · ')+'. Coverage measures recent source checks, not completeness or truth of the news.';
     $("eventsSources").innerHTML=sources.map(function(s) {
-      return '<div class="activity-row">'+link(s.url,s.name)+'<small>'+escape(s.healthy ? 'Recently checked' : 'Unavailable or stale')+
+      return '<div class="activity-row">'+eventLink(s.url,s.name)+'<small>'+escape(s.healthy ? 'Recently checked' : 'Unavailable or stale')+
         ' · '+escape(date(s.last_poll_ts,true))+(s.error ? ' · '+escape(s.error) : '')+'</small></div>';
     }).join('');
     $("eventsScope").textContent=data.scope || '';

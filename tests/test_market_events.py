@@ -10,8 +10,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from lab.event_context import (DAY, HOUR, EventIndex, validate_snapshot, vector,
-    digest, attach_event_context, outcome_summary)
-from lab.event_feeds import SOURCES, parse, record
+    digest, attach_event_context, outcome_summary, INPUT_NAMES)
+from lab.event_feeds import SOURCES, parse, record, source_info
 from lab.event_store import EventStore, EventCollector
 from lab.adaptive import AdaptivePolicy, feature_vector, DIMENSIONS, action_key
 from lab.learning_research import learn_history
@@ -35,6 +35,50 @@ def snapshot(events=(), polls=None, sources=None):
 
 
 class EventTimingTests(unittest.TestCase):
+    def test_category_coverage_is_explicit_and_project_scope_is_asset_specific(self):
+        s=snapshot([],polls=[{'source':'ethereum_blog','ts':T,'ok':True,'ttl_ms':DAY}])
+        s['source_info']=source_info()
+        eth=EventIndex(s,'ETH-USD').at(T)
+        dot=EventIndex(s,'DOT-USD').at(T)
+        self.assertEqual(eth['category_coverage']['project'],1.)
+        self.assertEqual(dot['category_coverage']['project'],0.)
+        self.assertEqual(eth['category_coverage']['world'],0.)
+        self.assertIsNone(EventIndex(s,'ADA-USD').at(T)['category_coverage']['project'])
+        inputs=dict(zip(INPUT_NAMES,vector(eth)))
+        self.assertEqual(inputs['event_project_coverage'],1.)
+        self.assertEqual(inputs['event_world_coverage'],0.)
+        self.assertEqual(inputs['event_project_30d'],0.)
+
+    def test_project_announcements_keep_a_bounded_30_day_window_and_first_receipt(self):
+        e=record('avalanche_releases','release','Helicon release','https://example.org/release',T-12*DAY,T)
+        s=snapshot([e],polls=[{'source':'avalanche_releases','ts':T,'ok':True,'ttl_ms':DAY}])
+        index=EventIndex(s,'AVAX-USD')
+        self.assertEqual(index.at(T-1)['projects'],[])
+        self.assertEqual(len(index.at(T)['projects']),1)
+        self.assertEqual(index.at(T+18*DAY)['projects'],[])
+        self.assertEqual(EventIndex(s,'BTC-USD').at(T)['projects'],[])
+
+    def test_tracking_parameters_do_not_duplicate_news_but_article_ids_remain_distinct(self):
+        records=[record('bbc_world',str(i),'Headline',url,T,T) for i,url in enumerate([
+            'https://example.org/news?id=1&utm_source=a',
+            'https://example.org/news?utm_source=b&id=1#top',
+            'https://example.org/news?id=2'])]
+        self.assertEqual(EventIndex(snapshot(records)).at(T)['recent_counts']['world'],2)
+
+    def test_conflicting_poll_times_are_rejected_in_either_order(self):
+        polls=[{'source':'sec','ts':T,'ok':ok,'ttl_ms':HOUR} for ok in (True,False)]
+        for records in (polls,list(reversed(polls))):
+            with self.assertRaises(ValueError):validate_snapshot(snapshot(polls=records))
+
+    def test_after_entry_review_uses_receipt_window_with_bounded_output(self):
+        records=[event(observed=T+i,identity=str(i)) for i in range(25)]
+        index=EventIndex(snapshot(records))
+        result=index.observed_between(T,T+23,limit=5)
+        self.assertEqual(result['versions_observed'],23)
+        self.assertTrue(result['truncated'])
+        self.assertEqual([e['observed_ts'] for e in result['items']],list(range(T+19,T+24)))
+        self.assertEqual(index.at(T)['recent_counts']['regulation'],1)
+
     def test_first_observation_not_old_publication_controls_availability(self):
         e=event(observed=T+10000)
         index=EventIndex(snapshot([e]))
@@ -65,7 +109,7 @@ class EventTimingTests(unittest.TestCase):
         index=EventIndex(snapshot([event()],polls,sources=["sec"]))
         self.assertEqual(index.at(T+HOUR-1)["coverage"],1)
         self.assertEqual(index.at(T+HOUR)["coverage"],0)
-        self.assertEqual(vector(index.at(T+HOUR)),[0.]*7)
+        self.assertEqual(vector(index.at(T+HOUR)),[0.]*len(INPUT_NAMES))
         self.assertEqual(index.at(T+HOUR+1000)["coverage"],1)
         polls.append({"source":"sec","ts":T+100,"ok":False,"ttl_ms":HOUR})
         self.assertEqual(EventIndex(snapshot([],polls,["sec"])).at(T+100)["coverage"],0)
@@ -104,6 +148,17 @@ class EventTimingTests(unittest.TestCase):
 
 
 class FeedTests(unittest.TestCase):
+    def test_official_project_tag_does_not_depend_on_title_containing_the_ticker(self):
+        raw=b'<feed><entry><id>stable-release-id</id><title>Helicon</title><link href="https://example.org/release"/><updated>2026-09-01T00:00:00Z</updated></entry></feed>'
+        e=parse('avalanche_releases',raw,T)[0]
+        self.assertEqual(e['assets'],['AVAX-USD'])
+        self.assertEqual(e['category'],'project')
+        self.assertEqual(e['origin'],'project_publication')
+        self.assertEqual(e['status'],'announcement')  # Not inferred mainnet activation.
+        revised=parse('avalanche_releases',raw.replace(b'/release',b'/corrected'),T+1)[0]
+        self.assertEqual(e['id'],revised['id'])
+        self.assertNotEqual(e['revision'],revised['revision'])
+
     def test_rss_and_atom_preserve_reported_update_and_observation_times(self):
         rss=b'<rss><channel><item><title>SEC &amp; digital assets</title><link>https://example.org/a</link><pubDate>Tue, 01 Sep 2026 08:30:00 -0400</pubDate></item></channel></rss>'
         e=parse("sec",rss,T+DAY)[0]
@@ -150,6 +205,25 @@ class StoreTests(unittest.TestCase):
         self.store=EventStore(self.db)
 
     def tearDown(self):self.tmp.cleanup()
+
+    def test_duplicate_poll_cannot_overwrite_recorded_success(self):
+        self.store.record_poll('sec',T,[event()])
+        with self.assertRaises(ValueError):self.store.record_poll('sec',T,error='later failure')
+        self.assertTrue(self.store.snapshot()['polls'][0]['ok'])
+        self.assertEqual(len(self.store.snapshot()['events']),1)
+
+    def test_background_refresh_respects_source_intervals_even_after_failure(self):
+        calls=[]
+        def offline(source):calls.append(source);raise OSError('offline')
+        collector=EventCollector(self.db,fetcher=offline)
+        with patch('lab.event_store.now_ms',return_value=T):collector.refresh(due_only=True)
+        self.assertEqual(set(calls),set(SOURCES))
+        calls.clear()
+        with patch('lab.event_store.now_ms',return_value=T+299000):
+            self.assertFalse(collector.refresh(due_only=True))
+        self.assertEqual(calls,[])
+        with patch('lab.event_store.now_ms',return_value=T+300000):collector.refresh(due_only=True)
+        self.assertEqual(set(calls),{'bbc_world','coindesk','coinbase_status'})
 
     def test_duplicate_polls_restart_and_changed_revisions(self):
         self.store.record_poll("sec",T,[event()])
@@ -204,7 +278,7 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(result["event_snapshot"],archive)
         self.assertEqual(result["event_data"]["holdout_covered_candles"],600)
         self.assertGreater(result["model"]["observations"],0)
-        self.assertTrue(any(any(m["weights"][-7:]) for m in result["model"]["models"].values()))
+        self.assertTrue(any(any(m["weights"][-len(INPUT_NAMES):]) for m in result["model"]["models"].values()))
         self.assertFalse(result["event_comparison"]["selection_uses_comparison"])
         self.assertIn("event_inputs_disabled",result["experiment_registry"]["variants"])
         self.assertEqual(result["event_comparison"]["net_pnl_difference"],
@@ -233,9 +307,29 @@ class IntegrationTests(unittest.TestCase):
         policy.forecast(p,v)
         self.assertEqual(policy.export(),before)
         policy.observe(p,v,-1.,T+HOUR)
-        self.assertNotEqual(policy.state["models"][action_key(p)]["eligible_model"]["weights"][-7:],[0.]*7)
+        self.assertNotEqual(policy.state["models"][action_key(p)]["eligible_model"]["weights"][-len(INPUT_NAMES):],[0.]*len(INPUT_NAMES))
         self.assertEqual(AdaptivePolicy(policy.export()).export(),policy.export())
         with self.assertRaises(ValueError):AdaptivePolicy(policy.export(),event_context_enabled=False)
+
+    def test_world_and_project_inputs_update_from_resolved_net_outcome(self):
+        sources=('bbc_world','avalanche_releases')
+        archive=snapshot([event(source=s,identity=s) for s in sources],polls=[
+            {'source':s,'ts':T,'ok':True,'ttl_ms':HOUR} for s in sources])
+        archive['source_info']=source_info()
+        f={**F,'event_context':EventIndex(archive,'AVAX-USD').at(T)}
+        values=feature_vector(f)
+        policy=AdaptivePolicy(event_context_enabled=True)
+        candidate=policy.candidates[0]
+        before=policy.export()
+        policy.forecast(candidate,values)
+        self.assertEqual(policy.export(),before)
+        policy.observe(candidate,values,-1.,T+HOUR)
+        weights=policy.state['models'][action_key(candidate)]['eligible_model']['weights']
+        for name in ('event_world_24h','event_project_30d','event_world_coverage','event_project_coverage'):
+            index=DIMENSIONS-len(INPUT_NAMES)+INPUT_NAMES.index(name)
+            self.assertGreater(values[index],0.,name)
+            self.assertLess(weights[index],0.,name)
+        self.assertEqual(AdaptivePolicy(policy.export()).export(),policy.export())
 
     def test_unknown_coverage_is_not_claimed_as_no_event_and_groups_overlap(self):
         c=EventIndex(snapshot([event()])).at(T)

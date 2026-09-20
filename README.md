@@ -1,10 +1,12 @@
-# CryptO V11.12 — news and scheduled-event context
+# CryptO V11.13 — observed news and trade reviews
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.12 adds a persistent news/calendar collector, the main-screen Market events panel, seven timestamped event features, trade-context reviews and an independently trained price-only comparison. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). Policy v16 and report 18 require fresh practice. No event-related trading benefit has yet been demonstrated.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.13 expands the news/calendar collector to 14 sources, including world reporting and official project publications. Fifteen timestamped event inputs include topic coverage. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). Policy v17 and report 19 require fresh practice. No event-related trading benefit has yet been demonstrated.
 
-V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Its prior models are superseded by V11.12.
+This version also repairs stale fair-value gaps, inverse-gap retirement, repeated structure breaks and mismatched timestamps in the relative-return helper. Those structure helpers are outside the simplified adaptive training path; fixing them does not add all the screenshot concepts as learned predictors. [The concept review](NEWS_AND_CONCEPT_REVIEW.md) distinguishes implemented fixes from remaining experiments and unverified course rules.
+
+V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Its prior models are superseded by V11.13.
 
 V11.10's continuous handoff remains included: open practice trades, waiting periods and original entry forecasts continue across the review date. The saved learner comes from the continuous primary replay, and higher-cost confirmation keeps its own costed history. See [that earlier study](CONFIRMATION_CONTINUITY_RESEARCH.md).
 
@@ -67,7 +69,7 @@ Historical practice and ongoing monitoring download completed BTC-USD daily cand
 
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
-The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once. V11.12 includes selected news and official calendar context, with explicit coverage; it does not parse full articles, infer sentiment, or include on-chain data. See MARKET_EVENTS.md.
+The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once. V11.13 includes selected world/crypto news, project publications and official calendar context, with explicit coverage; it does not parse full articles, infer sentiment, or include on-chain data. See MARKET_EVENTS.md.
 
 ## Learning from failed trades and fuller candle context
 

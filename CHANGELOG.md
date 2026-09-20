@@ -1,3 +1,11 @@
+# V11.13 observed news and structure repairs — 20 September 2026 UTC
+
+- Expand to 14 sources with BBC World, Ethereum Foundation publications and Bitcoin/AVAX/DOT/XRP/SOL client releases. Fixed project asset tags, immutable GUID-based revisions and tracking-URL deduplication preserve source identity. Client releases do not imply network activation.
+- Add world/project counts and six topic coverage values: 15 event inputs, 47 total. Check reporting/incidents about every five minutes and other sources every fifteen, retaining failed-source coverage and retry intervals.
+- Keep separate paper-trade snapshots for the signal and actual entry; record after-entry revisions at closure without rewriting learning inputs. Display the journal evidence, project publications and topic coverage on the dashboard.
+- Update every retained FVG, remove filled/expired gaps, retire inverse gaps, consume structure breaks once per confirmed pivot, and align the relative-return helper by timestamp. These helpers remain outside simplified adaptive training.
+- Engine v11.13, policy v17, report 19 require fresh practice. The passing historical replay preserves the previous losing XRP result; news benefit remains unproven. See [verification](VERIFICATION.md).
+
 # V11.12 news and scheduled-event context — 20 September 2026 UTC
 
 - Collect selected Federal Reserve, SEC, BLS, FOMC, Coinbase-status and CoinDesk feeds outside the trading loop. Persist revisions and collection health, with explicit unavailable/stale states and a separate collector control.

@@ -1,68 +1,99 @@
-# News, regulation and scheduled events — V11.12
+# Observed news and trade reviews — V11.13
 
-The learner can now record selected news sources and official calendars, join the versions known at each signal close, and learn from the later net outcome. This is event context, not a system that understands every article, predicts surprise announcements, or establishes why a market moved.
+The learner records selected news sources and official calendars, joins the versions known at each signal close, and learns from later net outcomes. V11.13 expands that context and records what arrived between a paper signal, entry and closure. This does not establish that news predicts returns or explains why a particular trade lost.
 
-## What is collected
+## Sources and coverage
 
-| Source | Information | Freshness after a successful check |
-| --- | --- | --- |
-| Federal Reserve monetary RSS | Policy announcements | 1 hour |
-| Federal Reserve regulatory RSS | Banking/regulatory announcements | 1 hour |
-| SEC press releases | Regulatory announcements, including proposals and actions | 1 hour |
-| BLS calendar | Scheduled national economic releases | 24 hours |
-| Federal Reserve meeting calendar | FOMC meeting start dates | 24 hours |
-| Coinbase status Atom | Operational incident announcements | 1 hour |
-| CoinDesk RSS | Reported crypto headlines | 1 hour |
+| Source | Information / asset scope | Check interval | Freshness after success |
+| --- | --- | --- | --- |
+| Fed monetary RSS | Policy announcements; all markets | 15 minutes | 1 hour |
+| Fed regulatory RSS | Regulatory announcements; all markets | 15 minutes | 1 hour |
+| SEC press releases | Regulatory announcements; all markets | 15 minutes | 1 hour |
+| BLS calendar | Scheduled national economic releases | 15 minutes | 24 hours |
+| Fed meeting calendar | FOMC meeting start dates | 15 minutes | 24 hours |
+| Coinbase status Atom | Operational incidents | 5 minutes | 1 hour |
+| CoinDesk RSS | Crypto reporting; headline asset matches | 5 minutes | 1 hour |
+| BBC World RSS | World reporting; all markets | 5 minutes | 1 hour |
+| Ethereum Foundation blog | Project publications; ETH | 15 minutes | 24 hours |
+| Bitcoin Core releases | Client releases; BTC | 15 minutes | 24 hours |
+| AvalancheGo releases | Client releases; AVAX | 15 minutes | 24 hours |
+| Polkadot SDK releases | Client releases; DOT | 15 minutes | 24 hours |
+| XRPL rippled releases | Client releases; XRP | 15 minutes | 24 hours |
+| Solana Agave releases | Client releases; SOL | 15 minutes | 24 hours |
 
-A separate worker checks every 15 minutes with at most three concurrent requests, 12-second socket timeouts and a 2 MB response limit. Only fixed HTTPS endpoints are fetched; a redirect is reported for review. The collector stores headline metadata, links, timestamps and revisions, not complete articles. This polling is too slow for competing on breaking-news execution latency.
+The background scheduler checks which sources are due every 30 seconds, with at most three simultaneous requests, 12-second socket timeouts and a 2 MB response limit. Failed attempts also start their retry interval. Publisher delays, fetch duration and scheduler delay add to the intervals above. Redirects from the fixed HTTPS endpoints are reported for review. This is not execution at breaking-news latency.
 
-The dashboard's **Market events** panel shows recent announcements, the coming seven days, source errors and freshness, and an event-history download. **Start event collection** works independently of trading. Starting historical practice or automatic learning also starts collection. Collection continues after practice finishes; use **Stop event collection** to stop it. Its enabled state and archive survive a service restart on the configured persistent database. The ordinary trading Stop button stops trading and learning; event collection has its own visible control.
+The collector saves headline metadata, links, timestamps and revisions, not full articles. BBC World is broad reporting, not a classifier restricted to wars or financially relevant events. Reporting can repeat unverified claims. Project releases can be prereleases, client updates or documentation announcements; they do not establish a mainnet activation date or trading direction. Dedicated project coverage includes six named assets, not every scanned coin.
 
-BLS dates use Eastern time with daylight-saving conversion. FOMC entries describe the **start of the meeting, date only**; the implementation does not invent a precise statement-release hour. Schedules can change. Missing calendar items are marked withdrawn when a complete successful calendar fetch omits a previously scheduled future event. Explicit cancellations remain distinct from withdrawals. A failed fetch cannot withdraw a schedule.
+The dashboard shows recent reporting, project publications from the last 30 days, upcoming dates, topic coverage and individual source errors. **Start event collection** runs independently of trading. Historical practice and automatic learning also start collection. Collection continues after practice; its own **Stop event collection** button stops it. Settings and observations survive restart on the configured persistent database. The ordinary trading Stop button stops trading and learning, with a separate visible event control.
 
-## What the model uses
+BLS dates use Eastern time with daylight-saving conversion. FOMC entries describe the **start of the meeting, date only**; no statement-release hour is invented. Missing future entries become withdrawn only after a complete successful calendar fetch. Explicit cancellations remain distinct. A failed request cannot withdraw a schedule.
 
-Seven fixed-scale features extend the existing 32 inputs to 39: the fraction of sources recently checked, four counts of relevant announcements during the preceding 24 hours (macro, regulation, crypto reporting and exchange operations), and counts of announced events due within 24 hours and seven days. Counts are bounded using declared scales. They have no assumed bullish or bearish sign: only completed, costed outcomes train the coefficients. Existing outcome heads receive the same entry-time inputs.
+## Learned inputs
 
-Some major coin names and unambiguous tickers are matched in headlines. Macro/regulatory items are broad context; unrecognized asset mentions also remain broad context. The panel and documentation identify this limited matching rather than claiming complete entity resolution. An SEC announcement is not labeled enacted law. Article bodies, legal meaning, jurisdiction, consensus forecasts, actual economic-release values, token unlock schedules and on-chain data are not parsed in this version.
+The existing 32 inputs are extended by 15 event inputs, for 47 total:
 
-If all feeds are unavailable, the event vector is zero with zero coverage. Partial coverage is explicit. Previously observed announcements can remain visible after a feed becomes stale; this is not a claim that no later news occurred. The existing price/risk rules continue; missing news does not liquidate positions or loosen any trading limits. A model trained without event inputs keeps ignoring them until fresh practice explicitly trains an event-enabled model.
+- The fraction of configured sources with a recent successful check.
+- Five counts of relevant announcements in the preceding 24 hours: macro, regulation, crypto reporting, exchange operations and world reporting.
+- A count of relevant project publications in the preceding 30 days.
+- Counts of known scheduled events due within 24 hours and seven days.
+- Six topic-specific source coverage values, using applicable project asset scopes.
 
-When any recorded event coverage exists in a study, a separate model is trained without event inputs on the same candles, costs and review boundaries. Reports show ordinary- and higher-cost differences. Neither a good difference nor an event-group profit automatically promotes a model. Existing qualification, independent accounts and previously reviewed-history rules remain in force. Learning from prices without historical event coverage remains possible, but that performance does not demonstrate a news-related edge.
+The old seven event inputs retain their order; the eight additions follow them. Counts use fixed bounded scales. No input has a prescribed bullish/bearish sign. Only resolved, costed outcomes train the coefficients. Losses and net break-even trades remain valid feedback without increasing position risk to manufacture learning.
 
-Completed-trade summaries group net P&L by the context present at entry, separately identifying unknown coverage. These groups overlap and exclude end-of-test valuations. They describe associations, not causal explanations. Every historical trade retains its entry context in its recorded features; forward paper-trade reviews retain it too.
+Topic coverage measures recent source checks, not completeness or truth. `null` in recorded context means no applicable configured source; zero means configured sources were unavailable or stale. Both map to zero in that topic's numerical feature. The global source fraction remains across all configured sources; topic values make its limits explicit. Older compatible archives without source definitions have unknown topic coverage, rather than coverage inferred from future articles.
 
-## Avoiding hindsight
+Project feeds use fixed asset tags even when a release title omits the coin's name. Other headlines match selected major names and unambiguous tickers. Macro/regulatory items and unrecognized asset mentions remain broad context. This is limited matching, not complete entity resolution. SEC publications are not automatically classified as enacted law. Article meaning, jurisdiction, economic actual/consensus values, token unlock schedules and on-chain measurements are not parsed.
 
-Every revision has a provider publication timestamp, local first-observation timestamp, availability timestamp, occurrence/scheduled timestamp, source URL, status, category and affected assets. Availability is the later of publication and first observation. An old article fetched today therefore cannot enter yesterday's decision. BLS entries without a publication timestamp use zero for that unknown field; their observation time still determines availability.
+If all collection is unavailable, the event vector is zero. Previously observed announcements may remain visible after a feed goes stale; this does not establish that no newer news exists. Risk rules, costs and qualification remain enforced. Policy v17/report 19 require fresh practice; prior models are not silently resized into event-trained models.
 
-A change creates a new version. Tests look up the version available at the decision close. News updates, reschedules, withdrawals and later poll recoveries cannot overwrite past knowledge. A scheduled release does not turn into a known release result merely because its scheduled time passes. Failed or expired collection is unknown coverage, not a zero-news observation.
+A study with recorded event coverage also trains an independent price-only control on the same candles, costs and review boundaries. Ordinary- and higher-cost differences are reported. This comparison cannot select or promote a strategy. Without historical event coverage, a price replay provides no evidence of a news-related edge.
 
-Interrupted studies pin their event archive, just as candle download cutoffs are pinned. A later collection cannot silently change resumed candidate inputs. Source data, event versions and poll records are hashed into study/experiment identity. A completed bundle includes the exact `market-events.json` used by that report; a changed hash is rejected. Dashboard report details omit the raw archive, which remains in the downloadable bundle and complete export.
+## Paper-trade review
 
-The collector does not backfill an independent, timestamp-verified historical news archive. The supplied candle bundles lack that archive. Today's feeds and present-day macro revisions cannot be presented as information available throughout a multiyear backtest. Collection builds prospective history; an external archive would need reliable first-availability and revision records. Manually supplied timestamps are not independently verified by the JSON validator.
+| Record | Timestamp and purpose |
+| --- | --- |
+| Signal snapshot | Available by the completed signal candle; the saved learning vector uses this snapshot |
+| Entry snapshot | Available at the actual local entry decision, alongside the quote timestamp; review only |
+| After-entry observations | Revisions becoming available after entry and by the local close decision; review only |
 
-## Research and verification
+Signal and entry snapshots persist across restart and cannot be rewritten by a later correction. Closure preserves those snapshots and adds up to 20 later revisions, their full count, a truncation indicator and separate quote/decision timestamps. Positions without prior evidence receive no invented news history. The dashboard exposes publications, observation times and known schedules alongside existing net P&L, costs, forecasts and path reviews.
 
-The live adapter check on 20 September 2026 UTC recorded **450 versions**, with six of seven sources available and three upcoming entries within seven days. Coinbase status timed out. An initial check revealed CoinDesk's permanent redirect to its no-trailing-slash feed URL; the fixed source uses that canonical endpoint. Source availability can change and the deployed host must show its own health.
+The saved recent/upcoming lists are bounded display samples; counts and the exact study archive retain the broader record. Descriptive completed-trade groups overlap and exclude end-of-test valuations. These associate results with observed conditions; they do not identify a headline as the cause of a loss. After-entry news never becomes an earlier input or a reward for merely trading.
 
-The full supplied XRP 15-minute archive contains **105,062 candles**. All 450 newly collected events were first observed after that archive's test period, so the replay correctly gives them **zero historical coverage**. Its primary final account still makes six trades for **−$12.749657**; the higher-cost account selects zero trades. Original model weights, calibration values and forecast audit data match the earlier V11.11 replay, while the seven additional event weights remain zero. The earlier stored forecast audit predates a descriptive scope-text correction, so only those explanatory strings are excluded from its comparison. This is a causality check, not a profitability improvement. See [the measured record](research_baselines/market-events-replay.json).
+## Preventing hindsight and duplicate evidence
 
-A separate deterministic software test uses explicitly artificial prices/events to exercise event-feature training, the independently trained price control and export identity. It is not market-performance evidence. Further tests cover delayed observations, future updates, DST, schedule windows, cancellations/withdrawals, restarts, failed feeds, safe rendering, authentication, pinned inputs and exact exports. See [verification](VERIFICATION.md).
+Every revision distinguishes provider publication, local first observation, availability and occurrence/scheduled time. Availability is the later of publication and observation. An old article fetched today cannot enter yesterday's decision. BLS entries without publication timestamps use zero for that unknown field; observation still controls availability. A schedule does not become a known result when its time passes.
 
-Reproduce the current-news/old-price check with `scripts/check_event_replay.py`; its `--baseline` accepts the earlier `compare_eligible_learning.py` result. Replay a downloaded event/candle bundle with:
+Provider GUIDs/Atom IDs identify revisions before falling back to a URL. Known tracking parameters and fragments are removed when detecting repeated links, while article-identifying parameters remain. One canonical URL counts once. This does not provide semantic deduplication across different story URLs.
+
+Revisions and source polls are immutable. Conflicting polls for one source at one timestamp are rejected atomically. New studies pin and hash source definitions, event revisions and poll records. Interrupted studies retain that snapshot. Exact exports include `market-events.json`; a changed hash is rejected.
+
+Current feeds cannot replace a timestamp-verified historical news archive. The surviving supplied price bundles lack that archive. This collection starts prospective observation history; it cannot explain multiyear prices using information the system did not have. Imported timestamps are structurally validated, not independently certified. The snapshot limit remains 500,000 combined event versions and polls; larger collections require a storage/indexing extension.
+
+## Measured verification
+
+The 20 September 2026 UTC adapter check recorded **1,163 versions**, with **13 of 14 sources available**. Coinbase status timed out and exchange-topic coverage was zero. All seven added adapters loaded successfully. These are local observations; the deployed host must report its own health.
+
+The supplied XRP 15-minute archive has **105,062 candles**. Every new event was first observed after its test period, so the replay correctly reports **zero historical coverage**. Primary results remain six trades, **−$12.749657 net**, $4.562520 fees and no qualification. The higher-cost primary account selects zero trades. Original weights, calibration and forecast-audit values match V11.11; all 15 event coefficients remain zero. Only old descriptive scope strings are excluded from forecast-audit equality. The frozen diagnostic still has three trades and +$8.329271; it is not promoted.
+
+This verifies timing and reproducibility, not improved profitability. See [the replay](research_baselines/observed-news-replay.json), [verification](VERIFICATION.md) and [review record](research_baselines/observed-news-review.json). Artificial tests exercise world/project coefficient updates after resolved outcomes; they are software checks, not market-performance evidence.
+
+Reproduce the current-news/old-price check with `scripts/check_event_replay.py`, the unchanged bundle, recorded event archive and earlier `compare_eligible_learning.py` result. To replay an exported event/candle bundle:
 
 ```bash
 python run_research.py --learning --csv candles.csv --daily-csv daily-candles.csv \
   --events-json market-events.json --symbol XRP-USD --interval 15m --out event-study.json
 ```
 
-Use the exact reported fee and slippage settings, and add `--bitcoin-csv bitcoin-daily-candles.csv` when the original study used that input. A missing event archive is not replaced with generated events. The archive validator currently bounds a snapshot at 500,000 combined event versions and poll records; larger collections need a reviewed storage/indexing extension. Event comparisons add a separate replay only when event coverage exists. No hosted latency or memory-capacity improvement is claimed for this version.
+Use the original fee/slippage settings and add `--bitcoin-csv bitcoin-daily-candles.csv` if that study used Bitcoin context. No external candles or trading-performance improvement are claimed in this follow-up. The unavailable newer `learning-results 9(1).json` and `AVAX-USD_5m_learning-data.zip` have not been analyzed.
 
-## Sources and next research needs
+## Sources and remaining research
 
-The [Federal Reserve RSS directory](https://www.federalreserve.gov/feeds/feeds.htm) and [SEC RSS directory](https://www.sec.gov/about/rss-feeds) provide the official announcement feeds. [BLS's release calendar](https://www.bls.gov/schedule/news_release/) documents its changing calendar and Eastern-time convention. The [FOMC calendar](https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm) provides meetings and links to statements/minutes. [Coinbase status](https://status.coinbase.com/) links its incident feeds; [CoinDesk's feed](https://www.coindesk.com/arc/outboundfeeds/rss) supplies reported headlines.
+Official references are the [Fed RSS directory](https://www.federalreserve.gov/feeds/feeds.htm), [SEC RSS directory](https://www.sec.gov/about/rss-feeds), [BLS calendar](https://www.bls.gov/schedule/news_release/) and [FOMC calendar](https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm). Reporting comes from [BBC World RSS](https://feeds.bbci.co.uk/news/world/rss.xml) and [CoinDesk RSS](https://www.coindesk.com/arc/outboundfeeds/rss); incidents come from [Coinbase status](https://status.coinbase.com/).
 
-For later actual/consensus surprise features, economic data must preserve the value available at release rather than today's revised value. The [FRED/ALFRED real-time-period documentation](https://fred.stlouisfed.org/docs/api/fred/realtime_period.html) explains that distinction; that numerical-data adapter is not implemented here. Broader international regulators, project-maintained upgrade/unlock calendars, verified entity tagging and measured event-reaction studies are additional work. Do not claim coverage of all current events or advance knowledge of unscheduled outcomes.
+Project provenance is the [Ethereum Foundation blog](https://blog.ethereum.org/) and maintainer release histories for [Bitcoin Core](https://github.com/bitcoin/bitcoin/releases), [AvalancheGo](https://github.com/ava-labs/avalanchego/releases), [Polkadot SDK](https://github.com/paritytech/polkadot-sdk/releases), [XRPL rippled](https://github.com/XRPLF/rippled/releases) and [Solana Agave](https://github.com/anza-xyz/agave/releases).
 
-Versions: engine `market-structure-v11.12-event-context`, policy `online-net-r-v16-event-context`, report 18. Fresh historical practice is required. Profitability and the benefit of news features remain unproven.
+Economic surprise inputs need release-time actual values and expectations known beforehand. [FRED/ALFRED documentation](https://fred.stlouisfed.org/docs/api/fred/realtime_period.html) explains historical vintages; date-level vintages alone do not establish intraday availability. That numerical adapter remains unimplemented. Verified activation/unlock calendars, wider regulatory coverage, article interpretation, source corroboration and a forward price-only shadow account are separate tasks. The existing historical control is not a live shadow account.
+
+[The screenshot concept review](NEWS_AND_CONCEPT_REVIEW.md) distinguishes repaired structure helpers from concepts still outside the adaptive training vector. Full original course videos were not verified. Engine `market-structure-v11.13-observed-news`, policy `online-net-r-v17-observed-news`, report 19. Profitability remains unproven.

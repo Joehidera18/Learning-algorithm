@@ -8,7 +8,7 @@ from contextlib import contextmanager
 
 from .db import connect
 from .event_context import EventIndex, VERSION, digest, validate_snapshot
-from .event_feeds import SOURCES, fetch, parse
+from .event_feeds import SOURCES, fetch, parse, source_info
 
 
 def now_ms():
@@ -56,6 +56,8 @@ class EventStore:
         poll={"source":source,"ts":ts,"ok":ok,"ttl_ms":SOURCES[source]["ttl_ms"]}
         validate_snapshot({"version":VERSION,"sources":list(SOURCES),"events":events or [],"polls":[poll]})
         with transaction(self.db_path) as con:
+            if con.execute('SELECT 1 FROM market_event_polls WHERE source=? AND ts=?',(source,ts)).fetchone():
+                raise ValueError('A source poll at this timestamp is already recorded')
             previous={}
             for row in con.execute("SELECT data_json FROM market_events WHERE source=? ORDER BY available_ts",(source,)):
                 e=json.loads(row[0]); previous[e["id"]]=e
@@ -74,7 +76,7 @@ class EventStore:
                         continue
                     con.execute("INSERT INTO market_events VALUES(?,?,?,?)",(
                         source,e["id"],e["available_ts"],json.dumps(e,sort_keys=True,allow_nan=False)))
-            con.execute("INSERT OR REPLACE INTO market_event_polls VALUES(?,?,?,?,?)",(
+            con.execute("INSERT INTO market_event_polls VALUES(?,?,?,?,?)",(
                 source,ts,int(ok),poll["ttl_ms"],str(error)[:300] if error else None))
 
     def snapshot(self):
@@ -84,7 +86,7 @@ class EventStore:
             events=[json.loads(r[0]) for r in con.execute("SELECT data_json FROM market_events ORDER BY available_ts,source,event_id")]
             polls=[dict(r) for r in con.execute("SELECT source,ts,ok,ttl_ms,error FROM market_event_polls ORDER BY ts,source")]
             for p in polls:p["ok"]=bool(p["ok"])
-            return {"version":VERSION,"sources":list(SOURCES),"events":events,"polls":polls}
+            return {"version":VERSION,"sources":list(SOURCES),"source_info":source_info(),"events":events,"polls":polls}
         finally:
             con.close()
 
@@ -119,10 +121,22 @@ class EventCollector:
                 self.indexes[key]=EventIndex(self._snapshot,symbol)
             return self.indexes[key].at(ts)
 
-    def refresh(self):
+    def observed_between(self, symbol, start, end):
+        with self.lock:
+            key=(symbol,'review')
+            if key not in self.indexes:self.indexes[key]=EventIndex(self._snapshot,symbol)
+            return self.indexes[key].observed_between(start,end)
+
+    def refresh(self, due_only=False):
         if not self.refresh_lock.acquire(blocking=False):
             return False
         try:
+            with self.lock:
+                latest={p['source']:p['ts'] for p in self._snapshot['polls']}
+            ts=now_ms()
+            due=[s for s,d in SOURCES.items() if not due_only or
+                 ts-latest.get(s,0) >= d['poll_seconds']*1000]
+            if not due:return False
             def collect(source):
                 try:
                     raw=self.fetcher(source)
@@ -135,7 +149,7 @@ class EventCollector:
                     self.store.record_poll(source,now_ms(),error=str(exc))
             # Bounded I/O concurrency; historical replay never calls this method.
             with ThreadPoolExecutor(max_workers=3) as pool:
-                tasks=[pool.submit(collect,s) for s in SOURCES if not self.stop_event.is_set()]
+                tasks=[pool.submit(collect,s) for s in due if not self.stop_event.is_set()]
                 for task in as_completed(tasks):task.result()
             self._reload()
             self.last_error=None
@@ -145,12 +159,12 @@ class EventCollector:
 
     def _run(self):
         while not self.stop_event.is_set():
-            try:self.refresh()
+            try:self.refresh(due_only=True)
             except Exception as exc:
                 self.last_error=str(exc)[:300]
                 # A storage failure cannot terminate position management. Existing
                 # poll times expire naturally and are displayed as stale.
-            if self.stop_event.wait(900):break
+            if self.stop_event.wait(30):break
 
     def start(self):
         with self.lock:
@@ -177,9 +191,13 @@ class EventCollector:
                 "last_error":self.last_error,
                 "asof_ts":ts,"versions":len(self._snapshot["events"]),**context,
                 "sources":[{"id":s,"name":v["name"],"url":v["url"],
+                    "category":v['category'], "assets":v.get('assets',['*']), "origin":v['origin'],
+                    "poll_seconds":v['poll_seconds'],
                     "last_poll_ts":latest.get(s,{}).get("ts"),
                     "healthy":s in context["healthy_sources"],"error":latest.get(s,{}).get("error")}
                     for s,v in SOURCES.items()],
-                "scope":"This is selected source coverage, not all world news. Asset tags are headline matches. "
+                "scope":"Selected sources, not all world news. Reporting can contain unverified claims. "
+                    "Project feeds use fixed asset tags; other asset tags are headline matches. "
+                    "Client releases do not establish mainnet activation. News/incident feeds are checked about every five minutes, others every fifteen; publisher delays also apply. "
                     "Regulatory announcements may be proposals, statements or actions; they are not classified as enacted law. "
                     "Schedules can change and do not predict release outcomes."}
