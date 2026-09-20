@@ -26,12 +26,23 @@ FRAMES={'1m':1,'4m':4,'5m':5,'15m':15,'30m':30,'1h':60,'4h':240}
 FIELDS=BINANCE_FIELDS
 
 
+def parse_rows(payload, microseconds=False):
+    """Keep valid neighbors when an individual historical observation is malformed."""
+    rows=[];rejected=[]
+    for index,raw in enumerate(payload):
+        try:rows.append(parse_binance(raw,microseconds=microseconds))
+        except (ValueError,TypeError,OverflowError) as exc:
+            rejected.append({'row_index':index,'raw_timestamp':str(raw[0]) if raw else None,'error':str(exc)})
+    return rows,rejected
+
+
 def api(cache,pair,start,end,label,limit=1000):
     url='https://data-api.binance.vision/api/v3/klines?'+urlencode(dict(symbol=pair,interval='1m',startTime=start,endTime=end-1,limit=limit))
     content,meta=cache.get(url,label+'.json')
     payload=json.loads(content)
     if not isinstance(payload,list):raise SourceError('No successful kline list: '+str(payload)[:160])
-    rows=[parse_binance(row) for row in payload]
+    rows,rejected=parse_rows(payload)
+    meta=dict(meta,rejected_rows=rejected)
     if any(not start<=row['ts']<end for row in rows):raise ValueError('Out-of-window API candle')
     return rows,meta
 
@@ -134,7 +145,8 @@ def main():
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
                 if archive.namelist()!=[name[:-4]+'.csv']:raise ValueError('Unexpected archive contents')
                 with archive.open(archive.namelist()[0]) as member:
-                    rows=[parse_binance(row,microseconds=label>='2025-01') for row in csv.reader(io.TextIOWrapper(member))]
+                    rows,rejected=parse_rows(csv.reader(io.TextIOWrapper(member)),microseconds=label>='2025-01')
+                    meta=dict(meta,rejected_rows=rejected)
             insert(con,[r for r in rows if start<=r['ts']<end])
             sources.append(dict(meta,published_checksum_verified=True))
         except (SourceError,ValueError,zipfile.BadZipFile) as exc:
