@@ -1,12 +1,14 @@
-# CryptO V11.11 — relevant learning evidence and market context
+# CryptO V11.12 — news and scheduled-event context
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Run historical practice again after deployment; policy v15 and report 17 require new models.
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.12 adds a persistent news/calendar collector, the main-screen Market events panel, seven timestamped event features, trade-context reviews and an independently trained price-only comparison. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). Policy v16 and report 18 require fresh practice. No event-related trading benefit has yet been demonstrated.
+
+V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Its prior models are superseded by V11.12.
 
 V11.10's continuous handoff remains included: open practice trades, waiting periods and original entry forecasts continue across the review date. The saved learner comes from the continuous primary replay, and higher-cost confirmation keeps its own costed history. See [that earlier study](CONFIRMATION_CONTINUITY_RESEARCH.md).
 
-Historical learning now avoids repeated imports, unused background-practice bookkeeping and discarded model copies. Paired local runs finished in **27–29% less time** with identical complete reports except for creation timestamps. The full XRP workflow fell from 123.5 to 87.4 seconds; the primary LTC 5m workflow fell from 40.7 to 29.6 seconds. Downloads and hosted load were not part of these timings. See [the measured speed study](LEARNING_SPEED.md).
+V11.11 historical learning avoids repeated imports, unused background-practice bookkeeping and discarded model copies. Paired local runs finished in **27–29% less time** with identical complete reports except for creation timestamps. The full XRP workflow fell from 123.5 to 87.4 seconds; the primary LTC 5m workflow fell from 40.7 to 29.6 seconds. Downloads and hosted load were not part of these timings. See [the measured speed study](LEARNING_SPEED.md).
 
 The separate cost-eligible and cost-blocked practice tracks introduced in V11.9 remain included. Both learn actual net returns, including losses and break-even outcomes, only after closure. The forecast panel separates their results. See [that earlier coverage study](PRACTICE_TRACKS_RESEARCH.md).
 
@@ -20,7 +22,7 @@ The predeployment review also corrects time-based exits that ran one candle late
 
 1. Open the app locally or follow [WEBSITE_SETUP.md](WEBSITE_SETUP.md) to put it on Render.
 2. Enter your actual Coinbase fee per side. The initial 0.4% is an assumption until confirmed.
-3. Edit **Coins to practice on** (or choose **Use suggested 30 coins**), choose the timeframes and history length, then click **Practice on real market history**.
+3. Click **Start event collection** and check source freshness. Then edit **Coins to practice on** (or choose **Use suggested 30 coins**), choose the timeframes and history length, then click **Practice on real market history**.
 4. Review the historical results, then use **Start learning & paper trading** for ongoing practice on new prices.
 
 Historical practice now suggests 30 Coinbase USD markets spanning established coins, smart-contract networks, DeFi, scaling networks and more volatile tokens. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
@@ -65,7 +67,7 @@ Historical practice and ongoing monitoring download completed BTC-USD daily cand
 
 This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
 
-The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once, and it does not include news, sentiment, or on-chain data.
+The scanner watches up to 30 active Coinbase USD markets under the default settings. Automatic historical learning studies the first ten in that volume-ranked list. It does not study every Coinbase asset at once. V11.12 includes selected news and official calendar context, with explicit coverage; it does not parse full articles, infer sentiment, or include on-chain data. See MARKET_EVENTS.md.
 
 ## Learning from failed trades and fuller candle context
 

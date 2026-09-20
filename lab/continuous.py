@@ -141,6 +141,7 @@ class ContinuousLearner:
         self.strategy_variants = profit_candidates()
         self._feature_cache, self._board, self._processed = {}, {}, {}
         self._bitcoin_daily = []
+        self.events = None  # Attached by the service; event network I/O has its own worker.
         self.runtime = {"running": False, "stream_status": "stopped", "stream_message": "",
                         "last_tick_ts": None, "last_cycle_ts": None, "bootstrapped": False,
                         "bootstrap_done": 0, "bootstrap_total": 0, "last_error": None}
@@ -478,7 +479,8 @@ class ContinuousLearner:
             bitcoin_daily = list(self.market.get("BTC-USD", {}).get("bars", {}).get("1d", []))
             if self._bitcoin_daily and (not bitcoin_daily or self._bitcoin_daily[-1]["ts"] >= bitcoin_daily[-1]["ts"]):
                 bitcoin_daily = list(self._bitcoin_daily)
-            signature = (len(rows), rows[-1]["ts"] if rows else None,
+            signature = (self.events.generation if self.events else None,
+                         len(rows), rows[-1]["ts"] if rows else None,
                          len(direct_daily), direct_daily[-1]["ts"] if direct_daily else None,
                          tuple((r["ts"],r["open"],r["high"],r["low"],r["close"]) for r in bitcoin_daily))
             cached = self._feature_cache.get((pid, iv))
@@ -505,6 +507,8 @@ class ContinuousLearner:
                 feature["daily"] = independent_daily_context([snapshot[-1]], INTERVAL_MS[iv], direct_daily)[0]
                 from .market_context import attach_market_context
                 feature = attach_market_context([snapshot[-1]], [feature], INTERVAL_MS[iv], bitcoin_daily)[0]
+                if self.events:
+                    feature["event_context"] = self.events.context(pid,asof,iv)
         with self.lock:
             self._feature_cache[(pid, iv)] = (signature, feature)
         return feature
@@ -773,7 +777,7 @@ class ContinuousLearner:
                 "opened_at": now_ms(), "entry": entry, "stop": stop, "target": target, "qty": qty,
                 "risk_usd": qty * unit_risk, "planned_net_rr":quality["net_rr"], "stop_dist": stop_dist, "mode": mode, "context_key": ctx["key"],
                 "context": ctx, "decision": {**choice, "params": p}, "mfe_r": 0.0, "mae_r": 0.0,
-                "review_features":{k:f.get(k) for k in ("regime","rsi","volume_z","adx","daily")},
+                "review_features":{k:f.get(k) for k in ("regime","rsi","volume_z","adx","daily","event_context")},
                 "review_mfe_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
                 "review_mae_price":tick["best_bid"] if direction == "LONG" else tick["best_ask"],
                 "last_price": market_price, "last_quote_ts": tick["ts"], "fee_rate": fee, "slippage_rate": slip}

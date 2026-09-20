@@ -28,6 +28,11 @@ class Service:
             key_file=os.getenv("COINBASE_KEY_FILE"),
             allow_live=os.getenv("COINBASE_ALLOW_LIVE")=="1"))
         self.autolearn = AutoLearner(self.db_path,self.data_dir,self.agent,self.research)
+        from .event_store import EventCollector
+        self.events = EventCollector(self.db_path)
+        self.agent.events = self.events
+        if self.events.store.enabled():
+            self.events.start()
 
     def _limit(self, query, default=100):
         value = query.get("limit", str(default))
@@ -92,6 +97,18 @@ class Service:
                         raise ValueError("Sync a recent supported Coinbase fee tier first")
                     settings = self.agent.configure({"fee_rate":float(snapshot["taker_fee_rate"])})
                     return 200,{"ok":True,"settings":settings},{}
+            if path == "/api/events/status" and method == "GET":
+                return 200,self.events.status(),{}
+            if path == "/api/events/export" and method == "GET":
+                return 200,json.dumps(self.events.snapshot(),indent=2,allow_nan=False).encode(),{
+                    "Content-Type":"application/json",
+                    "Content-Disposition":'attachment; filename="market-events.json"'}
+            if path in ("/api/events/start","/api/events/stop") and method == "POST":
+                if body:
+                    raise ValueError("Event controls do not accept source URLs or settings")
+                if path.endswith("/start"):self.events.start()
+                else:self.events.stop()
+                return 202,self.events.status(),{}
             if path == "/api/learning/status" and method == "GET":
                 return 200, self.autolearn.status(compact=True), {}
             if path == "/api/learning/report" and method == "GET":
@@ -102,6 +119,7 @@ class Service:
                     raise ValueError("Automatic start accepts only the fee_rate setting")
                 fees = {"fee_rate":body["fee_rate"]} if "fee_rate" in body else None
                 self.autolearn.start(fees)
+                self.events.start()
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/practice" and method == "POST":
                 if set(body)-{"fee_rate", "symbols", "intervals", "history_days"}:
@@ -110,6 +128,7 @@ class Service:
                 from .study_plan import HISTORY_DAYS
                 self.autolearn.start_history(body.get("symbols"), fees, body.get("intervals"),
                     body.get("history_days", HISTORY_DAYS))
+                self.events.start()
                 return 202, {"ok":True,"learning":self.autolearn.status()}, {}
             if path == "/api/learning/stop" and method == "POST":
                 self.autolearn.stop()
@@ -133,6 +152,7 @@ class Service:
                 if body:
                     self.agent.configure(body)
                 self.agent.start()
+                self.events.start()
                 return 200, {"ok": True, "status": self.agent.status()}, {}
             if path == "/api/continuous/stop" and method == "POST":
                 self.autolearn.stop()

@@ -393,6 +393,13 @@
         return '<p><b>'+(key==='holdout' ? 'Ordinary costs' : 'Higher costs')+'</b></p><div class="table-wrap"><table><thead><tr><th>Entry conditions</th><th>Candles</th><th>Trades</th><th>Net result</th></tr></thead><tbody>'+
           Object.entries(regimes).map(function(pair) {const g=pair[1];return '<tr><td>'+escape(pair[0])+'</td><td>'+num(g.candles,0)+'</td><td>'+num(g.trades,0)+'</td><td>'+money(g.net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div>';
       }).join('')+'<p class="footnote">Regimes with no trades have no demonstrated trading edge. Each cost scenario has its own account path.</p></details>';
+    if (r.event_data) {
+      const events=r.event_data, groups=((r.holdout || {}).event_performance || {}).by_entry_context || {};
+      html+='<details><summary>News and scheduled-event context</summary><p>'+num(events.holdout_covered_candles,0)+' of '+num(events.holdout_candles,0)+' test candles have some recorded feed coverage; '+num(events.holdout_full_coverage_candles,0)+' have all configured sources.</p><p class="footnote">'+escape(events.rule || '')+'</p>';
+      if (Object.keys(groups).length) html+='<div class="table-wrap"><table><thead><tr><th>Context at entry</th><th>Completed trades</th><th>Net result</th></tr></thead><tbody>'+Object.entries(groups).map(function(pair) {return '<tr><td>'+escape(family(pair[0]))+'</td><td>'+num(pair[1].trades,0)+'</td><td>'+money(pair[1].net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div><p class="footnote">Groups overlap. These are associations, not proven causes.</p>';
+      if (r.event_comparison) html+='<p>Difference from separately trained price-context control: '+money(r.event_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.event_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
+      html+='</details>';
+    }
     if (failures.targets) {
       const names={little_follow_through:'Little follow-through',gave_back_gains:'Gave back gains',fees_erased_gain:'Fees erased a gain',near_break_even:'Near break-even',target_reached:'Reached target',time_exit:'Reached time limit'};
       html+='<details><summary>Learning specific failure patterns</summary><div class="table-wrap"><table><thead><tr><th>Outcome predicted before entry</th><th>Examples</th><th>Scored forecasts</th><th>Forecast error</th><th>Historical-frequency error</th></tr></thead><tbody>'+
@@ -574,23 +581,49 @@
       return '<article class="panel"><div class="panel-title"><h2>' + escape(x.symbol) + ' <span class="muted">' + escape(x.interval) + '</span></h2><span class="badge ' + (x.validated && !stale ? "positive" : "negative") + '">' + (stale ? "OLDER ENGINE · RERUN RESEARCH" : (x.validated ? "PASSES HISTORICAL GATE" : "NOT QUALIFIED")) + '</span></div><p class="muted">' + escape(x.selected_params ? family(x.selected_params.family) : "No strategy survived selection") + '</p><div class="result-metrics"><div>Holdout net return<strong class="' + tone(h.return_pct) + '">' + pct(h.return_pct) + '</strong></div><div>Holdout trades<strong>' + (h.trades == null ? "0" : h.trades) + '</strong></div><div>At 1.5× costs<strong>' + pct(stress.return_pct) + '</strong></div><div>Mean realized / day<strong>' + money(d.mean_net_per_day) + '</strong></div></div><p class="muted">Days reaching $10: ' + (d.days_at_least_10 || 0) + " / " + (d.calendar_days || 0) + " · Days reaching $15: " + (d.days_at_least_15 || 0) + " · Losing days: " + (d.losing_days || 0) + '</p><p class="footnote">Cash benchmark: 0% · Buy and hold after costs: ' + pct(x.buy_hold_return_pct) + " · Positive walk-forward windows: " + x.profitable_folds + "/3 · Historical mean R interval: " + num(ci.lower_r) + " to " + num(ci.upper_r) + '</p><ul class="result-reasons">' + x.rejection_reasons.map(function (reason) { return "<li>" + escape(reason) + "</li>"; }).join("") + '</ul>' + candidates + comparison + '<p class="footnote">' + escape(x.scope) + " " + escape(x.warning) + "</p></article>";
     }).join("");
   }
+  function renderEvents(data) {
+    const sources=data.sources || [];
+    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 15 minutes" : "Collection stopped");
+    $("eventsStart").disabled=!!data.running;
+    $("eventsStop").disabled=!data.running;
+    $("eventsCoverage").textContent=sources.filter(function(s){return s.healthy;}).length+" of "+sources.length+
+      " sources recently checked · "+num(data.versions,0)+" saved event versions. Missing feeds are unknown. Historical coverage starts when collection is first recorded.";
+    function link(url,label) {
+      return /^https:\/\/[^\s"'<>]+$/.test(url || "") ? '<a href="'+escape(url)+'" target="_blank" rel="noopener noreferrer">'+escape(label)+'</a>' : escape(label);
+    }
+    function entries(rows,upcoming) {
+      return rows.length ? rows.map(function(e) {
+        const when=upcoming && e.precision==='day' ? new Date(e.event_ts).toLocaleDateString('en-US',{timeZone:'America/New_York'})+' (date only)' : date(upcoming ? e.event_ts : e.published_ts,true);
+        return '<div class="activity-row">'+link(e.url,e.title)+'<small>'+escape(when)+' · '+escape(e.category)+
+          ' · '+escape(e.source)+(upcoming ? ' · schedule may change' : '')+'</small></div>';
+      }).join('') : '<p class="empty">'+(upcoming ? 'No upcoming events recorded in this window.' : 'No recent announcements recorded. Check source coverage below.')+'</p>';
+    }
+    $("eventsRecent").innerHTML=entries(data.recent || [],false);
+    $("eventsUpcoming").innerHTML=entries(data.upcoming || [],true);
+    $("eventsSources").innerHTML=sources.map(function(s) {
+      return '<div class="activity-row">'+link(s.url,s.name)+'<small>'+escape(s.healthy ? 'Recently checked' : 'Unavailable or stale')+
+        ' · '+escape(date(s.last_poll_ts,true))+(s.error ? ' · '+escape(s.error) : '')+'</small></div>';
+    }).join('');
+    $("eventsScope").textContent=data.scope || '';
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
     try {
       const responses = await Promise.allSettled([
         api("/api/continuous/status"), api("/api/continuous/analytics"),
-        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status")
+        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status")
       ]);
       const renderers = [renderState,renderAnalytics,renderJournal,function (rows) {
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
-      },renderResearch,renderLearning];
+      },renderResearch,renderLearning,renderEvents];
       let firstError = null;
       responses.forEach(function (response,i) {
         if (response.status === "fulfilled") renderers[i](response.value);
         else {
           if (i===1) updateFinances("paper",null,true);
           if (i===5) updateFinances("history",null,true);
+          if (i===6) $("eventsStatus").textContent="Event status unavailable";
           if (!firstError) firstError=response.reason;
         }
       });
@@ -604,6 +637,9 @@
       document.querySelectorAll(".tab-panel").forEach(function (panel) { panel.hidden = panel.id !== button.dataset.tab; });
     });
   });
+  bind("eventsStart",async function () { await api("/api/events/start",{}); await refresh(); });
+  bind("eventsStop",async function () { await api("/api/events/stop",{}); await refresh(); });
+  bind("eventsExport",function () { return download("/api/events/export","market-events.json"); });
   bind("startBtn",async function () {
     const input=$("autoFee");
     if (!input.value.trim() || !input.reportValidity()) throw new Error("Enter your Coinbase fee per side.");

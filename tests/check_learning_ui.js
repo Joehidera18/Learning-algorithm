@@ -17,8 +17,17 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails,renderEvents};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
+context.testUI.renderEvents({running:true,versions:2,sources:[{name:'<script>bad</script>',url:'https://example.org',healthy:false,error:'Unavailable <img src=x>'}],
+  recent:[{title:'<img src=x onerror=bad()>',url:'javascript:bad()',published_ts:1789862572845,category:'regulation',source:'sec'}],
+  upcoming:[{title:'Scheduled release',url:'https://example.org/release',event_ts:1789862572845,precision:'day',category:'macro',source:'bls'}]});
+assert.match(element('eventsCoverage').textContent,/0 of 1/);
+assert.match(element('eventsRecent').innerHTML,/&lt;img/);
+assert.doesNotMatch(element('eventsRecent').innerHTML,/javascript:|<img/);
+assert.match(element('eventsUpcoming').innerHTML,/date only/);
+assert.match(element('eventsSources').innerHTML,/&lt;script/);
+assert.match(element('eventsSources').innerHTML,/Unavailable or stale/);
 const original=process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2],"utf8")) :
   {results:[],historical_examples:0,phase:"completed",message:"Fixture"};
 context.testUI.renderLearning(original);

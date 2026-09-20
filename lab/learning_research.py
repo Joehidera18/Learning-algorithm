@@ -25,10 +25,14 @@ from .market_context import attach_market_context, data_summary as bitcoin_summa
 from .learning_diagnostics import evidence_summary, regime_report, experiment_manifest
 from .failure_predictions import summary as failure_prediction_summary
 
-LEARNING_REPORT_VERSION = 17
+from .event_context import (attach_event_context, data_summary as event_summary,
+    validate_snapshot, outcome_summary as event_outcomes)
+
+LEARNING_REPORT_VERSION = 18
 
 
-def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None):
+def build_learning_features(rows, interval, segments, cancelled=None, daily_rows=None, bitcoin_rows=None,
+                            event_snapshot=None, symbol="*"):
     """Keep chronology and restart all indicators at every missing-data boundary."""
     features = [None]*len(rows)
     for segment in segments:
@@ -39,17 +43,20 @@ def build_learning_features(rows, interval, segments, cancelled=None, daily_rows
             cache = build_feature_cache(rows[start:end], interval, simple_only=True,
                                         daily_rows=daily_rows)["features"]
             features[start+FEATURE_WARMUP:end] = cache[FEATURE_WARMUP:]
-    if bitcoin_rows is None:
-        return features  # Missing benchmark inputs retain the explicit zero readiness feature.
-    return attach_market_context(rows, features, INTERVAL_MS[interval], bitcoin_rows, in_place=True)
+    if bitcoin_rows is not None:
+        features = attach_market_context(rows, features, INTERVAL_MS[interval], bitcoin_rows, in_place=True)
+    if event_snapshot is not None:
+        features = attach_event_context(rows, features, INTERVAL_MS[interval], event_snapshot, symbol)
+    return features
 
 
 def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                   reviewed_through_ts=None, daily_rows=None, exit_comparison=True,
-                  selection_comparison=True, forecast_correction=False, bitcoin_rows=None):
+                  selection_comparison=True, forecast_correction=False, bitcoin_rows=None,
+                  event_snapshot=None, event_comparison=True):
     """Keep the approved model separate from one independently trained experiment."""
     result = _learn_history(rows, symbol, settings, progress, cancelled, checkpoint,
-        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT, forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
+        reviewed_through_ts, daily_rows, exit_policy=FIXED_EXIT, forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows, event_snapshot=event_snapshot)
     if exit_comparison:
         def experimental_progress(**state):
             if progress:
@@ -63,7 +70,7 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
                 "save":lambda index,value:checkpoint["save"](offset+index,value)}
         experiment = _learn_history(rows, symbol, settings, experimental_progress, cancelled,
             experiment_checkpoint, reviewed_through_ts, daily_rows, exit_policy=BREAK_EVEN_EXIT,
-            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
+            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows, event_snapshot=event_snapshot)
         from .exit_research import comparison_report
         result["exit_policy_comparison"] = comparison_report(result, experiment)
     if selection_comparison:
@@ -75,16 +82,27 @@ def learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpo
         # Existing checkpoints can be reused without another candidate namespace.
         experiment = _learn_history(rows, symbol, settings, conditional_progress, cancelled,
             checkpoint, reviewed_through_ts, daily_rows, recent_return_veto=False,
-            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
+            forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows, event_snapshot=event_snapshot)
         from .selection_research import comparison_report
         result["selection_policy_comparison"] = comparison_report(result, experiment)
+    if event_comparison and result["event_data"].get("covered_candles",0):
+        control = _learn_history(rows, symbol, settings, progress, cancelled, None,
+            reviewed_through_ts, daily_rows, forecast_correction=forecast_correction, bitcoin_rows=bitcoin_rows)
+        result["event_comparison"] = {
+            "price_context_only":{key:control[key] for key in ("holdout","holdout_stressed","validated")},
+            "net_pnl_difference":result["holdout"]["net_pnl"]-control["holdout"]["net_pnl"],
+            "stress_net_pnl_difference":result["holdout_stressed"]["net_pnl"]-control["holdout_stressed"]["net_pnl"],
+            "selection_uses_comparison":False,
+            "scope":"Independently train without event inputs on the same candles, costs and boundaries. "
+                    "This comparison is research, not a promotion rule or proof of causation."}
+    result["event_snapshot"] = event_snapshot
     result["experiment_registry"] = experiment_manifest(result, exit_comparison, selection_comparison)
     return result
 
 
 def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkpoint=None,
                    reviewed_through_ts=None, daily_rows=None, exit_policy=FIXED_EXIT,
-                   recent_return_veto=True, forecast_correction=False, bitcoin_rows=None):
+                   recent_return_veto=True, forecast_correction=False, bitcoin_rows=None, event_snapshot=None):
     progress = progress or (lambda **kwargs:None)
     cancelled = cancelled or (lambda:False)
     interval = settings["decision_interval"]
@@ -105,7 +123,10 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         from .daily_context import independent_daily_context, DAY_MS
         independent_daily_context([], step, bitcoin_rows)
         bitcoin_rows = [r for r in bitcoin_rows if r["ts"]+DAY_MS <= rows[-1]["ts"]+step]
-    features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows, bitcoin_rows)
+    if event_snapshot is not None:
+        validate_snapshot(event_snapshot)
+    features = build_learning_features(rows, interval, coverage["segments"], cancelled, daily_rows, bitcoin_rows, event_snapshot, symbol)
+    event_required = event_snapshot is not None  # Fixed mode, never chosen using future events.
     fee, slip = settings["fee_rate"], settings["slippage_rate"]+.0005
     candidates = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"],
                                 exit_policy=exit_policy, recent_return_veto=recent_return_veto,
@@ -157,7 +178,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
     examples.sort(key=lambda x:(x[0],x[1]))
     seed = AdaptivePolicy(max_notional_fraction=settings["max_notional_fraction"], exit_policy=exit_policy,
                           recent_return_veto=recent_return_veto, fee_rate=fee, slippage_rate=slip,
-                          forecast_correction=forecast_correction, market_context_required=bool(bitcoin_rows))
+                          forecast_correction=forecast_correction, market_context_required=bool(bitcoin_rows),
+                          event_context_enabled=event_required)
     trainer = ChronologicalTrainer(seed,candidates,examples,cancelled)
 
     def train_until(cut_ts):
@@ -192,6 +214,7 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "resolved_examples":policy.state["observations"]-starting_observations}
         metrics["prediction_audit"] = summarize_predictions(trades)
         metrics["regime_performance"] = regime_report(features, trades, start, end)
+        metrics["event_performance"] = event_outcomes(trades)
         return metrics, trades, policy.export() if retain_model else None, starting_state
 
     starts = [int(development*f) for f in (.45,.63,.81)]
@@ -305,7 +328,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
         "learning_report_version":LEARNING_REPORT_VERSION,
         "learning_inputs":{"dimensions":len(FEATURE_NAMES), "names":list(FEATURE_NAMES),
             "rule":"Fixed-scale entry-time features; preceding support/resistance, closed-candle "
-                "wicks, RSI change, VWAP distance, volatility, completed daily context, Bitcoin trend and relative strength. "
+                "wicks, RSI change, VWAP distance, volatility, completed daily context, Bitcoin trend, relative strength, "
+                "and news/calendar context observed by that close. "
                 "Exit reviews and future candles are not entry inputs."},
         "entry_error_rule":"Save the forecast at entry in chronological development training as well as later tests. "
             "After at least 30 resolved forecasts in a model component, "
@@ -339,6 +363,8 @@ def _learn_history(rows, symbol, settings, progress=None, cancelled=None, checkp
             "holdout_ready_candles":sum(bool(f and f.get("daily",{}).get("ready")) for f in features[holdout_start:]),
             "holdout_candles":len(rows)-holdout_start},
         "bitcoin_data":bitcoin_summary(bitcoin_rows, features, holdout_start),
+        "event_data":{**event_summary(event_snapshot, features, holdout_start),
+                      "enabled":event_required},
         "learning_evidence":evidence_summary(trained["models"]),
         "failure_predictions":failure_prediction_summary(trained["models"]),
         "historical_examples":len(examples), "candidate_count":len(candidates),

@@ -57,6 +57,11 @@ def market_bundle(learner, symbol, interval):
         bitcoin_content = io.StringIO(newline="")
         bitcoin_writer = csv.DictWriter(bitcoin_content, fieldnames=DATA_FIELDS)
         bitcoin_writer.writeheader(); bitcoin_writer.writerows(canonical_candle(row) for row in bitcoin_rows)
+    from .event_context import digest as event_digest, validate_snapshot
+    event_snapshot = report.get("event_snapshot")
+    if report.get("event_data",{}).get("data_sha256"):
+        if event_snapshot is None or event_digest(validate_snapshot(event_snapshot)) != report["event_data"]["data_sha256"]:
+            raise ValueError("The event archive no longer matches this report; run practice again.")
     content = io.StringIO(newline="")
     writer = csv.DictWriter(content,fieldnames=DATA_FIELDS)
     writer.writeheader(); writer.writerows(canonical_candle(row) for row in rows)
@@ -67,6 +72,7 @@ def market_bundle(learner, symbol, interval):
         "history_request":report.get("history_request"),
         "daily_data":daily,
         "bitcoin_data":bitcoin,
+        "event_data":report.get("event_data"),
         "scope":"Recorded candle data and one historical report. Old reports without a data hash can verify dates and count only. No API keys, account database or exchange journal is included."}
     output = io.BytesIO()
     with zipfile.ZipFile(output,"w",zipfile.ZIP_DEFLATED) as archive:
@@ -75,6 +81,8 @@ def market_bundle(learner, symbol, interval):
             archive.writestr("daily-candles.csv",daily_content.getvalue())
         if bitcoin_content is not None:
             archive.writestr("bitcoin-daily-candles.csv",bitcoin_content.getvalue())
+        if event_snapshot is not None:
+            archive.writestr("market-events.json",json.dumps(event_snapshot,indent=2,allow_nan=False))
         archive.writestr("learning-result.json",json.dumps(report,indent=2,allow_nan=False))
         archive.writestr("manifest.json",json.dumps(manifest,indent=2,allow_nan=False))
     return output.getvalue(),f"{symbol}_{interval}_learning-data.zip"

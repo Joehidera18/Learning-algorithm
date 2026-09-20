@@ -13,7 +13,7 @@ from .ensemble import probability_calibration,dynamic_risk_multiplier,ensemble_v
 from .structure import build_structure_features
 from .strategies import simple_signal
 
-ENGINE_VERSION="market-structure-v11.11-eligible-context"
+ENGINE_VERSION="market-structure-v11.12-event-context"
 
 # The baseline is deliberately simple and broad; it seeds the fold learner.
 BASELINE={

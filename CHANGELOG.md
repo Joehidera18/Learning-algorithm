@@ -1,3 +1,12 @@
+# V11.12 news and scheduled-event context — 20 September 2026 UTC
+
+- Collect selected Federal Reserve, SEC, BLS, FOMC, Coinbase-status and CoinDesk feeds outside the trading loop. Persist revisions and collection health, with explicit unavailable/stale states and a separate collector control.
+- Preserve publication, observation and event times; join only information available at the signal close. Respect Eastern daylight-saving time and date-only meeting schedules; preserve withdrawn/cancelled schedules without rewriting old decisions.
+- Add seven bounded event features, a separate price-only research control, event-context trade summaries and a main-screen events panel. Existing costs, risk limits, account separation and qualification rules remain.
+- Pin event archives for interrupted studies, hash them into cache/experiment identity and include exact events in data bundles and CLI replay.
+- The live smoke check recorded 450 versions from six available sources; Coinbase status timed out. Newly collected events correctly had zero coverage in the supplied 105,062-candle XRP replay. Its six primary trades still lost $12.749657; no new profit claim. See MARKET_EVENTS.md.
+- Engine v11.12, policy v16, report 18 require fresh practice. These are reviewable changes, not a deployment.
+
 # V11.11 historical learning speed — 19 September 2026 UTC
 
 - Move the simple-strategy import out of the per-candle rule evaluation. Skip unused streaming-practice funnel/mark calculations while preserving all account equity reporting, requested daily halts and causal learning callbacks.

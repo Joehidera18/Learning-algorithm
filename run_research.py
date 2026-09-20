@@ -26,11 +26,14 @@ def main(argv=None):
     parser.add_argument("--learning", action="store_true", help="Train and evaluate the adaptive policy used by automatic learning")
     parser.add_argument("--daily-csv", type=Path, help="Optional recorded 1d OHLCV candles for --csv --learning; included as completed context only")
     parser.add_argument("--bitcoin-csv", type=Path, help="Optional recorded BTC-USD 1d OHLCV candles for --csv --learning; completed market context only")
+    parser.add_argument("--events-json", type=Path, help="Recorded event-observation archive for --learning; never downloaded or backdated during replay")
     parser.add_argument("--days", type=int, help="History days: up to 365 for 5m, 1825 for 15m, 2920 for 1h/6h; default five years subject to these limits")
     parser.add_argument("--end", help="Optional exclusive historical end date, YYYY-MM-DD in UTC; requires --coinbase")
     parser.add_argument("--cache-dir", type=Path, default=Path("data/automatic"), help="Saved Coinbase download directory")
     parser.add_argument("--out", type=Path, default=Path("research-result.json"))
     args = parser.parse_args(argv)
+    if args.events_json and not args.learning:
+        parser.error("--events-json requires --learning")
     if args.daily_csv and (not args.csv or not args.learning):
         parser.error("--daily-csv requires --csv and --learning")
     if args.bitcoin_csv and (not args.csv or not args.learning):
@@ -90,10 +93,14 @@ def main(argv=None):
             bitcoin_rows = load_history(args.bitcoin_csv)
         provenance = {"provider":"User-supplied CSV (source not independently verified)",
             "kind":"provided_ohlcv", "filename":args.csv.name, "synthetic_fallback":False}
+    event_snapshot = None
+    if args.events_json:
+        from lab.event_context import validate_snapshot
+        event_snapshot = validate_snapshot(json.loads(args.events_json.read_text()))
     if args.learning:
         result = learn_history(rows, args.symbol, settings,
             progress=lambda **status: print(status.get("message", ""), flush=True), daily_rows=daily_rows,
-            bitcoin_rows=bitcoin_rows)
+            bitcoin_rows=bitcoin_rows, event_snapshot=event_snapshot)
     else:
         result = research(rows, args.symbol, settings,
             progress=lambda stage, done, total, message: print(f"{done}/{total} {message}", flush=True))

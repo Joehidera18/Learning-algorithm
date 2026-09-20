@@ -5,7 +5,7 @@ import copy
 def compact_report(report):
     fields = ('symbol','interval','validated','research_only','error','fingerprint',
         'engine_version','policy_version','learning_report_version','created_at',
-        'history_request','historical_examples','holdout_learning_updates','data_hours',
+        'event_data','history_request','historical_examples','holdout_learning_updates','data_hours',
         'rejection_reasons','review_scope','next_review_at','data_quality','data_selection')
     result = {key:report[key] for key in fields if key in report}
     # Nested feedback, candidate ledgers and case studies can be much larger
