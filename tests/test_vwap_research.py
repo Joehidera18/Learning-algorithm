@@ -24,7 +24,7 @@ def minute_rows(n=4320):
     return rows
 
 
-def execution_case(path, fee=0., slip=0.):
+def execution_case(path, fee=0., slip=0., daily_loss_limit=None):
     rows = [{'ts': 1609459200000+i*MINUTE, 'open': 100., 'high': 100.1,
              'low': 99.9, 'close': 100., 'volume': 10.} for i in range(241+len(path))]
     for index, item in enumerate(path, 241):
@@ -34,7 +34,8 @@ def execution_case(path, fee=0., slip=0.):
     params = {'family': 'vwap_test', 'direction': 'LONG', 'stop_atr': 1., 'rr2': 3.,
               'max_gap_atr': 10., 'max_cost_r': 10., 'max_notional_fraction': 1., 'time_stop_hours': 4.}
     return simulate(rows, features, 240, len(rows), 500., .01, fee, slip, params,
-        bar_interval_ms=MINUTE, signal_evaluator=lambda f, p: (1., None), level_provider=price_levels)
+        bar_interval_ms=MINUTE, daily_loss_limit=daily_loss_limit,
+        signal_evaluator=lambda f, p: (1., None), level_provider=price_levels)
 
 
 class VwapResearchTests(unittest.TestCase):
@@ -140,6 +141,18 @@ class VwapResearchTests(unittest.TestCase):
         _, trades = execution_case([{}, {'open': 102.1, 'low': 98., 'high': 102.5}])
         self.assertEqual(trades[0]['reason'], 'STOP')
         self.assertAlmostEqual(trades[0]['r_multiple'], .5)
+
+    def test_daily_loss_halt_uses_quantity_remaining_after_opening_targets(self):
+        for opening, high in ((104., 105.), (102.1, 102.5)):
+            with self.subTest(opening=opening):
+                metrics, trades = execution_case([{}, {'open': opening, 'low': 98., 'high': high}],
+                    daily_loss_limit=.006)
+                self.assertGreater(trades[0]['pnl'], 0.)
+                self.assertEqual(metrics['halted_utc_days'], 0)
+        # An actual stop loss still pauses entries for the rest of the UTC day.
+        metrics, trades = execution_case([{}, {'low': 98.}], daily_loss_limit=.006)
+        self.assertLess(trades[0]['pnl'], 0.)
+        self.assertEqual(metrics['halted_utc_days'], 1)
 
     def test_partial_then_stop_and_partial_then_end_reconcile(self):
         for last, reason, result_r in (({'open': 101., 'low': 98., 'high': 101.}, 'STOP', .5),

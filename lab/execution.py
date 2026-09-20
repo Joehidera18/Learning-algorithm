@@ -85,6 +85,14 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             day_halted = True
             halted_days += 1
 
+    def check_intrabar_loss(candle, p):
+        # Once a stop fills, do not mark through worse prices later in the bar.
+        # Intrabar ordering is unknown; a drawdown may precede a target touch.
+        adverse = (min(candle["open"], max(candle["low"], p["stop"])) if sign == 1 else
+                   max(candle["open"], min(candle["high"], p["stop"])))
+        adverse *= 1-sign*base_slip
+        check_daily_limit(cash+(adverse-p["entry"])*p["qty"]*sign-adverse*p["qty"]*fee_rate)
+
     def reject(reason, entry=False):
         if stream_only:
             return  # Per-candle funnels are not returned by streaming practice.
@@ -328,13 +336,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 counts[practice_reason] = counts.get(practice_reason, 0)+1
         if position:
             p = position
-            # Once a stop fills, do not mark through lower prices later in the bar.
-            # Intrabar ordering is unknown; a drawdown may precede a target touch.
-            if daily_loss_limit is not None:
-                adverse = (min(candle["open"], max(candle["low"], p["stop"])) if sign == 1 else
-                           max(candle["open"], min(candle["high"], p["stop"])))
-                adverse *= 1-sign*base_slip
-                check_daily_limit(cash+(adverse-p["entry"])*p["qty"]*sign-adverse*p["qty"]*fee_rate)
+            if daily_loss_limit is not None and not p.get("target1_fraction"):
+                check_intrabar_loss(candle, p)
             # Handle gaps at the open before any intrabar touch.
             if (candle["open"] <= p["stop"] if sign == 1 else candle["open"] >= p["stop"]):
                 p["mae_price"] = candle["open"]
@@ -350,6 +353,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             else:
                 if p.get("target1_fraction") and sign*(candle["open"]-p["target1"]) >= 0:
                     partial_close(candle)
+                if daily_loss_limit is not None and p.get("target1_fraction"):
+                    # Known opening fills precede the later candle path. Only
+                    # the remaining quantity can incur an intrabar drawdown.
+                    check_intrabar_loss(candle, p)
                 stop_hit = candle["low"] <= p["stop"] if sign == 1 else candle["high"] >= p["stop"]
                 target_hit = candle["high"] >= p["target2"] if sign == 1 else candle["low"] <= p["target2"]
                 if stop_hit:

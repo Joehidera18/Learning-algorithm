@@ -105,6 +105,12 @@ Net excursion estimates that assume the whole position remains open are withheld
 for partial-exit trades. These OHLC fills are still simulations, not executable
 historical quotes or queue-position evidence.
 
+Targets crossed at the minute's open are known to precede its later price path.
+Those exits also reduce the quantity used by the daily-loss calculation. A
+position fully closed at the open cannot trigger a pause from that minute's later
+low; a partial exit leaves only the remaining quantity exposed. Actual losses
+still trigger the existing daily pause.
+
 ## Run it
 
 In the app, open **Advanced research**, enter one to three markets and the actual
@@ -134,7 +140,26 @@ Coinbase's [official market-trade schema](https://docs.cdp.coinbase.com/api-refe
 defines `side` as the **maker** side. An aggressor-sign calculation must invert
 that side. That feed, and any backfilled trade history, is not implemented here.
 
-## Verification and present limits — 20 September 2026
+## Combined package verification — 20 September 2026
+
+The complete V11.16 package passes **410 Python tests** on the final source and
+both dashboard checks. The added regression first reproduced an incorrect daily
+pause after a known opening profit target; it now verifies both partial/full
+opening exits and a genuine stop loss. The application entry point, dashboard,
+health endpoint and VWAP status endpoint pass an isolated-state smoke check.
+
+A matched XRP 15m replay preserves the entire previous V11.16 report except its
+creation timestamp, including the +$6.35 standard-cost result, zero higher-cost
+trades and unqualified status. This checks integration with the main learner; it
+does not measure VWAP performance. Source and input hashes are recorded in
+[combined-release-validation.json](research_baselines/combined-release-validation.json).
+
+The VWAP research pull request (#17) has been merged into
+`improve/learning-reliability`. The combined update remains in pull request #16
+against `main`; packaging it does not deploy a server or start trading. The
+one-minute market-data limitation below still applies.
+
+## Original VWAP implementation checks — 20 September 2026
 
 - Full Python suite: **408 passed**. After the final opening-gap target-ordering
   and UTC-boundary refinements, **32 targeted tests passed**, including one new
