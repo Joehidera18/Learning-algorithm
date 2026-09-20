@@ -21,6 +21,7 @@ app = create_app()
 agent = app.service.agent
 atexit.register(agent.stop)
 atexit.register(app.service.research.cancel)
+atexit.register(app.service.vwap.cancel)
 atexit.register(app.service.coinbase.stop)
 atexit.register(app.service.autolearn.stop)
 atexit.register(app.service.events.stop, persist=False)

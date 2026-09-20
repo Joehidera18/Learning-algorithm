@@ -25,7 +25,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
              params, edge_model=None, keep_trades=True, policy=None, cancelled=None,
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
              feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all",
-             on_training_event=None, stream_only=False):
+             on_training_event=None, stream_only=False, signal_evaluator=None,
+             level_provider=None):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
@@ -36,6 +37,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
     equity curve. It cannot produce account metrics or be used for an account.
     """
     from .engine import evaluate_signal
+    if (signal_evaluator is None) != (level_provider is None):
+        raise ValueError("Research signals and price levels must be supplied together")
+    if signal_evaluator is not None and (policy is not None or training_examples):
+        raise ValueError("Custom research levels cannot update or select a trading model")
     cash, position, next_entry_ts = float(balance), None, 0
     trades, curve = [], deque([cash], maxlen=2) if stream_only else [cash]
     direction = params.get("direction", "LONG")
@@ -110,7 +115,11 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         # a known execution boundary; intrabar stop/target touch times do not.
         if reason in ("TIME", "END"):
             p["exit_time_ts"] = candle["ts"]+bar_ms
-        p["review"] = close_review(p)
+        # The existing excursion estimator assumes the full position remains
+        # open. Do not invent a net excursion path for a scaled-out position.
+        review_input = p if not p.get("target1_fraction") else {
+            k: v for k, v in p.items() if k not in ("mfe_price", "mae_price")}
+        p["review"] = close_review(review_input)
         trades.append(p)
         # OHLC does not reveal a stop's exact touch time; wait from this bar's end.
         # Only the most recent threshold trades can affect this rule. Scanning
@@ -142,6 +151,26 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             # resolved label was already delivered above with its full review.
             del trades[:-streak_window]
         position = None
+
+    def partial_close(candle):
+        nonlocal cash
+        p = position
+        if not p.get("target1_fraction") or p["t1_hit"]:
+            return
+        quantity = p["qty_initial"] * p["target1_fraction"]
+        raw = p["target1"]
+        fill = raw * (1 - sign * base_slip)
+        gross = (fill - p["entry"]) * quantity * sign
+        fee = fill * quantity * fee_rate
+        cash += gross - fee
+        p["realized_partial"] += gross - fee
+        p["gross_pnl"] += gross
+        p["fees_paid"] += fee
+        p["slippage_notional"] += abs(raw - fill) * quantity
+        p["qty"] -= quantity
+        p["t1_hit"] = True
+        p.setdefault("partial_fills", []).append({"bar_ts": candle["ts"],
+            "price": fill, "qty": quantity, "gross_pnl": gross, "fee": fee})
 
     for i in range(max(240, int(start)), end - 1):
         if cancelled and i % 500 == 0 and cancelled():
@@ -185,6 +214,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             trade_params = choice["params"] if choice else params
             if policy:
                 score, reason = (choice["score"], None) if choice else (None, "no_positive_learned_setup")
+            elif signal_evaluator is not None:
+                score, reason = signal_evaluator(f, trade_params)
             else:
                 score, reason = evaluate_signal(f, trade_params, detail.get("probability"),
                                                detail.get("lower_bound"), detail.get("evidence_samples", 0))
@@ -212,6 +243,20 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     distance = max(atr * trade_params["stop_atr"], raw * .0015)
                     stop = entry - sign * distance
                     target = entry + sign * distance * trade_params["rr2"]
+                    target1, target2, partial_fraction = target, target, 0.
+                    if level_provider is not None:
+                        stop, target1, target2, partial_fraction = level_provider(f)
+                        levels = (stop, target1, target2, partial_fraction)
+                        if (not all(math.isfinite(v) for v in levels) or min(levels[:3]) <= 0
+                                or not 0 < partial_fraction < 1 or sign*(entry-stop) <= 0
+                                or sign*(target1-entry) <= 0 or sign*(target2-target1) <= 0):
+                            reject("invalid_or_passed_price_levels", entry=True)
+                            curve.append(cash)
+                            continue
+                        distance = abs(entry-stop)
+                        # Equal cost rates make the weighted target exact for
+                        # the planned full-winner payoff, including both exits.
+                        target = partial_fraction*target1 + (1-partial_fraction)*target2
                     stop_fill = stop * (1 - sign * base_slip)
                     cost = (entry + stop_fill) * fee_rate + abs(stop - stop_fill) + abs(entry - raw)
                     cost_r = cost / max(distance, 1e-12)
@@ -255,7 +300,7 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "strategy_family": trade_params["family"], "entry_mode": mode,
                                 "decision_params":dict(trade_params),
                                 "learning":choice.get("learning") if choice else None,
-                                "stop": stop, "initial_stop":stop, "target1": target, "target2": target,
+                                "stop": stop, "initial_stop":stop, "target1": target1, "target2": target2,
                                 "break_even_active_ts":None,
                                 "qty": qty, "qty_initial": qty, "risk_dollars": qty * unit_risk,
                                 "planned_cost_r": cost_r, "planned_net_rr":quality["net_rr"], "risk_multiplier": 1.0,
@@ -268,6 +313,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "features": {k: v for k, v in f.items() if not k.startswith("_")},
                                 "edge_probability": detail.get("probability"), "score": score,
                                 "mfe_price": raw, "mae_price": raw}
+                            if level_provider is not None:
+                                position["target1_fraction"] = partial_fraction
                             from .prediction_audit import entry_snapshot
                             position["entry_forecast"] = entry_snapshot(
                                 (choice.get("learning") or {}).get("forecast") if choice else None,
@@ -294,7 +341,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                 reason = ("BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None
                           and candle["open"] == p["stop"] else "STOP_GAP")
                 close(candle["open"], candle, reason)
+            elif p.get("target1_fraction") and sign*(candle["open"]-p["target2"]) >= 0:
+                # An existing order crossed at the open precedes the later
+                # intrabar path. Keep conservative target-level exit prices.
+                partial_close(candle)
+                p["mfe_price"] = p["target2"] if sign*(p["target2"]-p["mfe_price"]) > 0 else p["mfe_price"]
+                close(p["target2"], candle, "TARGET2")
             else:
+                if p.get("target1_fraction") and sign*(candle["open"]-p["target1"]) >= 0:
+                    partial_close(candle)
                 stop_hit = candle["low"] <= p["stop"] if sign == 1 else candle["high"] >= p["stop"]
                 target_hit = candle["high"] >= p["target2"] if sign == 1 else candle["low"] <= p["target2"]
                 if stop_hit:
@@ -302,9 +357,13 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     p["mae_price"] = min(p["mae_price"], p["stop"]) if sign == 1 else max(p["mae_price"], p["stop"])
                     close(p["stop"], candle, "BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None else "STOP")
                 elif target_hit:
+                    partial_close(candle)
                     p["mfe_price"] = max(p["mfe_price"], p["target2"]) if sign == 1 else min(p["mfe_price"], p["target2"])
                     close(p["target2"], candle, "TARGET2")
                 else:
+                    first_hit = candle["high"] >= p["target1"] if sign == 1 else candle["low"] <= p["target1"]
+                    if first_hit:
+                        partial_close(candle)
                     p["mfe_price"] = max(p["mfe_price"], candle["high"]) if sign == 1 else min(p["mfe_price"], candle["low"])
                     p["mae_price"] = min(p["mae_price"], candle["low"]) if sign == 1 else max(p["mae_price"], candle["high"])
                     # The fill below uses the close, so measure age at the close.
