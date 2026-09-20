@@ -10,7 +10,7 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.16</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.17</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
@@ -57,17 +57,20 @@
 <button id="practiceDefaults" class="small">Use focused 15 coins</button>
 <div class="practice-options">
 <fieldset><legend>Timeframes to study</legend><div class="practice-intervals">
-<label class="check"><input id="practiceInterval5m" type="checkbox">5 minutes</label>
+<label class="check"><input id="practiceInterval1m" type="checkbox" checked>1 minute</label>
+<label class="check"><input id="practiceInterval4m" type="checkbox" checked>4 minutes</label>
+<label class="check"><input id="practiceInterval5m" type="checkbox" checked>5 minutes</label>
 <label class="check"><input id="practiceInterval15m" type="checkbox" checked>15 minutes</label>
+<label class="check"><input id="practiceInterval30m" type="checkbox" checked>30 minutes</label>
 <label class="check"><input id="practiceInterval1h" type="checkbox" checked>1 hour</label>
-<label class="check"><input id="practiceInterval6h" type="checkbox" checked>6 hours</label>
+<label class="check"><input id="practiceInterval4h" type="checkbox" checked>4 hours</label>
 </div></fieldset>
 <label>History to request<select id="practiceHistory"><option value="365">1 year</option><option value="1095">3 years</option><option value="1825" selected>5 years</option><option value="2920">8 years</option></select></label>
 </div>
 <button id="practiceBtn" class="primary">Practice on real market history</button>
-<p class="footnote">Studies each coin and timeframe separately, using completed daily candles for broader trend context. Limits: 5-minute candles up to 1 year, 15-minute up to 5 years, hourly and 6-hour up to 8 years. Each result shows actual coverage; newer listings and missing candles reduce it. Larger studies can take hours. Completed work is saved; resume an interrupted study within 24 hours to reuse its learning checkpoints.</p>
+<p class="footnote">Studies each coin and timeframe separately, using completed daily candles for broader trend context. Practice-window limits: 1-minute up to 90 days; 4- and 5-minute up to 1 year; 15- and 30-minute up to 5 years; hourly and 4-hour up to 8 years. These processing limits do not delete older downloaded candle archives. Each result shows actual coverage; newer listings and missing candles reduce it. Larger studies can take hours. Completed work is saved; resume an interrupted study within 24 hours to reuse its learning checkpoints.</p>
 <p id="learningProgress" class="footnote" role="status"></p>
-<p class="footnote">Six-hour studies are research only. Only the 5-minute, 15-minute or hourly decision interval selected in Settings can qualify for forward trading. Results from other timeframes remain separate research. Each past decision sees only information available at that moment.</p>
+<p class="footnote">The decision interval selected in Settings can qualify for forward trading only after its own validation. Old six-hour reports remain available but are no longer selected by default. Results from other timeframes remain separate research. Each past decision sees only information available at that moment.</p>
 <div class="small-metrics learning-metrics"><div>Market hours covered<strong id="learningHours">0</strong></div><div>Historical training examples<strong id="learningExamples">0</strong></div><div>Final-test account trades<strong id="learningTestTrades">0</strong></div><div>Forward paper trades learned from<strong id="learningTrades">0</strong></div><div>Markets ready to trade<strong id="learningMarkets">0</strong></div></div>
 <div class="learning-settings"><label>Coinbase fee per side (%) <input id="autoFee" type="number" min="0" max="2" step="0.001" value="0.4"></label><p class="footnote">Use your actual fee. The initial 0.4% is an assumption. Hours are summed across coins; overlapping timeframes count once. Practice examples can overlap and are not independent trades. Real orders stay off until you separately configure and enable Coinbase.</p></div>
 <p class="muted">The learner compares outcomes at similar trading costs and keeps practicing skipped opportunities as historical candles close. Account results count only selected trades. Reused research and confirmation on later prices are shown separately.</p>
@@ -112,7 +115,7 @@
 <div id="researchResults"><p class="empty">No results yet. A valid outcome is that every strategy is rejected.</p></div>
 </section>
 <section id="markets" class="tab-panel" hidden>
-<article class="panel"><h2>Markets & decisions</h2><p class="muted">Fresh quotes and complete candles are required. Each market explains why it is waiting.</p><div class="table-wrap"><table><thead><tr><th>Market</th><th>Price</th><th>Quote age</th><th>Candles<br>5m / 15m / 1h / 4h</th><th>Context</th><th>Latest decision</th></tr></thead><tbody id="marketsTable"></tbody></table></div></article>
+<article class="panel"><h2>Markets & decisions</h2><p class="muted">Fresh quotes and complete candles are required. Each market explains why it is waiting.</p><div class="table-wrap"><table><thead><tr><th>Market</th><th>Price</th><th>Quote age</th><th>Candles<br>1m / 4m / 5m / 15m / 30m / 1h / 4h</th><th>Context</th><th>Latest decision</th></tr></thead><tbody id="marketsTable"></tbody></table></div></article>
 </section>
 <section id="journal" class="tab-panel" hidden>
 <article class="panel"><div class="panel-title"><div><p class="eyebrow">EVERY FILL, EVERY COST</p><h2>Paper trade journal</h2></div><button id="tradeExport">Download all trades</button></div><div class="table-wrap"><table><thead><tr><th>Opened / market</th><th>Strategy</th><th>Status</th><th>Net P&amp;L</th><th>Net R</th><th>Exit reason</th></tr></thead><tbody id="journalTable"></tbody></table></div><p class="footnote">The table shows the latest 100 trades. CSV includes the full journal. No real exchange orders are submitted.</p></article>
@@ -136,7 +139,7 @@
 <section id="settings" class="tab-panel" hidden>
 <article class="panel"><p class="eyebrow">COSTS COME FIRST</p><h2>Research &amp; paper account settings</h2><p class="muted">The default fee is an assumption, not your confirmed exchange tier. Changing the interval, risk size, position cap, fee, or slippage requires matching historical research again.</p><form id="settingsForm">
 <div class="form-grid">
-<label>Decision interval<select name="decision_interval"><option value="5m">5 minutes</option><option value="15m">15 minutes</option><option value="1h">1 hour</option></select></label>
+<label>Decision interval<select name="decision_interval"><option value="1m">1 minute</option><option value="4m">4 minutes</option><option value="5m">5 minutes</option><option value="15m">15 minutes</option><option value="30m">30 minutes</option><option value="1h">1 hour</option><option value="4h">4 hours</option></select></label>
 <label>Fee per side (%)<input name="fee_rate" type="number" min="0" max="2" step="0.001" required></label>
 <label>Slippage per fill (%)<input name="slippage_rate" type="number" min="0" max="1" step="0.001" required></label>
 <label>Risk per trade (%)<input name="risk_per_trade" type="number" min="0.1" max="2" step="0.05" required></label>

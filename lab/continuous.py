@@ -16,12 +16,13 @@ from .engine import build_feature_cache, evaluate_signal
 from .strategies import profit_candidates
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
 from .daily_context import independent_daily_context, DAY_MS
-from .study_plan import DEFAULT_PRACTICE_SYMBOLS, FOCUS_UNIVERSE
+from .study_plan import DEFAULT_PRACTICE_SYMBOLS, FOCUS_UNIVERSE, ACTIVE_INTERVALS
+from .data import INTERVAL_MS as ALL_INTERVAL_MS
 from .paper_store import (init_continuous_db, db_connect, load_state, log_activity,
                          recent_trades, activity_rows, memory_leaderboard)
 
-INTERVAL_MS = {"5m": 300000, "15m": 900000, "1h": 3600000, "4h": 14400000}
-MAX_BARS = {"5m": 600, "15m": 400, "1h": 1200, "4h": 300}
+INTERVAL_MS = {iv: ALL_INTERVAL_MS[iv] for iv in ACTIVE_INTERVALS}
+MAX_BARS = {"1m": 2400, "4m": 600, "5m": 600, "15m": 800, "30m": 400, "1h": 1200, "4h": 300}
 DEFAULTS = {
     "starting_balance": 500.0, "risk_per_trade": .0075, "max_positions": 5,
     "max_total_risk": .03, "max_notional_fraction": .30, "max_gross_exposure": 1.0,
@@ -49,23 +50,15 @@ def clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
 
-def resample(rows, bucket_ms, max_rows=300, asof_ms=None):
-    """Only emit complete 4-hour buckets containing all four hourly candles."""
+def resample(rows, bucket_ms, max_rows=300, asof_ms=None, source_step=3600000):
+    """Emit only fully observed, closed UTC buckets; never bridge a gap."""
+    from .data_repair import aggregate_complete
+    if not rows:
+        return []
     asof_ms = now_ms() if asof_ms is None else asof_ms
-    groups = {}
-    for row in sorted({r["ts"]: r for r in rows}.values(), key=lambda r: r["ts"]):
-        bucket = row["ts"] // bucket_ms * bucket_ms
-        groups.setdefault(bucket, []).append(row)
-    result = []
-    for bucket, group in sorted(groups.items()):
-        expected = list(range(bucket, bucket + bucket_ms, INTERVAL_MS["1h"]))
-        if bucket + bucket_ms > asof_ms or [r["ts"] for r in group] != expected:
-            continue
-        result.append({"ts": bucket, "open": group[0]["open"], "close": group[-1]["close"],
-                       "high": max(r["high"] for r in group), "low": min(r["low"] for r in group),
-                       "volume": sum(r.get("volume", 0) for r in group),
-                       "quote_volume": sum(r.get("quote_volume", 0) for r in group), "trades": 0})
-    return result[-max_rows:]
+    start = min(r["ts"] for r in rows)//bucket_ms*bucket_ms
+    end = min(asof_ms, max(r["ts"] for r in rows)+source_step)//bucket_ms*bucket_ms
+    return aggregate_complete(rows, source_step, bucket_ms, start, max(start,end))[-max_rows:]
 
 
 def estimate_memory(global_row, coin_row):
@@ -218,8 +211,8 @@ class ContinuousLearner:
             candidate = dict(self.settings)
             for key, value in patch.items():
                 if key == "decision_interval":
-                    if value not in ("5m", "15m", "1h"):
-                        raise ValueError("Use a 5m, 15m, or 1h decision interval")
+                    if value not in ACTIVE_INTERVALS:
+                        raise ValueError("Use a 1m, 4m, 5m, 15m, 30m, 1h or 4h decision interval")
                     candidate[key] = value
                     continue
                 if key in ("allow_shorts", "entries_paused", "validated_only", "learning_enabled"):
@@ -351,8 +344,9 @@ class ContinuousLearner:
         now = now_ms()
         with self.lock:
             existing = copy.deepcopy(self.market[pid]["bars"])
-        existing.setdefault("1d", [])
-        for iv in ("5m", "15m", "1h", "1d"):
+        for iv in (*ACTIVE_INTERVALS, "1d"):
+            existing.setdefault(iv, [])
+        for iv in ("1m", "5m", "15m", "1h", "1d"):
             if self.stop_event.is_set():
                 return
             step = DAY_MS if iv == "1d" else INTERVAL_MS[iv]
@@ -361,7 +355,7 @@ class ContinuousLearner:
             if existing[iv] and existing[iv][-1]["ts"] >= expected:
                 continue
             if bootstrap or not existing[iv]:
-                count = 60 if iv == "1d" else (1040 if iv == "1h" else 300)
+                count = {"1d":60, "1h":1040, "1m":1200, "15m":600}.get(iv,300)
             else:
                 count = min(capacity, max(3, (expected - existing[iv][-1]["ts"]) // step + 3))
             try:
@@ -372,7 +366,9 @@ class ContinuousLearner:
                 with self.lock:
                     self.market[pid]["last_decision"] = f"{iv} history unavailable: {exc}"
                 log_activity(self.db_path, "warning", f"{pid}: {iv} candle refresh failed", {"error": str(exc)})
-        existing["4h"] = resample(existing["1h"], INTERVAL_MS["4h"], asof_ms=now)
+        for target, source in (("4m", "1m"), ("30m", "15m"), ("4h", "1h")):
+            existing[target] = resample(existing[source], INTERVAL_MS[target],
+                max_rows=MAX_BARS[target], asof_ms=now, source_step=INTERVAL_MS[source])
         with self.lock:
             self.market[pid]["bars"] = existing
             self.market[pid]["last_sync_ts"] = now
@@ -434,7 +430,7 @@ class ContinuousLearner:
             last_bucket, last_save = None, 0
             while not self.stop_event.wait(1):
                 self._manage_time_exits()
-                bucket = (now_ms() - 4000) // INTERVAL_MS["5m"]
+                bucket = (now_ms() - 4000) // INTERVAL_MS["1m"]
                 if bucket != last_bucket:
                     self._sync_bitcoin_context()
                     for pid in list(self.product_ids):
@@ -483,7 +479,7 @@ class ContinuousLearner:
 
     def _required_signal_intervals(self):
         return ((self.settings["decision_interval"],) if self.settings.get("learning_enabled")
-                else tuple(INTERVAL_MS))
+                else tuple(dict.fromkeys((self.settings["decision_interval"], "5m", "15m", "1h", "4h"))))
 
     def _latest_feature(self, pid, iv):
         with self.lock:
@@ -1026,6 +1022,13 @@ class ContinuousLearner:
                     "quote_age_seconds": round((now_ms() - tick["ts"]) / 1000, 1) if tick.get("ts") else None,
                     "price_stale": self._fresh_quote(pid) is None, "readiness": m["readiness"],
                     "bar_counts": {iv: len(rows) for iv, rows in m["bars"].items()},
+                    "candle_coverage": {iv: {
+                        "internal_missing": sum(max(0, (b["ts"]-a["ts"])//INTERVAL_MS[iv]-1)
+                                                for a,b in zip(rows,rows[1:])),
+                        "zero_volume": sum(r["volume"] == 0 for r in rows),
+                        "latest_close_ts": rows[-1]["ts"]+INTERVAL_MS[iv] if rows else None,
+                        "scope": "Rolling runtime window; not the full historical archive"}
+                        for iv,rows in m["bars"].items() if iv in INTERVAL_MS},
                     "last_decision": m["last_decision"], "rejections": dict(m["rejections"])})
             p["unrealized_pnl"] = sum(x["unrealized_pnl"] for x in positions)
             p["equity"] = p["balance"] + p["unrealized_pnl"]

@@ -70,6 +70,23 @@ class CoinbaseClient:
 
     def candles(self, pid, interval="5m", limit=300, end_ms=None):
         """Paginate within the 300-bucket API limit; omit open candles."""
+        derived = {"4m": ("1m", 240000), "30m": ("15m", 1800000), "4h": ("1h", 14400000)}
+        if interval in derived:
+            from .data_repair import aggregate_complete
+            source, target_step = derived[interval]
+            source_step = GRANULARITY[source]*1000
+            cutoff = int(time.time()*1000 if end_ms is None else end_ms)//target_step*target_step
+            count = max(1, min(1500, int(limit)))
+            start = cutoff-count*target_step
+            found = {}
+            for left in range(start, cutoff, 1500*source_step):
+                right = min(left+1500*source_step, cutoff)
+                for row in self.candles(pid, source, (right-left)//source_step, right):
+                    if left <= row['ts'] < right:
+                        found[row['ts']] = row
+            return aggregate_complete(list(found.values()), source_step, target_step, start, cutoff)
+        if interval not in GRANULARITY:
+            raise ValueError("Unsupported Coinbase candle interval")
         step = GRANULARITY[interval]
         now = int(time.time() * 1000) if end_ms is None else int(end_ms)
         cutoff = now // (step * 1000) * step * 1000

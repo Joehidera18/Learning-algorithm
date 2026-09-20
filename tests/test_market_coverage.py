@@ -34,7 +34,7 @@ class StudyPlanTests(unittest.TestCase):
         self.assertEqual(normalize_plan(['15m', '1h', '15m'], 2920, '15m'), (['15m', '1h'], 2920))
         self.assertEqual(normalize_plan(None, 1825, '6h'), (['6h'], 1825))
         self.assertEqual([study_days(iv, 2920) for iv in ('5m','15m','1h','6h')], [365,1825,2920,2920])
-        for intervals, days in [([],1825), (['4h'],1825), ('1h',1825), (['1d'],1825),
+        for intervals, days in [([],1825), (['2h'],1825), ('1h',1825), (['1d'],1825),
                                 (['1h'],True), (['1h'],365.5), (['1h'],2921)]:
             with self.subTest(intervals=intervals, days=days), self.assertRaises(ValueError):
                 normalize_plan(intervals, days, '15m')
