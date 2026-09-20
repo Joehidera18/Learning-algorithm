@@ -4,6 +4,7 @@
   let token = sessionStorage.getItem("cryptoAccessToken") || "";
   let state = null, learningState = null, settingsLoaded = false, busy = false, noticeTimer = null;
   let practiceSelectionLoaded = false;
+  let forwardState = null;
   let learningDetail = null, learningDetailLoading = null, learningDetailRequest = 0;
   const practiceIntervals=["5m","15m","1h","6h"];
   const financeData = {paper:null,coinbase:null,history:null};
@@ -48,6 +49,10 @@
       finally {
         button.disabled = (id==="startBtn" || id==="practiceBtn") && learningState ?
           !!learningState.enabled || learningState.phase==="stopping" : false;
+        if (id==="forwardStart" || id==="forwardStop") {
+          const active=!!(forwardState && forwardState.studies.some(function(s){return s.status==='active';}));
+          button.disabled=id==="forwardStop" ? !active : active;
+        }
       }
     });
   }
@@ -105,6 +110,10 @@
     $("financeBreakEven").textContent=count(totals && totals.break_even_trades);
     $("financeRate").textContent=pct(totals && totals.win_rate);
     $("financeNote").textContent=note;
+    const audit=source==="paper" && saved && saved.value && saved.value.account_audit;
+    $("financeAudit").textContent=audit ? "Account reconciliation: "+audit.status+" · "+audit.checked_trades+
+      " fills checked · "+audit.unknown_trades+" with missing cost evidence · "+audit.problem_count+" discrepancies. "+audit.scope : "";
+    $("financeAudit").className="footnote"+(audit && audit.problem_count ? " negative" : "");
     $("financeUpdated").className="badge"+(saved && saved.failed ? " negative" : "");
     $("financeUpdated").textContent=saved && saved.failed ? (saved.at ? "Update failed · showing totals from "+new Date(saved.at).toLocaleTimeString() : "Totals unavailable · retrying") :
       saved && saved.at ? (totals ? "Updated " : "Unavailable · checked ")+new Date(saved.at).toLocaleTimeString() : "Loading totals…";
@@ -170,6 +179,32 @@
       return "<tr><td>" + escape(family(x.family)) + "</td><td>" + x.trades + '</td><td class="' + tone(x.net_pnl) + '">' + money(x.net_pnl) + "</td><td>" + num(x.expectancy_r) + "</td></tr>";
     }).join("") + "</tbody></table></div>" : '<p class="empty">No closed trades to summarize.</p>';
   }
+  function eventLink(url,label) {
+    return /^https:\/\/[^\s"'<>]+$/.test(url || "") ? '<a href="'+escape(url)+'" target="_blank" rel="noopener noreferrer">'+escape(label)+'</a>' : escape(label);
+  }
+  function eventItems(rows) {
+    return (rows || []).map(function(e) {
+      const schedule=e.status === 'scheduled' ? ' · scheduled '+(e.precision === 'day' ?
+        new Date(e.event_ts).toLocaleDateString('en-US',{timeZone:'America/New_York'})+' (date only)' : date(e.event_ts,true)) : '';
+      return '<div class="activity-row">'+eventLink(e.url,e.title)+'<small>'+escape(e.source)+
+        ' · '+escape(e.origin || 'Origin unspecified')+' · published '+escape(date(e.published_ts,true))+
+        ' · first observed '+escape(date(e.observed_ts,true))+escape(schedule)+'</small></div>';
+    }).join('');
+  }
+  function eventReview(review) {
+    if (!review) return '';
+    function snapshot(label,data,ts) {
+      const known=data || {}, coverage=known.coverage;
+      return '<h4>'+escape(label)+' · '+escape(date(ts,true))+'</h4><p>Source coverage '+
+        (coverage == null ? 'unknown' : pct(coverage*100))+'</p>'+eventItems((known.recent || []).concat(known.projects || [],known.upcoming || []));
+    }
+    const after=review.after_entry;
+    return '<details><summary>News known at this trade</summary>'+snapshot('Signal close',review.signal,review.signal_close_ts)+
+      snapshot('Entry decision · review only',review.entry,review.entry_ts)+
+      (after ? '<h4>Observed after entry · review only</h4><p>'+num(after.versions_observed,0)+' event versions'+
+        (after.truncated ? '; showing the most recent records' : '')+'.</p>'+eventItems(after.items) : '')+
+      '<p class="footnote">'+escape(review.scope || '')+'</p></details>';
+  }
   function renderJournal(rows) {
     $("journalTable").innerHTML = rows.length ? rows.map(function (t) {
       const review=t.trade_review;
@@ -178,8 +213,12 @@
         'R; realized '+num(t.result_r,3)+'R. An estimate is not a win probability.</p>' : '';
       const detail=review && review.outcome ? '<details><summary>At-close review</summary><p>'+escape(review.outcome.replace(/_/g," "))+
         '; fees '+num(review.fee_r,3)+'R; best observed net mark '+num(review.best_net_r,3)+'R; giveback '+num(review.giveback_r,3)+
-        'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p><p class="footnote">Observed quotes may not capture every price between updates.</p></details>' : '';
-      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+ "</td></tr>";
+        'R.</p><p>'+escape((review.findings || []).join(" · ").replace(/_/g," "))+'</p>'+
+        (review.questions || []).map(function(q){return '<p>'+escape(q)+'</p>';}).join('')+
+        '<p class="footnote">'+escape(review.interpretation || 'Observed quotes may not capture every price between updates.')+'</p></details>' : '';
+      const audit=t.execution_audit ? '<p class="footnote">Fill reconciliation: '+escape(t.execution_audit.status)+
+        '; fees '+money(t.execution_audit.fees_paid)+'; recomputed net '+money(t.execution_audit.expected_net_pnl)+'.</p>' : '';
+      return "<tr><td><b>" + escape(t.product_id) + "</b><small>" + escape(date(t.opened_at)) + "</small></td><td>" + escape(family(t.family)) + "</td><td>" + escape(t.status) + '</td><td class="' + tone(t.pnl) + '">' + money(t.pnl) + "</td><td>" + num(t.result_r) + "</td><td>" + escape(t.exit_reason) +detail+prediction+audit+eventReview(t.event_review)+ "</td></tr>";
     }).join("") : emptyRow(6,"No paper trades recorded.");
   }
   function rejectionSummary(counts) {
@@ -393,6 +432,13 @@
         return '<p><b>'+(key==='holdout' ? 'Ordinary costs' : 'Higher costs')+'</b></p><div class="table-wrap"><table><thead><tr><th>Entry conditions</th><th>Candles</th><th>Trades</th><th>Net result</th></tr></thead><tbody>'+
           Object.entries(regimes).map(function(pair) {const g=pair[1];return '<tr><td>'+escape(pair[0])+'</td><td>'+num(g.candles,0)+'</td><td>'+num(g.trades,0)+'</td><td>'+money(g.net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div>';
       }).join('')+'<p class="footnote">Regimes with no trades have no demonstrated trading edge. Each cost scenario has its own account path.</p></details>';
+    if (r.event_data) {
+      const events=r.event_data, groups=((r.holdout || {}).event_performance || {}).by_entry_context || {};
+      html+='<details><summary>News and scheduled-event context</summary><p>'+num(events.holdout_covered_candles,0)+' of '+num(events.holdout_candles,0)+' test candles have some recorded feed coverage; '+num(events.holdout_full_coverage_candles,0)+' have all configured sources.</p><p class="footnote">'+escape(events.rule || '')+'</p>';
+      if (Object.keys(groups).length) html+='<div class="table-wrap"><table><thead><tr><th>Context at entry</th><th>Completed trades</th><th>Net result</th></tr></thead><tbody>'+Object.entries(groups).map(function(pair) {return '<tr><td>'+escape(family(pair[0]))+'</td><td>'+num(pair[1].trades,0)+'</td><td>'+money(pair[1].net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div><p class="footnote">Groups overlap. These are associations, not proven causes.</p>';
+      if (r.event_comparison) html+='<p>Difference from separately trained price-context control: '+money(r.event_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.event_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
+      html+='</details>';
+    }
     if (failures.targets) {
       const names={little_follow_through:'Little follow-through',gave_back_gains:'Gave back gains',fees_erased_gain:'Fees erased a gain',near_break_even:'Near break-even',target_reached:'Reached target',time_exit:'Reached time limit'};
       html+='<details><summary>Learning specific failure patterns</summary><div class="table-wrap"><table><thead><tr><th>Outcome predicted before entry</th><th>Examples</th><th>Scored forecasts</th><th>Forecast error</th><th>Historical-frequency error</th></tr></thead><tbody>'+
@@ -574,23 +620,79 @@
       return '<article class="panel"><div class="panel-title"><h2>' + escape(x.symbol) + ' <span class="muted">' + escape(x.interval) + '</span></h2><span class="badge ' + (x.validated && !stale ? "positive" : "negative") + '">' + (stale ? "OLDER ENGINE · RERUN RESEARCH" : (x.validated ? "PASSES HISTORICAL GATE" : "NOT QUALIFIED")) + '</span></div><p class="muted">' + escape(x.selected_params ? family(x.selected_params.family) : "No strategy survived selection") + '</p><div class="result-metrics"><div>Holdout net return<strong class="' + tone(h.return_pct) + '">' + pct(h.return_pct) + '</strong></div><div>Holdout trades<strong>' + (h.trades == null ? "0" : h.trades) + '</strong></div><div>At 1.5× costs<strong>' + pct(stress.return_pct) + '</strong></div><div>Mean realized / day<strong>' + money(d.mean_net_per_day) + '</strong></div></div><p class="muted">Days reaching $10: ' + (d.days_at_least_10 || 0) + " / " + (d.calendar_days || 0) + " · Days reaching $15: " + (d.days_at_least_15 || 0) + " · Losing days: " + (d.losing_days || 0) + '</p><p class="footnote">Cash benchmark: 0% · Buy and hold after costs: ' + pct(x.buy_hold_return_pct) + " · Positive walk-forward windows: " + x.profitable_folds + "/3 · Historical mean R interval: " + num(ci.lower_r) + " to " + num(ci.upper_r) + '</p><ul class="result-reasons">' + x.rejection_reasons.map(function (reason) { return "<li>" + escape(reason) + "</li>"; }).join("") + '</ul>' + candidates + comparison + '<p class="footnote">' + escape(x.scope) + " " + escape(x.warning) + "</p></article>";
     }).join("");
   }
+  function renderEvents(data) {
+    const sources=data.sources || [];
+    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 15 minutes" : "Collection stopped");
+    $("eventsStart").disabled=!!data.running;
+    $("eventsStop").disabled=!data.running;
+    $("eventsCoverage").textContent=sources.filter(function(s){return s.healthy;}).length+" of "+sources.length+
+      " sources recently checked · "+num(data.versions,0)+" saved event versions. Missing feeds are unknown. Historical coverage starts when collection is first recorded.";
+    function entries(rows,upcoming) {
+      return rows.length ? rows.map(function(e) {
+        const when=upcoming && e.precision==='day' ? new Date(e.event_ts).toLocaleDateString('en-US',{timeZone:'America/New_York'})+' (date only)' : date(upcoming ? e.event_ts : e.published_ts,true);
+        return '<div class="activity-row">'+eventLink(e.url,e.title)+'<small>'+escape(when)+' · '+escape(e.category)+
+          ' · '+escape(e.source)+' · '+escape(e.origin || 'Origin unspecified')+
+          (upcoming ? ' · schedule may change' : ' · first observed '+escape(date(e.observed_ts,true)))+'</small></div>';
+      }).join('') : '<p class="empty">'+(upcoming ? 'No upcoming events recorded in this window.' : 'No recent announcements recorded. Check source coverage below.')+'</p>';
+    }
+    $("eventsRecent").innerHTML=entries(data.recent || [],false);
+    $("eventsUpcoming").innerHTML=entries(data.upcoming || [],true);
+    $("eventsProjects").innerHTML=entries(data.projects || [],false);
+    $("eventsCategories").textContent='Coverage by topic: '+Object.entries(data.category_coverage || {}).map(function(pair) {
+      return pair[0]+': '+(pair[1] == null ? 'no configured source' : pct(pair[1]*100));
+    }).join(' · ')+'. Coverage measures recent source checks, not completeness or truth of the news.';
+    $("eventsSources").innerHTML=sources.map(function(s) {
+      return '<div class="activity-row">'+eventLink(s.url,s.name)+'<small>'+escape(s.healthy ? 'Recently checked' : 'Unavailable or stale')+
+        ' · '+escape(date(s.last_poll_ts,true))+(s.error ? ' · '+escape(s.error) : '')+'</small></div>';
+    }).join('');
+    $("eventsScope").textContent=data.scope || '';
+  }
+  function renderForward(data) {
+    forwardState=data;
+    const studies=data.studies || [], active=studies.some(function(s){return s.status==='active';});
+    const reports=(learningState && learningState.results || []).filter(function(r){return !r.error && ['15m','1h'].includes(r.interval) && r.fingerprint;});
+    const selected=$('forwardModel').value;
+    const options='<option value="">Choose a completed model</option>'+reports.map(function(r){return '<option value="'+escape(r.fingerprint)+'">'+escape(r.symbol+' · '+r.interval)+'</option>';}).join('');
+    if ($('forwardModel').innerHTML!==options) {$('forwardModel').innerHTML=options;$('forwardModel').value=selected;}
+    $('forwardStatus').textContent=(data.registered_studies || 0)+' studies registered'+(active ? ' · collecting' : '');
+    $('forwardStart').disabled=active || !reports.length;
+    $('forwardStop').disabled=!active;
+    $('forwardExport').disabled=!studies.length;
+    $('forwardResults').innerHTML=studies.map(function(s,index){
+      const p=s.protocol || {}, r=s.result || {}, accounts=r.accounts || {};
+      return '<details'+(index===0 ? ' open' : '')+'><summary>'+escape(p.symbol+' · '+p.interval+' · '+s.status)+
+        '</summary><p>'+escape(date(p.start_ts,true)+' to '+date(p.end_ts,true))+'</p>'+
+        (s.last_error ? '<p class="negative">'+escape(s.last_error)+'</p>' : '')+
+        '<p>Completed candles: '+num(r.observed_execution_candles,0)+'; missing: '+num(r.missing_execution_candles,0)+
+        '. Last candle: '+escape(date(r.last_candle_close_ts,true))+'.</p>'+
+        '<div class="table-wrap"><table><thead><tr><th>Account</th><th>Closed trades</th><th>Realized net</th><th>Open net mark</th><th>Equity</th><th>Drawdown</th><th>Learning updates</th></tr></thead><tbody>'+
+        ['updating','frozen'].map(function(k){const a=accounts[k] || {}, m=a.metrics || {};return '<tr><td>'+k+'</td><td>'+num((a.closed || {}).closed_trades,0)+
+          '</td><td>'+money((a.closed || {}).net_pnl)+'</td><td>'+money(a.open_mark_pnl)+'</td><td>'+money(m.ending_balance)+
+          '</td><td>'+pct(m.max_drawdown_pct)+'</td><td>'+num(a.model_updates,0)+'</td></tr>';}).join('')+
+        '</tbody></table></div><p>Updating minus frozen equity: '+money(r.equity_pnl_difference)+'. Holding cash: $0.00 net.</p>'+
+        '<p class="footnote">'+escape(r.scope || 'Waiting for new completed prices. No trading outcome is known yet.')+'</p>'+
+        '<button data-forward-export="'+escape(s.id)+'">Download this study</button></details>';
+    }).join('') || '<p class="empty">No forward study registered yet.</p>';
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
     try {
       const responses = await Promise.allSettled([
         api("/api/continuous/status"), api("/api/continuous/analytics"),
-        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status")
+        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status")
       ]);
       const renderers = [renderState,renderAnalytics,renderJournal,function (rows) {
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
-      },renderResearch,renderLearning];
+      },renderResearch,renderLearning,renderEvents,renderForward];
       let firstError = null;
       responses.forEach(function (response,i) {
         if (response.status === "fulfilled") renderers[i](response.value);
         else {
           if (i===1) updateFinances("paper",null,true);
           if (i===5) updateFinances("history",null,true);
+          if (i===6) $("eventsStatus").textContent="Event status unavailable";
+          if (i===7) $("forwardStatus").textContent="Study update unavailable · displayed results may be stale";
           if (!firstError) firstError=response.reason;
         }
       });
@@ -603,6 +705,24 @@
       document.querySelectorAll("[data-tab]").forEach(function (b) { b.classList.toggle("active", b === button); });
       document.querySelectorAll(".tab-panel").forEach(function (panel) { panel.hidden = panel.id !== button.dataset.tab; });
     });
+  });
+  bind("eventsStart",async function () { await api("/api/events/start",{}); await refresh(); });
+  bind("eventsStop",async function () { await api("/api/events/stop",{}); await refresh(); });
+  bind("eventsExport",function () { return download("/api/events/export","market-events.json"); });
+  bind("forwardStart",async function () {
+    const report=(learningState && learningState.results || []).find(function(r){return r.fingerprint===$('forwardModel').value;});
+    if (!report) throw new Error('Choose a completed 15m or 1h model first.');
+    await api('/api/forward/start',{symbol:report.symbol,interval:report.interval,fingerprint:report.fingerprint});await refresh();
+  });
+  bind("forwardStop",async function () {await api('/api/forward/stop',{});await refresh();});
+  bind("forwardExport",function () {
+    const study=forwardState && forwardState.studies[0];
+    if (study) return download('/api/forward/export?id='+encodeURIComponent(study.id),'forward-study.json');
+  });
+  $('forwardResults').addEventListener('click',async function(event){
+    const button=event.target.closest('[data-forward-export]');if(!button)return;
+    try {await download('/api/forward/export?id='+encodeURIComponent(button.dataset.forwardExport),'forward-study.json');}
+    catch(e){notice(e.message,true);}
   });
   bind("startBtn",async function () {
     const input=$("autoFee");

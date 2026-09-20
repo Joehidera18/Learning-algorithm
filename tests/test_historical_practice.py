@@ -20,6 +20,9 @@ BASE = Path(__file__).resolve().parents[1]
 
 class HistoricalPracticeTests(unittest.TestCase):
     def setUp(self):
+        # Event collection has its own adapter tests; keep these replay tests offline.
+        event_start = patch("lab.event_store.EventCollector.start")
+        event_start.start(); self.addCleanup(event_start.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.service = Service(BASE, self.root/"test.sqlite3", self.root/"data")

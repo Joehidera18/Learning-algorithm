@@ -64,6 +64,20 @@ class ResearchBundleTests(unittest.TestCase):
         self.assertEqual(code,400)
         self.assertIn("no longer match",result["error"])
 
+    def test_event_archive_is_exact_even_after_collector_receives_new_events(self):
+        from lab.event_context import digest
+        from tests.test_market_events import snapshot, event, T
+        saved=snapshot([event()])
+        self.report.update(event_snapshot=saved,event_data={"data_sha256":digest(saved)})
+        collector=self.service.events
+        collector.store.record_poll("sec",T+1000,[event(observed=T+1000,identity="later")])
+        collector._reload()
+        code,data,_=self.get();self.assertEqual(code,200)
+        with zipfile.ZipFile(io.BytesIO(data)) as archive:
+            self.assertEqual(json.loads(archive.read("market-events.json")),saved)
+        self.report["event_snapshot"]["events"][0]["title"]="changed"
+        self.assertEqual(self.get()[0],400)
+
     def test_missing_data_and_path_traversal_are_rejected(self):
         for query in ({"symbol":"../BTC-USD"},{"interval":"../../secrets"},{"symbol":"BTC-USD\r\nX-Test: true"}):
             with self.subTest(query=query): self.assertEqual(self.get(**query)[0],400)

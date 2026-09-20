@@ -70,6 +70,34 @@ class PaperAccountTests(unittest.TestCase):
         self.assertGreater(recovered.cooldown_until[self.pid],time.time())
         self.assertEqual(recent_trades(self.db)[0]["status"],"CLOSED")
 
+    def test_paper_news_journal_keeps_signal_entry_and_later_observations_separate(self):
+        from lab.event_store import EventCollector
+        from lab.event_feeds import record
+        collector=EventCollector(self.db)
+        self.agent.events=collector
+        now=int(time.time()*1000)
+        def add(offset,identity):
+            ts=now+offset
+            e=record('sec',identity,identity,'https://example.org/'+identity,now-2000,ts)
+            collector.store.record_poll('sec',ts,[e]);collector._reload()
+        add(-1000,'signal-news');add(-100,'entry-news')
+        f={**self.f,'event_context':collector.context(self.pid,now-500)}
+        before=copy.deepcopy(f)
+        with patch('lab.continuous.now_ms',return_value=now):position=self.open(f=f)
+        self.assertIsNotNone(position)
+        entry=recent_trades(self.db)[0]['event_review']
+        self.assertEqual(len(entry['signal']['recent']),1)
+        self.assertEqual(len(entry['entry']['recent']),2)
+        recovered=ContinuousLearner(self.db,self.agent.data_dir)
+        self.assertEqual(recovered.open_positions[self.pid]['decision']['event_review'],entry)
+        add(100,'during-position');add(300,'after-close')
+        self.quote(ts=now+199)
+        with patch('lab.continuous.now_ms',return_value=now+200):self.agent.close_manual(self.pid)
+        final=recent_trades(self.db)[0]['event_review']
+        self.assertEqual(final['entry'],entry['entry'])
+        self.assertEqual([e['title'] for e in final['after_entry']['items']],['during-position'])
+        self.assertEqual(f,before)
+
     def test_fees_and_slippage_are_frozen_for_open_trades(self):
         p = self.open()
         self.agent.configure({"fee_rate":.02,"slippage_rate":.01})
@@ -78,6 +106,31 @@ class PaperAccountTests(unittest.TestCase):
         exit_price = 101.99*(1-p["slippage_rate"])
         expected = ((exit_price-p["entry"]) - (exit_price+p["entry"])*p["fee_rate"])*p["qty"]
         self.assertAlmostEqual(result["pnl"],expected)
+
+    def test_exact_break_even_is_not_a_loss_and_survives_restart(self):
+        self.agent.configure({"fee_rate":0.,"slippage_rate":0.})
+        position=self.open()
+        self.agent._close_position(self.pid,position["entry"],int(time.time()*1000),"MANUAL")
+        for agent in (self.agent,ContinuousLearner(self.db,self.agent.data_dir)):
+            p=agent.status()["portfolio"]
+            self.assertEqual((p["wins"],p["losses"],p["break_even_trades"]),(0,0,1))
+            self.assertEqual(p["win_rate"],0)
+            self.assertEqual(agent.analytics()["account_audit"]["status"],"reconciled")
+
+    def test_fill_audit_detects_corruption_and_keeps_committed_close_order(self):
+        one=self.open()
+        self.quote("ETH-USD");two=self.open("ETH-USD")
+        stamp=int(time.time()*1000)
+        self.agent._close_position("ETH-USD",101.,stamp,"MANUAL")
+        self.agent._close_position(self.pid,102.,stamp,"MANUAL")
+        self.assertEqual(self.agent.analytics()["account_audit"]["status"],"reconciled")
+        self.assertEqual(self.agent.analytics()["equity_curve"][-1]["balance"],self.agent.portfolio["balance"])
+        con=db_connect(self.db)
+        with con:con.execute("UPDATE paper_trades SET pnl=pnl+1 WHERE id=?",(one['trade_id'],))
+        con.close()
+        audit=self.agent.analytics()["account_audit"]
+        self.assertEqual(audit["status"],"mismatch")
+        self.assertIn("fill_profit",[p['check'] for p in audit['problems']])
 
     def test_no_duplicate_position_and_position_cap_is_real(self):
         self.agent.configure({"fee_rate":0,"slippage_rate":0})

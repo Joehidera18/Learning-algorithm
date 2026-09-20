@@ -15,6 +15,25 @@ FINDINGS = {"fees_erased_gain", "gave_back_gains", "little_follow_through",
 REVIEW_FIELDS = ("best_net_r", "worst_net_r", "giveback_r", "holding_hours")
 POST_EXIT_HOURS = (1, 4, 24)
 
+REVIEW_QUESTIONS = {
+    "fees_erased_gain":"Would the entry still have qualified using the observed spread and both fees? Test a larger required net reward on later trades.",
+    "gave_back_gains":"Did a repeatable exit signal appear before gains were surrendered? Compare a fixed exit rule on later complete account paths.",
+    "little_follow_through":"Was the entry extended or against the broader trend? Compare these entry conditions with both winners and losses.",
+    "loss_exceeded_plan":"Was there a price gap or stale quote? Check execution evidence before changing the strategy or increasing its stop distance.",
+    "entry_bar_stop":"Did entry spread, a gap, or a very small stop explain the early exit? OHLC cannot establish the exact intrabar sequence.",
+    "against_daily_trend":"Do comparable countertrend entries underperform after costs on later data? Include the profitable exceptions.",
+    "time_exit":"Was the planned holding period appropriate for this setup? Compare a predeclared alternative without selecting the best exit afterward.",
+}
+
+
+def review_questions(review):
+    questions = [REVIEW_QUESTIONS[f] for f in review.get("findings",[]) if f in REVIEW_QUESTIONS]
+    if review.get("outcome") == "near_break_even":
+        questions.insert(0,"How much movement did costs consume, and was there a prior positive net mark? Keep the actual small gain or loss as the learning reward.")
+    if review.get("best_net_r") is None:
+        questions.append("The intervening price path is unavailable. Collect more observations before drawing an entry or exit conclusion.")
+    return questions[:4]
+
 
 def outcome_band(net_r, reason=""):
     if reason == "END":
@@ -75,6 +94,8 @@ def close_review(trade):
     # This affects review selection only, never the training reward or evidence count.
     result["review_priority"] = (3 if result["outcome"] in ("near_break_even", "full_risk_loss")
         else 2 if net_r < 0 else 1)+sum(f in findings for f in ("fees_erased_gain", "gave_back_gains", "loss_exceeded_plan"))
+    result["questions"] = review_questions(result)
+    result["interpretation"] = "Observed findings suggest questions to test; they do not establish a cause or a profitable correction."
     return result
 
 

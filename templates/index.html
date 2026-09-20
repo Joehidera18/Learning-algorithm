@@ -10,7 +10,7 @@
 <body>
 <div class="shell">
 <header>
-  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.11</small></span></a>
+  <a class="brand" href="/" aria-label="CryptO home"><span class="brand-icon">C</span><span>CryptO<small>AUTOMATIC LEARNING · V11.14</small></span></a>
   <div class="top-actions"><span id="runtimeBadge" class="badge">Stopped</span><button id="startBtn" class="primary">Start learning &amp; paper trading</button><button id="pauseBtn">Pause entries</button><button id="stopBtn">Stop</button></div>
 </header>
 <div id="notice" class="notice" role="status" hidden></div>
@@ -26,6 +26,26 @@
 </div>
 <div class="small-metrics finance-outcomes"><div>Winning trades<strong id="financeWins">—</strong></div><div>Losing trades<strong id="financeLosses">—</strong></div><div>Break-even trades<strong id="financeBreakEven">—</strong></div><div>Win rate<strong id="financeRate">—</strong></div></div>
 <p id="financeNote" class="footnote">Historical tests, the paper account and the Coinbase bot each have their own totals.</p>
+<p id="financeAudit" class="footnote" role="status"></p>
+</section>
+<section class="panel" aria-labelledby="forwardHeading">
+<div class="panel-title"><h2 id="forwardHeading">Does continued learning help?</h2><span id="forwardStatus" class="badge" role="status">Loading…</span></div>
+<p class="muted">Compare an updating model with its frozen starting model over the next 30 days. Each gets the same new candles, costs and separate $500 simulated account.</p>
+<div class="finance-controls"><label>Saved model<select id="forwardModel"><option value="">Complete 15m or 1h practice first</option></select></label></div>
+<div class="top-actions"><button id="forwardStart">Begin 30-day study</button><button id="forwardStop">End study early</button><button id="forwardExport">Download latest study</button></div>
+<p class="footnote">This studies future candles; fills are simulated from OHLC. It does not place paper-account or Coinbase orders. The rules and end date stay fixed. Early stops and unsuccessful studies remain saved.</p>
+<div id="forwardResults"></div>
+</section>
+<section class="panel" aria-labelledby="eventsHeading">
+<div class="panel-title"><h2 id="eventsHeading">Market events</h2><span id="eventsStatus" class="badge" role="status">Loading…</span></div>
+<p class="muted">World and crypto reporting, official project updates, regulatory announcements and economic schedules.</p>
+<div class="top-actions"><button id="eventsStart">Start event collection</button><button id="eventsStop">Stop event collection</button><button id="eventsExport">Download event history</button></div>
+<p id="eventsCoverage" class="footnote"></p>
+<div class="event-columns"><div><h3>Recent announcements</h3><div id="eventsRecent"></div></div><div><h3>Coming in the next 7 days</h3><div id="eventsUpcoming"></div></div></div>
+<h3>Project publications · last 30 days</h3><div id="eventsProjects"></div>
+<p id="eventsCategories" class="footnote"></p>
+<details><summary>Sources and freshness</summary><div id="eventsSources"></div></details>
+<p id="eventsScope" class="footnote">Upcoming dates describe a schedule, not its outcome. News context can help test explanations; it does not prove why a price moved.</p>
 </section>
 <section class="panel learning-panel" aria-labelledby="learningHeading">
 <div class="panel-title"><h1 id="learningHeading">Your trading system</h1><span id="learningPhase" class="badge">Ready</span></div>
@@ -125,7 +145,7 @@
 <article class="panel"><h2>Account history</h2><p class="muted">Download a database backup to preserve settings, trades, research, and learned observations.</p><button id="backupBtn">Download database backup</button><hr><h3>Reset the paper account</h3><p class="muted">Close all paper positions before resetting. Reset returns the account to $500 and clears its journal; a database backup is created first.</p><label class="check"><input id="keepMemory" type="checkbox" checked> Keep learned observations and research</label><button id="resetBtn" class="danger">Reset paper account</button></article>
 </section>
 </main>
-<footer>CryptO Research Lab V11.11 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
+<footer>CryptO Research Lab V11.13 <span>Paper and Coinbase accounts are separate · Taxes and hosting costs excluded</span></footer>
 </div>
 </body>
 </html>

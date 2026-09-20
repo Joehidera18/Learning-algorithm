@@ -1,3 +1,29 @@
+# V11.14 registered studies and accounting — 20 September 2026 UTC
+
+- Register a fixed 30-day comparison of an updating model, its frozen seed and cash. Save the source, model, costs, dates, immutable candle/features and every attempt. Keep both $500 candle simulations separate from trading accounts.
+- Separate normally completed trades from open-position end marks; retain missing-data, source-change and early-stop records. Add dashboard controls, exact exports and a reproduction command.
+- Fix exact break-even counts and same-second closure ordering. Independently reconcile frozen fill costs, net P&L, R and the full paper-account balance, with explicit missing evidence on legacy rows.
+- Add testable entry/exit questions to loss and near-break-even reviews, while preserving actual net-return rewards and existing risk limits.
+- Add optional, paced Massive historical crypto downloads with provider manifests and gap reporting. Keep these datasets separate from Coinbase training and execution.
+- Engine V11.14/report 20 require fresh trading qualification; the numerical policy remains v17. All 372 Python tests, dashboard checks and local server startup/restart pass. The supplied XRP historical result remains a $12.75 loss; no prospective profit result exists yet. See [the guide](FORWARD_STUDY.md) and [verification](VERIFICATION.md).
+
+# V11.13 observed news and structure repairs — 20 September 2026 UTC
+
+- Expand to 14 sources with BBC World, Ethereum Foundation publications and Bitcoin/AVAX/DOT/XRP/SOL client releases. Fixed project asset tags, immutable GUID-based revisions and tracking-URL deduplication preserve source identity. Client releases do not imply network activation.
+- Add world/project counts and six topic coverage values: 15 event inputs, 47 total. Check reporting/incidents about every five minutes and other sources every fifteen, retaining failed-source coverage and retry intervals.
+- Keep separate paper-trade snapshots for the signal and actual entry; record after-entry revisions at closure without rewriting learning inputs. Display the journal evidence, project publications and topic coverage on the dashboard.
+- Update every retained FVG, remove filled/expired gaps, retire inverse gaps, consume structure breaks once per confirmed pivot, and align the relative-return helper by timestamp. These helpers remain outside simplified adaptive training.
+- Engine v11.13, policy v17, report 19 require fresh practice. The passing historical replay preserves the previous losing XRP result; news benefit remains unproven. See [verification](VERIFICATION.md).
+
+# V11.12 news and scheduled-event context — 20 September 2026 UTC
+
+- Collect selected Federal Reserve, SEC, BLS, FOMC, Coinbase-status and CoinDesk feeds outside the trading loop. Persist revisions and collection health, with explicit unavailable/stale states and a separate collector control.
+- Preserve publication, observation and event times; join only information available at the signal close. Respect Eastern daylight-saving time and date-only meeting schedules; preserve withdrawn/cancelled schedules without rewriting old decisions.
+- Add seven bounded event features, a separate price-only research control, event-context trade summaries and a main-screen events panel. Existing costs, risk limits, account separation and qualification rules remain.
+- Pin event archives for interrupted studies, hash them into cache/experiment identity and include exact events in data bundles and CLI replay.
+- The live smoke check recorded 450 versions from six available sources; Coinbase status timed out. Newly collected events correctly had zero coverage in the supplied 105,062-candle XRP replay. Its six primary trades still lost $12.749657; no new profit claim. See MARKET_EVENTS.md.
+- Engine v11.12, policy v16, report 18 require fresh practice. These are reviewable changes, not a deployment.
+
 # V11.11 historical learning speed — 19 September 2026 UTC
 
 - Move the simple-strategy import out of the per-candle rule evaluation. Skip unused streaming-practice funnel/mark calculations while preserving all account equity reporting, requested daily halts and causal learning callbacks.

@@ -18,8 +18,9 @@ from .exit_management import FIXED_EXIT, EXIT_POLICIES
 from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, correction,
     validate_buckets)
 from . import failure_predictions
+from .event_context import INPUT_NAMES as EVENT_INPUT_NAMES, vector as event_vector
 
-POLICY_VERSION = "online-net-r-v15-eligible-context"
+POLICY_VERSION = "online-net-r-v17-observed-news"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -31,7 +32,7 @@ FEATURE_NAMES = (
     "cost_r", "net_rr", "time_stop_hours", "upper_wick", "lower_wick", "rsi_change",
     "distance_to_resistance_atr", "distance_to_support_atr", "vwap_distance_atr",
     "atr_regime", "prior_compression", "bitcoin_context_ready", "bitcoin_momentum7",
-    "bitcoin_trend", "bitcoin_atr_pct", "relative_momentum7")
+    "bitcoin_trend", "bitcoin_atr_pct", "relative_momentum7") + EVENT_INPUT_NAMES
 DIMENSIONS = len(FEATURE_NAMES)
 
 
@@ -76,7 +77,7 @@ def feature_vector(f, params=None, fee_rate=0., slippage_rate=0.):
         bounded(f.get("market_context", {}).get("momentum7", 0)/.2),
         bounded(f.get("market_context", {}).get("trend", 0)),
         bounded(f.get("market_context", {}).get("atr_pct", 0)/.1, 0, 1),
-        bounded(f.get("market_context", {}).get("relative_momentum7", 0)/.2)]
+        bounded(f.get("market_context", {}).get("relative_momentum7", 0)/.2)] + event_vector(f.get("event_context"))
 
 
 def action_key(p):
@@ -133,7 +134,7 @@ class AdaptivePolicy:
     def __init__(self, state=None, max_notional_fraction=.30, learn=True,
                  fee_rate=0., slippage_rate=0., regime_adaptation=True, cost_filter=True,
                  legacy_candidates_only=False, failure_adaptation=True, exit_policy=FIXED_EXIT,
-                 recent_return_veto=True, forecast_correction=False, market_context_required=None):
+                 recent_return_veto=True, forecast_correction=False, market_context_required=None, event_context_enabled=None):
         if exit_policy not in EXIT_POLICIES:
             raise ValueError("Unknown exit policy")
         if state is not None and state.get("exit_policy", FIXED_EXIT) != exit_policy:
@@ -162,12 +163,18 @@ class AdaptivePolicy:
             "version": POLICY_VERSION, "models": {}, "observations": 0, "last_label_ts": 0,
             "exit_policy":exit_policy, "selection_rule":self.selection_rule,
             "forecast_correction":self.forecast_correction,
-            "market_context_required":bool(market_context_required)}
+            "market_context_required":bool(market_context_required),
+            "event_context_enabled":bool(event_context_enabled)}
         if (market_context_required is not None and
                 self.state.get("market_context_required", False) != market_context_required):
             raise ValueError("Learning models with different Bitcoin context requirements cannot be mixed")
         if type(self.state.get("market_context_required", False)) is not bool:
             raise ValueError("Invalid Bitcoin context requirement")
+        if (event_context_enabled is not None and
+                self.state.get("event_context_enabled",False) != event_context_enabled):
+            raise ValueError("Learning models with different event inputs cannot be mixed")
+        if type(self.state.get("event_context_enabled",False)) is not bool:
+            raise ValueError("Invalid event context mode")
         allowed = {action_key(p) for p in self.candidates}
         self._allowed_actions = frozenset(allowed)
         if not set(self.state["models"]).issubset(allowed):
@@ -360,6 +367,9 @@ class AdaptivePolicy:
         self.state["last_label_ts"] = int(available_ts)
 
     def opportunities(self, f):
+        # A price-only model cannot silently begin using untested event inputs.
+        if not self.state.get("event_context_enabled") and f.get("event_context"):
+            f = {**f, "event_context":None}
         result = []
         candidates = [p for p in self.candidates
                       if not self.legacy_candidates_only or p.get("atr_timeframe") != "daily"]

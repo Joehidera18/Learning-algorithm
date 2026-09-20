@@ -63,6 +63,8 @@ def main():
                         assert settings['fee_rate'] == .003
                         status = json.loads(request('/api/learning/status')[1])
                         assert not status['enabled'] and not status['paper_running']
+                        forward = json.loads(request('/api/forward/status')[1])
+                        assert not forward['running'] and forward['registered_studies'] == 0
                         checks.append('settings survive restart; runners remain stopped')
                     else:
                         for path in ('/','/static/app.js','/static/coinbase.js','/static/style.css'):
@@ -71,6 +73,15 @@ def main():
                         checks.append('dashboard, assets and public health served by real Gunicorn')
                         assert request('/api/learning/status', auth=False)[0] == 401
                         assert request('/api/learning/status')[0] == 200
+                        assert request('/api/forward/status', auth=False)[0] == 401
+                        forward = json.loads(request('/api/forward/status')[1])
+                        assert forward['registered_studies'] == 0 and not forward['running']
+                        assert request('/api/forward/start', {'start_ts':0})[0] == 400
+                        assert request('/api/forward/export?id=missing')[0] == 400
+                        assert request('/api/forward/stop', {})[0] == 200
+                        audit = json.loads(request('/api/continuous/analytics')[1])['account_audit']
+                        assert audit['status'] == 'reconciled' and audit['checked_trades'] == 0
+                        checks.append('forward endpoints authenticate, reject invalid inputs and stay idle; empty ledger reconciles')
                         checks.append('private API requires access token')
                         assert request('/api/learning/practice', {'intervals':[]})[0] == 400
                         assert request('/api/continuous/settings', {'decision_interval':'6h'})[0] == 400

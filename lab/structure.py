@@ -2,6 +2,29 @@
 import math
 from datetime import datetime, timezone
 
+# Explicit, fixed lifetime; this is a state definition, not an optimized horizon.
+FVG_MAX_AGE_BARS = 240
+
+
+def _advance_gaps(gaps, row, index, bullish):
+    retained = []
+    for gap in gaps:
+        if index-gap['created'] > FVG_MAX_AGE_BARS:
+            continue
+        if gap['inverted']:
+            # An inverted bullish gap is resistance; the opposite is support.
+            if (row['close'] >= gap['hi'] if bullish else row['close'] <= gap['lo']):
+                continue
+        elif index > gap['created']:
+            crossed = row['close'] < gap['lo'] if bullish else row['close'] > gap['hi']
+            filled = row['low'] <= gap['lo'] if bullish else row['high'] >= gap['hi']
+            if crossed:
+                gap.update(active=False, inverted=True)
+            elif filled:
+                continue
+        retained.append(gap)
+    return retained
+
 def _safe(v, default=0.0):
     try:
         x=float(v)
@@ -43,6 +66,7 @@ def build_structure_features(rows, atr_values):
     recent_swing_highs=[]
     recent_swing_lows=[]
     structure="NEUTRAL"
+    broken_high = broken_low = None
 
     bull_fvgs=[]
     bear_fvgs=[]
@@ -85,24 +109,20 @@ def build_structure_features(rows, atr_values):
             if rows[i]["high"]<rows[i-2]["low"]:
                 bear_fvgs.append({"lo":rows[i]["high"],"hi":rows[i-2]["low"],"created":i,"active":True,"inverted":False})
 
-        for g in bull_fvgs[-25:]:
-            if g["active"] and i>g["created"] and r["low"]<=g["hi"]:
-                if r["close"]<g["lo"]:
-                    g["active"]=False;g["inverted"]=True
-                elif r["low"]<=g["lo"]:
-                    g["active"]=False
-        for g in bear_fvgs[-25:]:
-            if g["active"] and i>g["created"] and r["high"]>=g["lo"]:
-                if r["close"]>g["hi"]:
-                    g["active"]=False;g["inverted"]=True
-                elif r["high"]>=g["hi"]:
-                    g["active"]=False
+        # Every retained gap is updated. Expired/filled/invalidated gaps cannot
+        # reappear from an older part of an ever-growing list.
+        bull_fvgs = _advance_gaps(bull_fvgs, r, i, True)
+        bear_fvgs = _advance_gaps(bear_fvgs, r, i, False)
 
         prior_hi=recent_swing_highs[-1][1] if recent_swing_highs else None
         prior_lo=recent_swing_lows[-1][1] if recent_swing_lows else None
 
-        bos_up=bool(prior_hi is not None and r["close"]>prior_hi+.05*atr)
-        bos_down=bool(prior_lo is not None and r["close"]<prior_lo-.05*atr)
+        high_id=recent_swing_highs[-1][0] if recent_swing_highs else None
+        low_id=recent_swing_lows[-1][0] if recent_swing_lows else None
+        bos_up=bool(prior_hi is not None and high_id != broken_high and r["close"]>prior_hi+.05*atr)
+        bos_down=bool(prior_lo is not None and low_id != broken_low and r["close"]<prior_lo-.05*atr)
+        if bos_up:broken_high=high_id
+        if bos_down:broken_low=low_id
         prior_structure=structure
         choch_up=bool(prior_structure=="BEAR" and bos_up)
         choch_down=bool(prior_structure=="BULL" and bos_down)
@@ -124,7 +144,8 @@ def build_structure_features(rows, atr_values):
             recent_swing_lows.append((p,rows[p]["low"]))
             recent_swing_lows=recent_swing_lows[-8:]
 
-        if len(recent_swing_highs)>=2 and len(recent_swing_lows)>=2:
+        if (not (bos_up or bos_down) and (swing_hi[i] or swing_lo[i]) and
+                len(recent_swing_highs)>=2 and len(recent_swing_lows)>=2):
             h1,h2=recent_swing_highs[-2][1],recent_swing_highs[-1][1]
             l1,l2=recent_swing_lows[-2][1],recent_swing_lows[-1][1]
             if h2>h1 and l2>l1: structure="BULL"

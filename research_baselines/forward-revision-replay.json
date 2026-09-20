@@ -1,0 +1,38 @@
+{
+  "source_code_sha256": "8b23909cb69f5e1565db5e511c583dacc768ac5dba3d5a0c4f770bcdcbb5f0d0",
+  "symbol": "XRP-USD",
+  "candles": 105062,
+  "data_sha256": "1ea191a7f767c4e39f8a0801a563d091ebcf0861a053363e018c8a107067d236",
+  "prior_record": "observed-news-replay.json",
+  "matching_prior_account_metrics": true,
+  "comparisons": {
+    "holdout": {
+      "trades": 6,
+      "net_pnl": -12.749657329177012,
+      "gross_pnl": -8.187137461096537,
+      "fees_paid": 4.562519868080525,
+      "win_rate": 16.666666666666664,
+      "max_drawdown_pct": 3.5110542924745385
+    },
+    "holdout_stressed": {
+      "trades": 0,
+      "net_pnl": 0.0,
+      "gross_pnl": 0,
+      "fees_paid": 0,
+      "win_rate": null,
+      "max_drawdown_pct": 0
+    },
+    "frozen_holdout": {
+      "trades": 3,
+      "net_pnl": 8.3292711419316,
+      "gross_pnl": 10.865555320588141,
+      "fees_paid": 2.5362841786565222,
+      "win_rate": 66.66666666666666,
+      "max_drawdown_pct": 1.0930624484919462
+    }
+  },
+  "qualified": false,
+  "observations": 13832,
+  "runtime_seconds": 30.005464554000355,
+  "scope": "Previously reviewed historical prices. This verifies unchanged account calculations; no new profitability or forward-performance claim."
+}

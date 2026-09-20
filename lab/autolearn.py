@@ -98,7 +98,7 @@ class AutoLearner:
             raise ValueError("This study changed; refresh its summary before opening the review")
         full = (load_state(self.db_path, "learning_result_"+report["fingerprint"], report)
             if report.get("fingerprint") else report)
-        result = copy.deepcopy({k:v for k,v in full.items() if k not in ("model","holdout_trades")})
+        result = copy.deepcopy({k:v for k,v in full.items() if k not in ("model","holdout_trades","event_snapshot")})
         result["trade_finances"] = self._report_finances(full)
         result["report_summary"] = False
         return result
@@ -194,19 +194,34 @@ class AutoLearner:
             message="Stopping learning; completed work is saved." if stopping else "Automatic learning stopped. Models are saved.")
 
     def _fingerprint(self, rows, symbol, settings, reviewed_through_ts=None, daily_rows=None, history_days=None,
-                     bitcoin_rows=None):
+                     bitcoin_rows=None, event_snapshot=None):
         from .evaluation import dataset_digest
+        from .event_context import digest as event_digest
         digest = hashlib.sha256(json.dumps({"symbol":symbol,"engine":ENGINE_VERSION,
             "policy":POLICY_VERSION, "report_version":LEARNING_REPORT_VERSION,
             "reviewed_through_ts":reviewed_boundary(symbol, reviewed_through_ts),
             "daily_data_sha256":dataset_digest(daily_rows) if daily_rows is not None else None,
             "bitcoin_data_sha256":dataset_digest(bitcoin_rows) if bitcoin_rows is not None else None,
+            "events_sha256":event_digest(event_snapshot) if event_snapshot is not None else None,
             "requested_history_days":history_days,
             "costs":cost_signature(settings)}, sort_keys=True).encode())
         for row in rows:
             digest.update(json.dumps(row,sort_keys=True,separators=(",",":")).encode())
             digest.update(b"\n")
         return digest.hexdigest()
+
+    def _pin_events(self, job, snapshot):
+        from .event_context import digest as event_digest, validate_snapshot
+        if "event_snapshot_key" not in job:
+            key = "learning_events_"+event_digest(snapshot) if snapshot is not None else None
+            if key:
+                save_state(self.db_path,key,snapshot)
+            job["event_snapshot_key"] = key
+        key = job["event_snapshot_key"]
+        pinned = load_state(self.db_path,key) if key else None
+        if key and (pinned is None or key != "learning_events_"+event_digest(validate_snapshot(pinned))):
+            raise ValueError("The study's pinned event archive is missing or changed")
+        return pinned
 
     def _install(self, result, fingerprint):
         # Secondary-timeframe research must never replace or remove the profile
@@ -280,6 +295,10 @@ class AutoLearner:
         queue_set = set(queue)
         completed = set()
         bitcoin_cache = {}
+        collector = getattr(self.agent,"events",None)
+        event_snapshot = collector.snapshot() if collector else None
+        if event_snapshot and not any(p["ok"] for p in event_snapshot["polls"]):
+            event_snapshot = None
         def publish():
             self._update(results=[updated[k] for k in queue if k in updated]+
                 [r for k,r in updated.items() if k not in queue_set],
@@ -314,6 +333,8 @@ class AutoLearner:
             job = self._job(symbol, settings, history_days)
             trial_key = None
             try:
+                job_events = self._pin_events(job,event_snapshot)
+                save_state(self.db_path,self._job_key(symbol,interval),job)
                 product = catalog.get(symbol) if catalog is not None else None
                 if catalog is not None and (not product or product.get("quote_currency") != "USD"
                         or product.get("base_currency") in STABLE_BASES
@@ -342,7 +363,7 @@ class AutoLearner:
                 elif benchmark_key not in bitcoin_cache:
                     bitcoin_cache[benchmark_key] = self.downloader.daily_history("BTC-USD", days, job["end_ms"])
                 bitcoin_rows, bitcoin_source = bitcoin_cache[benchmark_key]
-                fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows, history_days, bitcoin_rows)
+                fingerprint = self._fingerprint(rows, symbol, settings, boundary, daily_rows, history_days, bitcoin_rows, job_events)
                 if job.get("fingerprint") and job["fingerprint"] != fingerprint:
                     self._finish_job(symbol, job)
                 job["fingerprint"] = fingerprint
@@ -361,7 +382,7 @@ class AutoLearner:
                         "save":lambda index, value:save_state(self.db_path, prefix+str(index), value)}
                     result = learn_history(rows, symbol, settings, self._update, self.stop_event.is_set,
                         checkpoint=checkpoint, reviewed_through_ts=boundary, daily_rows=daily_rows,
-                        bitcoin_rows=bitcoin_rows)
+                        bitcoin_rows=bitcoin_rows, event_snapshot=job_events)
                 trial = load_state(self.db_path, trial_key, {})
                 save_state(self.db_path, trial_key, {**trial, "status":"completed",
                     "completed_at":int(time.time()), "manifest":result.get("experiment_registry"),
@@ -387,7 +408,7 @@ class AutoLearner:
                 if self.stop_event.is_set():
                     raise InterruptedError("Learning cancelled")
                 self._install(result, fingerprint)
-                report = {k:v for k,v in result.items() if k not in ("model","holdout_trades")}
+                report = {k:v for k,v in result.items() if k not in ("model","holdout_trades","event_snapshot")}
                 report.update(review_scope=scope, next_review_at=time.time()+(
                     REVIEW_SECONDS if result["validated"] else UNQUALIFIED_REVIEW_SECONDS))
                 results.append(report)

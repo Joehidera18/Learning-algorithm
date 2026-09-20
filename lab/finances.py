@@ -1,6 +1,90 @@
 """Display totals from completed trade ledgers; never used for trading decisions."""
 from decimal import Decimal, InvalidOperation
 import math
+import json
+
+
+def execution_audit(trade, costs):
+    """Recompute a single complete fill pair, independently of stored P&L.
+
+    Fill prices already contain slippage/spread. Subtract explicit fees once.
+    Older rows without frozen costs are unknown, never assumed to be free.
+    """
+    if not costs:
+        return {"status":"unavailable", "reason":"Frozen entry costs are missing"}
+    try:
+        def number(value):
+            if isinstance(value, bool):
+                raise ValueError("Boolean amount")
+            value = Decimal(str(value))
+            if not value.is_finite():
+                raise ValueError("Non-finite amount")
+            return value
+        entry, exit_price, qty, fee, stored, risk = map(number,
+            (trade["entry"], trade["exit"], trade["qty"], costs["fee_rate"], trade["pnl"], trade["risk_usd"]))
+        if min(entry, exit_price, qty, risk) <= 0 or not 0 <= fee <= 1:
+            raise ValueError("Invalid fill or fee")
+        if trade["direction"] not in ("LONG", "SHORT"):
+            raise ValueError("Unknown direction")
+        sign = 1 if trade["direction"] == "LONG" else -1
+        gross = (exit_price-entry)*qty*sign
+        fees = (entry+exit_price)*qty*fee
+        expected = gross-fees
+        difference = stored-expected
+        r_difference = number(trade["result_r"])-expected/risk
+        ok = abs(difference) <= Decimal("0.0000001") and abs(r_difference) <= Decimal("0.0000001")
+        result = {"status":"reconciled" if ok else "mismatch", "gross_pnl":float(gross),
+            "fees_paid":float(fees), "expected_net_pnl":float(expected),
+            "net_difference":float(difference), "r_difference":float(r_difference)}
+        if not all(math.isfinite(v) for v in result.values() if isinstance(v,float)):
+            raise ValueError("Amounts outside supported range")
+        return result
+    except (KeyError, TypeError, ValueError, InvalidOperation, ArithmeticError):
+        return {"status":"unavailable", "reason":"Incomplete or invalid fill evidence"}
+
+
+def ordered_paper_rows(rows):
+    """Use the commit sequence when closes share the same timestamp."""
+    decisions = {}
+    for row in rows:
+        try:
+            decision = json.loads(row.get("decision_json") or "{}")
+            if not isinstance(decision,dict):decision={}
+        except (ValueError, TypeError, AttributeError):
+            decision = {}
+        decisions[row["id"]] = decision
+    # Quotes share second-resolution journal timestamps. The explicit commit
+    # sequence prevents a later-opened, earlier-closed trade from being reordered.
+    ordered = sorted(rows,key=lambda r:("account_sequence" in decisions[r["id"]],
+        decisions[r["id"]].get("account_sequence",r["closed_at"]),r["id"]))
+    return ordered,decisions
+
+
+def paper_account_audit(rows, portfolio):
+    """Reconcile the entire closed journal, including its running balance."""
+    checked, unknown, problems = 0, 0, []
+    expected_balance = float(portfolio["starting_balance"])
+    rows,decisions=ordered_paper_rows(rows)
+    for row in rows:
+        decision=decisions[row["id"]]
+        costs=decision.get("execution_costs")
+        audit = execution_audit(row, costs)
+        checked += audit["status"] != "unavailable"
+        unknown += audit["status"] == "unavailable"
+        if audit["status"] == "mismatch":
+            problems.append({"trade_id":row["id"], "check":"fill_profit", **audit})
+        expected_balance += row["pnl"]
+        if "account_sequence" in decision and not math.isclose(expected_balance, row["balance_after"], rel_tol=0, abs_tol=1e-7):
+            problems.append({"trade_id":row["id"], "check":"running_balance"})
+    totals = closed_trade_totals(r["pnl"] for r in rows)
+    if (not math.isclose(expected_balance,portfolio["balance"],rel_tol=0,abs_tol=1e-7)
+            or not math.isclose(totals["net_pnl"],portfolio["realized_pnl"],rel_tol=0,abs_tol=1e-7)):
+        problems.append({"check":"account_balance"})
+    return {"status":"mismatch" if problems else "partial" if unknown else "reconciled",
+        "checked_trades":checked, "unknown_trades":unknown, "problem_count":len(problems),
+        "problems":problems[:20], "expected_balance":expected_balance,
+        "scope":"Fills already include spread and slippage. Fees are deducted once. "
+                "Legacy rows without frozen costs cannot pass the fill check. No balances are rewritten."}
 
 
 def closed_trade_totals(pnls):
