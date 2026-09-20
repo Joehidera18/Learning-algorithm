@@ -22,10 +22,35 @@ def affected_bars(old_minutes,recovered,minutes,start,end):
     return {r['ts']:r for r in aggregate_stream((selected[t] for t in sorted(selected)),minutes,start,end)}
 
 
+def verify_archive(path):
+    """Check the bytes in the completed ZIP before making it the final output."""
+    with zipfile.ZipFile(path) as archive:
+        manifest=json.loads(archive.read('manifest.json'))
+        for frame in manifest['timeframes']:
+            raw=archive.read(frame['file'])
+            if hashlib.sha256(raw).hexdigest()!=frame['sha256']:
+                raise ValueError('Output checksum mismatch: '+frame['file'])
+            count=0
+            with gzip.GzipFile(fileobj=io.BytesIO(raw)) as data:
+                if data.readline().decode().strip().split(',')!=FIELDS:
+                    raise ValueError('Unexpected output CSV header')
+                while block:=data.read(1024*1024):count+=block.count(b'\n')
+            if count!=frame['rows']:
+                raise ValueError('Output row count mismatch: '+frame['file'])
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('archive',type=Path);p.add_argument('--out',type=Path,required=True)
+    p.add_argument('--offline',action='store_true',help='Only reuse verified cached responses; make no network requests')
     args=p.parse_args();args.out.mkdir(parents=True,exist_ok=True)
     cache=CurlCache(args.out/'repair-requests');recovered={};sources=[];errors=[]
+    if args.offline:
+        original_get=cache.get
+        def cached_only(url,name):
+            if not (cache.root/name).exists() or not (cache.root/(name+'.metadata.json')).exists():
+                raise SourceError('Supplemental retry unavailable in offline mode')
+            return original_get(url,name)
+        cache.get=cached_only
     with zipfile.ZipFile(args.archive) as z:
         manifest=json.loads(z.read('manifest.json'))
         start,end=manifest['first_available_ts'],manifest['end_ts_exclusive']
@@ -85,9 +110,12 @@ def main():
         manifest['generated_at']=datetime.now(timezone.utc).isoformat()
         (args.out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
         (args.out/'README.txt').write_bytes(z.read('README.txt'))
-    final=args.out.parent/(manifest['coin']+'-complete-candle-data.zip')
-    with zipfile.ZipFile(final,'w',zipfile.ZIP_STORED) as z:
+    final=args.out.parent/(manifest['coin']+'-candle-history.zip')
+    temporary=final.with_name(final.name+'.partial')
+    with zipfile.ZipFile(temporary,'w',zipfile.ZIP_STORED) as z:
         for name in ['README.txt','manifest.json']+[r['file'] for r in reports]:z.write(args.out/name,name)
+    verify_archive(temporary)
+    temporary.replace(final)
     print(json.dumps({'coin':manifest['coin'],'recovered':manifest['supplemental_repair']['recovered_minutes'],
                       'remaining_missing':manifest['missing_minutes_after_repair'],'output':str(final)}),flush=True)
 

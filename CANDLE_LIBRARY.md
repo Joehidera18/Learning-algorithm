@@ -21,3 +21,7 @@ These Binance/USDT datasets are separate research inputs. They are not automatic
 More history and more timeframe choices are not evidence of profitable trading. Keep out-of-sample, costs, stress tests and prospective qualification gates in place.
 
 For a previously downloaded archive, `scripts/repair_candle_archive.py ARCHIVE.zip --out OUTPUT_DIRECTORY` retries its known gaps and rebuilds only affected higher-timeframe buckets. It preserves existing rows, rejects conflicts, records supplementary source provenance, and emits a new ZIP.
+
+Use `--offline` for supplementary archive repair when network access is unavailable. It reuses only cached responses with matching metadata and checksums, and records every unattempted request as unavailable. It does not reduce missing counts unless valid cached observations were recovered.
+
+The supplementary repair checks every compressed file's SHA-256, gzip integrity, CSV header and row count inside the completed ZIP before replacing the final archive. An incomplete output therefore cannot replace a previously completed archive.

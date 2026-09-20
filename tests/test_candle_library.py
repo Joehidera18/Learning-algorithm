@@ -14,6 +14,18 @@ def row(t):
 
 
 class CandleLibraryTests(unittest.TestCase):
+    def test_output_verification_rejects_truncated_gzip_even_with_matching_hash(self):
+        import hashlib
+        from scripts.repair_candle_archive import verify_archive
+        raw=gzip.compress((','.join(FIELDS)+'\n'+','.join(str(row(0)[k]) for k in FIELDS)+'\n').encode())[:-8]
+        frame=dict(file='candles.csv.gz',sha256=hashlib.sha256(raw).hexdigest(),rows=1)
+        with tempfile.TemporaryDirectory() as tmp:
+            archive=Path(tmp)/'truncated.zip'
+            with zipfile.ZipFile(archive,'w') as z:
+                z.writestr('manifest.json',json.dumps(dict(timeframes=[frame])))
+                z.writestr(frame['file'],raw)
+            with self.assertRaises(EOFError):verify_archive(archive)
+
     def test_archive_repair_preserves_old_rows_and_updates_all_frames(self):
         from scripts.repair_candle_archive import main
         con=sqlite3.connect(':memory:')
@@ -28,6 +40,14 @@ class CandleLibraryTests(unittest.TestCase):
             with zipfile.ZipFile(archive,'w') as z:
                 z.writestr('manifest.json',json.dumps(manifest));z.writestr('README.txt','fixture')
                 for f in frames:z.write(root/f['file'],f['file'])
+            # Offline recovery must never call a downloader on an absent checkpoint.
+            with patch('sys.argv',['repair',str(archive),'--out',str(root/'offline'),'--offline']), patch(
+                    'scripts.download_hbar_alternatives.subprocess.run') as network:
+                main()
+                network.assert_not_called()
+            offline=json.loads((root/'offline'/'manifest.json').read_text())
+            self.assertEqual(offline['missing_minutes_after_repair'],1)
+            self.assertEqual(offline['supplemental_repair']['recovered_minutes'],0)
             with patch('sys.argv',['repair',str(archive),'--out',str(root/'fixed')]), patch(
                     'scripts.repair_candle_archive.api',return_value=([row(120000)],{'source':'fixture'})):
                 main()
