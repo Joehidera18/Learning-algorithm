@@ -410,6 +410,8 @@
           '</td><td>'+num(c.adjusted_forecasts,0)+'</td><td>'+num(c.raw.rmse_r,3)+'R</td><td>'+num((c.selected || {}).rmse_r,3)+'R</td><td>'+num(c.corrected.rmse_r,3)+'R</td></tr>';}).join('')+
         '</tbody></table></div><p class="footnote">All errors use the same completed examples. Selected forecasts are the estimates used for decisions. The revised learner can lower an optimistic forecast after the first matching resolved outcome, with a small correction when evidence is sparse. Two-sided trial corrections do not control trading. Lower forecast error does not establish profitable trading.</p>';
       if (r.forecast_calibration) html+='<p class="footnote">'+escape(r.forecast_calibration.rule)+' '+escape(r.forecast_calibration.scope || '')+'</p>';
+      if (r.forecast_response) html+='<p><strong>Forecast response learning:</strong> '+num(r.forecast_response.ready_candidates,0)+
+        ' ready candidates from '+num(r.forecast_response.scored_outcomes,0)+' resolved eligible forecasts.</p><p class="footnote">'+escape(r.forecast_response.rule)+'</p>';
       html+='</details>';
     }
     const study=r.selection_policy_comparison;
@@ -438,6 +440,8 @@
       html+='<details><summary>News and scheduled-event context</summary><p>'+num(events.holdout_covered_candles,0)+' of '+num(events.holdout_candles,0)+' test candles have some recorded feed coverage; '+num(events.holdout_full_coverage_candles,0)+' have all configured sources.</p><p class="footnote">'+escape(events.rule || '')+'</p>';
       if (Object.keys(groups).length) html+='<div class="table-wrap"><table><thead><tr><th>Context at entry</th><th>Completed trades</th><th>Net result</th></tr></thead><tbody>'+Object.entries(groups).map(function(pair) {return '<tr><td>'+escape(family(pair[0]))+'</td><td>'+num(pair[1].trades,0)+'</td><td>'+money(pair[1].net_pnl)+'</td></tr>';}).join('')+'</tbody></table></div><p class="footnote">Groups overlap. These are associations, not proven causes.</p>';
       if (r.event_comparison) html+='<p>Difference from separately trained price-context control: '+money(r.event_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.event_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
+      if (r.sentiment_comparison) html+='<p>Fear &amp; Greed contribution versus a separately trained control retaining other news: '+
+        money(r.sentiment_comparison.net_pnl_difference)+' at ordinary costs; '+money(r.sentiment_comparison.stress_net_pnl_difference)+' at higher costs.</p>';
       html+='</details>';
     }
     if (failures.targets) {
@@ -623,7 +627,7 @@
   }
   function renderEvents(data) {
     const sources=data.sources || [];
-    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 15 minutes" : "Collection stopped");
+    $("eventsStatus").textContent=data.last_error ? "Collection error: "+data.last_error : (data.running ? "Collecting every 5–15 minutes" : "Collection stopped");
     $("eventsStart").disabled=!!data.running;
     $("eventsStop").disabled=!data.running;
     $("eventsCoverage").textContent=sources.filter(function(s){return s.healthy;}).length+" of "+sources.length+
@@ -636,6 +640,13 @@
           (upcoming ? ' · schedule may change' : ' · first observed '+escape(date(e.observed_ts,true)))+'</small></div>';
       }).join('') : '<p class="empty">'+(upcoming ? 'No upcoming events recorded in this window.' : 'No recent announcements recorded. Check source coverage below.')+'</p>';
     }
+    const sentiment=data.sentiment || {};
+    $("eventsSentiment").innerHTML=sentiment.available ? '<p><strong>'+num(sentiment.value,0)+'/100</strong> · '+
+      eventLink(sentiment.url,'Alternative.me Crypto Fear & Greed Index')+
+      (sentiment.change_1d == null ? '' : ' · daily change '+num(sentiment.change_1d,0))+
+      '</p><p class="footnote">Index dated '+escape(date(sentiment.published_ts,true))+' · first observed '+
+      escape(date(sentiment.observed_ts,true))+'. '+escape(sentiment.scope || '')+'</p>' :
+      '<p class="empty">No fresh Fear &amp; Greed observation available. Missing sentiment is unknown.</p>';
     $("eventsRecent").innerHTML=entries(data.recent || [],false);
     $("eventsUpcoming").innerHTML=entries(data.upcoming || [],true);
     $("eventsProjects").innerHTML=entries(data.projects || [],false);

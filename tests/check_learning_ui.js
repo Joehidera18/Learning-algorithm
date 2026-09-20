@@ -28,6 +28,13 @@ assert.doesNotMatch(element('eventsRecent').innerHTML,/javascript:|<img/);
 assert.match(element('eventsUpcoming').innerHTML,/date only/);
 assert.match(element('eventsSources').innerHTML,/&lt;script/);
 assert.match(element('eventsSources').innerHTML,/Unavailable or stale/);
+assert.match(element('eventsSentiment').innerHTML,/No fresh Fear/);
+context.testUI.renderEvents({sentiment:{available:true,value:25,change_1d:-5,
+  url:'https://alternative.me/crypto/fear-and-greed-index/',published_ts:1789862572845,
+  observed_ts:1789862672845,scope:'Bitcoin-focused market index'}});
+assert.match(element('eventsSentiment').innerHTML,/25\/100/);
+assert.match(element('eventsSentiment').innerHTML,/Alternative.me Crypto Fear/);
+assert.match(element('eventsSentiment').innerHTML,/first observed/);
 context.testUI.renderEvents({sources:[],projects:[{title:'<script>release</script>',url:'javascript:bad()',
   source:'avalanche_releases',origin:'project_publication',published_ts:1789862572845,observed_ts:1789862572846}],
   category_coverage:{world:0,project:null}});

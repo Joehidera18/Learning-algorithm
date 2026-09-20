@@ -1,6 +1,7 @@
 """Bounded, read-only adapters for public news and official event calendars."""
 import calendar
 import html
+import json
 import re
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -12,6 +13,8 @@ from zoneinfo import ZoneInfo
 from .event_context import DAY, HOUR, digest, canonical_url
 
 SOURCES = {
+    "alternative_fng":{"name":"Alternative.me Crypto Fear & Greed Index", "kind":"fear_greed", "category":"sentiment",
+        "url":"https://api.alternative.me/fng/?limit=2", "ttl_ms":DAY, "assets":["*"]},
     "fed_monetary":{"name":"Federal Reserve monetary policy", "kind":"rss", "category":"macro",
         "url":"https://www.federalreserve.gov/feeds/press_monetary.xml", "ttl_ms":HOUR},
     "fed_regulation":{"name":"Federal Reserve regulation", "kind":"rss", "category":"regulation",
@@ -41,7 +44,7 @@ for source, name, repo, asset in (
     SOURCES[source] = {'name':name+' client releases', 'kind':'rss', 'category':'project',
                       'url':'https://github.com/'+repo+'/releases.atom', 'ttl_ms':DAY, 'assets':[asset]}
 for source, definition in SOURCES.items():
-    definition['origin'] = ('reporting' if source in ('bbc_world','coindesk') else
+    definition['origin'] = ('provider_index' if source == 'alternative_fng' else 'reporting' if source in ('bbc_world','coindesk') else
                             'project_publication' if definition['category']=='project' else 'official_publication')
     definition['poll_seconds'] = 300 if source in ('bbc_world','coindesk','coinbase_status') else 900
 
@@ -111,6 +114,33 @@ def rss(source, raw, observed):
                             values.get("published") or values.get("date") or "")
         result.append(record(source,values.get("guid") or values.get("id") or canonical_url(link),
             values.get("title"),link,published,observed))
+    return result
+
+
+def fear_greed(source, raw, observed):
+    payload = json.loads(raw)
+    if not isinstance(payload, dict) or payload.get("metadata", {}).get("error"):
+        raise ValueError("Fear & Greed provider error")
+    rows = payload.get("data")
+    if not isinstance(rows, list) or not 1 <= len(rows) <= 2:
+        raise ValueError("Expected one or two dated Fear & Greed observations")
+    result, seen = [], set()
+    for row in rows:
+        if not isinstance(row, dict) or any(type(row.get(k)) not in (str,int) or
+                not str(row[k]).isdigit() for k in ("value", "timestamp")):
+            raise ValueError("Invalid Fear & Greed observation")
+        value, published = int(row["value"]), int(row["timestamp"])*1000
+        if not 0 <= value <= 100 or not 0 < published <= observed or published in seen:
+            raise ValueError("Invalid Fear & Greed value or date")
+        seen.add(published)
+        item = record(source, str(published), "Crypto Fear & Greed: "+str(value)+"/100",
+            "https://alternative.me/crypto/fear-and-greed-index/", published, observed,
+            precision="day", assets=["*"])
+        item["sentiment_value"] = value
+        # A changed value on the same date is a new revision, visible only after receipt.
+        item["revision"] = digest({k:v for k,v in item.items()
+            if k not in ("revision", "observed_ts", "available_ts")})
+        result.append(item)
     return result
 
 
@@ -217,4 +247,4 @@ def fetch(source):
 
 
 def parse(source, raw, observed):
-    return {"rss":rss,"ics":ics,"fomc":fomc}[SOURCES[source]["kind"]](source,raw,observed)
+    return {"rss":rss,"ics":ics,"fomc":fomc,"fear_greed":fear_greed}[SOURCES[source]["kind"]](source,raw,observed)

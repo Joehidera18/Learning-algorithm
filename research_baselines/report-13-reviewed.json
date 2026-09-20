@@ -1,0 +1,71 @@
+{
+  "source": "Reviewed partial report 13; 57/120 studies, not fresh confirmation data",
+  "reviewed_reports": [
+    {
+      "file": "learning-results 13(1).json",
+      "sha256": "2a49adb24f40d59911b9da0d6e2679a794ba8fa25364a602aa26cd54e229c00f"
+    }
+  ],
+  "markets": [
+    {
+      "symbol": "AAVE-USD",
+      "reviewed_through_ts": 1789888500000
+    },
+    {
+      "symbol": "ADA-USD",
+      "reviewed_through_ts": 1789877700000
+    },
+    {
+      "symbol": "AVAX-USD",
+      "reviewed_through_ts": 1789880400000
+    },
+    {
+      "symbol": "BCH-USD",
+      "reviewed_through_ts": 1789884000000
+    },
+    {
+      "symbol": "BTC-USD",
+      "reviewed_through_ts": 1789871400000
+    },
+    {
+      "symbol": "DOGE-USD",
+      "reviewed_through_ts": 1789878600000
+    },
+    {
+      "symbol": "DOT-USD",
+      "reviewed_through_ts": 1789885800000
+    },
+    {
+      "symbol": "ETH-USD",
+      "reviewed_through_ts": 1789873200000
+    },
+    {
+      "symbol": "HBAR-USD",
+      "reviewed_through_ts": 1789874400000
+    },
+    {
+      "symbol": "LINK-USD",
+      "reviewed_through_ts": 1789881300000
+    },
+    {
+      "symbol": "LTC-USD",
+      "reviewed_through_ts": 1789882500000
+    },
+    {
+      "symbol": "SOL-USD",
+      "reviewed_through_ts": 1789873200000
+    },
+    {
+      "symbol": "UNI-USD",
+      "reviewed_through_ts": 1789887600000
+    },
+    {
+      "symbol": "XLM-USD",
+      "reviewed_through_ts": 1789876800000
+    },
+    {
+      "symbol": "XRP-USD",
+      "reviewed_through_ts": 1789875300000
+    }
+  ]
+}

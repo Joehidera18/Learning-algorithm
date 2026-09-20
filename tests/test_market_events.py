@@ -298,6 +298,11 @@ class IntegrationTests(unittest.TestCase):
         rows=candles(3000,start=start)
         events=[event(published=start+i*DAY,observed=start+i*DAY,identity=str(i)) for i in range(32)]
         polls=[{"source":"sec","ts":start+i*DAY,"ok":True,"ttl_ms":DAY} for i in range(32)]
+        from tests.test_observed_sentiment import payload
+        for i in range(32):
+            ts=start+i*DAY
+            events.extend(parse('alternative_fng',payload(published=ts),ts))
+            polls.append({'source':'alternative_fng','ts':ts,'ok':True,'ttl_ms':DAY})
         archive=snapshot(events,polls)
         def fixture_features(section,*args,**kwargs):
             return {"features":[dict(F) for _ in section]}
@@ -314,6 +319,11 @@ class IntegrationTests(unittest.TestCase):
         self.assertIn("event_inputs_disabled",result["experiment_registry"]["variants"])
         self.assertEqual(result["event_comparison"]["net_pnl_difference"],
             result["holdout"]["net_pnl"]-result["event_comparison"]["price_context_only"]["holdout"]["net_pnl"])
+        self.assertGreater(result['event_data']['sentiment_holdout_candles'],0)
+        self.assertIn('sentiment_disabled',result['experiment_registry']['variants'])
+        self.assertFalse(result['sentiment_comparison']['selection_uses_comparison'])
+        self.assertEqual(result['sentiment_comparison']['net_pnl_difference'],
+            result['holdout']['net_pnl']-result['sentiment_comparison']['sentiment_disabled']['holdout']['net_pnl'])
 
     def test_study_resume_pins_event_inputs_and_changes_fingerprint_for_new_study(self):
         from lab.paper_store import save_state

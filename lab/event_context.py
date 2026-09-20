@@ -14,14 +14,15 @@ VERSION = 1
 HOUR = 3600000
 DAY = 24*HOUR
 BASE_CATEGORIES = ("macro", "regulation", "crypto", "exchange")
-CATEGORIES = BASE_CATEGORIES + ("world", "project")
+CATEGORIES = BASE_CATEGORIES + ("world", "project", "sentiment")
 INPUT_NAMES = ("event_coverage", "event_macro_24h", "event_regulation_24h",
                "event_crypto_24h", "event_exchange_24h", "event_upcoming_24h", "event_upcoming_7d",
-               "event_world_24h", "event_project_30d") + tuple("event_"+c+"_coverage" for c in CATEGORIES)
+               "event_world_24h", "event_project_30d") + tuple("event_"+c+"_coverage" for c in CATEGORIES) + (
+               "sentiment_available", "sentiment_value", "sentiment_change_available", "sentiment_change")
 
 
 def news_window(category):
-    return 30*DAY if category == 'project' else DAY
+    return 30*DAY if category == 'project' else 2*DAY if category == 'sentiment' else DAY
 
 
 def digest(value):
@@ -91,6 +92,10 @@ def validate_snapshot(snapshot):
             timestamp(e.get(k))
         if e["available_ts"] != max(e["published_ts"], e["observed_ts"]):
             raise ValueError("Event availability must include first observation of this revision")
+        if e["category"] == "sentiment" and (e["source"] != "alternative_fng"
+                or e["status"] != "announcement" or type(e.get("sentiment_value")) is not int
+                or not 0 <= e["sentiment_value"] <= 100 or e["published_ts"] > e["observed_ts"]):
+            raise ValueError("Invalid dated sentiment observation")
         assets = e.get("assets")
         if (not isinstance(assets,list) or not assets or len(assets)>100 or
                 any(not isinstance(a,str) or not a or len(a)>30 for a in assets)):
@@ -173,9 +178,21 @@ class EventIndex:
             elif e["status"] == "announcement" and ts-news_window(e['category']) < e["published_ts"] <= ts:
                 recent.append(e)
         # Revisions and repeated copies of the same URL count once, not as sentiment votes.
-        recent = list({canonical_url(e["url"]):e for e in sorted(recent,key=lambda e:e["available_ts"])}.values())
+        recent = list({(e["source"],e["id"]) if e["category"] == "sentiment" else canonical_url(e["url"]):e
+                       for e in sorted(recent,key=lambda e:e["available_ts"])}.values())
         upcoming.sort(key=lambda e:(e["event_ts"],e["id"]))
         recent.sort(key=lambda e:e["published_ts"], reverse=True)
+        sentiment_rows = [e for e in recent if e["category"] == "sentiment" and e["source"] in healthy]
+        sentiment = {"available":False, "value":None, "change_1d":None,
+            "scope":"Alternative.me's Bitcoin-focused market index; not a coin-specific signal or a buy/sell rule."}
+        if sentiment_rows:
+            current = sentiment_rows[0]
+            previous = next((e for e in sentiment_rows[1:]
+                             if e["published_ts"] == current["published_ts"]-DAY), None)
+            sentiment.update(available=True, value=current["sentiment_value"],
+                change_1d=current["sentiment_value"]-previous["sentiment_value"] if previous else None,
+                published_ts=current["published_ts"], observed_ts=current["observed_ts"],
+                available_ts=current["available_ts"], source=current["source"], url=current["url"])
         definitions = self.snapshot.get('source_info',{})
         category_coverage = {}
         for category in CATEGORIES:
@@ -184,10 +201,11 @@ class EventIndex:
             category_coverage[category] = (sum(s in healthy for s in relevant)/len(relevant)
                                            if relevant else None)
         self.cached = {"coverage":len(healthy)/len(self.snapshot["sources"]), "healthy_sources":healthy,
+            "sentiment":sentiment,
             "category_coverage":category_coverage,
             "recent_counts":{c:sum(e["category"]==c for e in recent) for c in CATEGORIES},
             "upcoming_24h":sum(e["event_ts"]-ts <= DAY for e in upcoming), "upcoming_7d":len(upcoming),
-            "recent":[e for e in recent if e['category']!='project'][:12],
+            "recent":[e for e in recent if e['category'] not in ('project','sentiment')][:12],
             "projects":[e for e in recent if e['category']=='project'][:8],
             "upcoming":upcoming[:12]}
         pos = bisect.bisect_right(self.changes,ts)
@@ -199,10 +217,15 @@ def vector(context):
     if not context or not context.get("coverage"):
         return [0.]*len(INPUT_NAMES)
     # Missing source coverage is an explicit input. Counts have no directional sign.
+    sentiment = context.get("sentiment", {})
+    available = bool(sentiment.get("available"))
+    change = sentiment.get("change_1d") if available else None
     return [context["coverage"]] + [min(1.,context["recent_counts"].get(c,0)/10) for c in BASE_CATEGORIES] + [
         min(1.,context["upcoming_24h"]/5), min(1.,context["upcoming_7d"]/10)] + [
         min(1.,context['recent_counts'].get(c,0)/10) for c in ('world','project')] + [
-        context.get('category_coverage',{}).get(c) or 0. for c in CATEGORIES]
+        context.get('category_coverage',{}).get(c) or 0. for c in CATEGORIES] + [
+        float(available), (sentiment["value"]-50)/50 if available else 0.,
+        float(change is not None), change/100 if change is not None else 0.]
 
 
 def attach_event_context(rows, features, step, snapshot, symbol):
@@ -225,8 +248,21 @@ def data_summary(snapshot, features, start):
         "holdout_candles":len(contexts),
         "holdout_covered_candles":sum(c.get("coverage",0)>0 for c in contexts),
         "holdout_full_coverage_candles":sum(c.get("coverage",0)==1 for c in contexts),
+        "sentiment_covered_candles":sum(bool((f or {}).get("event_context",{}).get("sentiment",{}).get("available")) for f in features),
+        "sentiment_holdout_candles":sum(bool(c.get("sentiment",{}).get("available")) for c in contexts),
         "rule":"Only revisions observed by the signal close are included. Missing/stale collection is unknown. "
             "Upcoming events contain schedules, not unreleased results. Event associations do not establish why a market moved."}
+
+
+def without_sentiment(snapshot):
+    """Remove the source as well as its coverage input for the matched control."""
+    sources = [s for s in snapshot["sources"] if s != "alternative_fng"]
+    if not sources:
+        return None
+    return {**snapshot, "sources":sources,
+        "source_info":{s:d for s,d in snapshot.get("source_info",{}).items() if s in sources},
+        "events":[e for e in snapshot["events"] if e["source"] in sources],
+        "polls":[p for p in snapshot["polls"] if p["source"] in sources]}
 
 
 def outcome_summary(trades):

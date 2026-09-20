@@ -38,6 +38,16 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.service.agent.stop()
         self.temp.cleanup()
 
+    def test_monitoring_old_positions_does_not_expand_automatic_practice_scope(self):
+        learner=self.service.autolearn;agent=self.service.agent
+        agent.product_ids=['ATOM-USD','BTC-USD','ETH-USD']
+        agent.settings['learning_enabled']=True
+        agent.runtime.update(running=True,bootstrapped=True)
+        with patch.object(agent,'start'), patch.object(learner,'_needs_review',return_value=True), \
+             patch.object(learner,'study',side_effect=lambda *args:learner.stop_event.set()) as study:
+            learner._run()
+        self.assertEqual(study.call_args.args[0],['BTC-USD','ETH-USD'])
+
     def test_practice_uses_history_without_starting_live_market_monitoring(self):
         s = self.service
         before = dict(s.agent.settings)
@@ -183,7 +193,7 @@ class HistoricalPracticeTests(unittest.TestCase):
         self.assertEqual(run.call_args.args[0], list(DEFAULT_PRACTICE_SYMBOLS))
         self.assertEqual(run.call_args.args[0][:13], ["BTC-USD", "ETH-USD", "SOL-USD", "HBAR-USD", "XRP-USD", "XLM-USD",
             "ADA-USD", "DOGE-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "BCH-USD", "DOT-USD"])
-        self.assertEqual(len(run.call_args.args[0]), 30)
+        self.assertEqual(len(run.call_args.args[0]), 15)
         self.assertFalse(s.agent.runtime["running"])
 
     def test_custom_practice_normalizes_deduplicates_and_saves_selection(self):

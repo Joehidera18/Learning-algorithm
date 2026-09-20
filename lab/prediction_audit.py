@@ -31,6 +31,23 @@ def entry_snapshot(forecast, signal_close_ts, decision_ts=None):
         raise ValueError("Invalid entry forecast state")
     if result["model_last_label_ts"] > asof:
         raise ValueError("Entry forecast includes a future outcome")
+    response_fields = {"base_estimated_net_r", "response_adjustment_r", "response_samples",
+        "response_effective_samples", "response_ready", "response_last_label_ts"}
+    if response_fields.intersection(result):
+        if not response_fields.issubset(result):
+            raise ValueError("Incomplete entry forecast response")
+        base, adjustment = result["base_estimated_net_r"], result["response_adjustment_r"]
+        n, effective = result["response_samples"], result["response_effective_samples"]
+        if (any(type(v) not in (int,float) or not math.isfinite(v) for v in
+                (base, adjustment, effective, result["response_last_label_ts"]))
+                or not -3 <= base <= 3 or type(n) is not int or n < 0
+                or not 0 <= effective <= min(n,100)+1e-9
+                or type(result["response_ready"]) is not bool
+                or result["response_ready"] != (n >= 30 and effective >= 30)
+                or (not result["response_ready"] and adjustment != 0)
+                or not math.isclose(base+adjustment, result.get("raw_estimated_net_r", float("nan")), abs_tol=1e-10)
+                or not 0 <= result["response_last_label_ts"] <= result["model_last_label_ts"]):
+            raise ValueError("Invalid entry forecast response")
     calibration_fields = {"raw_estimated_net_r", "calibration_adjustment_r", "calibration_key",
         "calibration_samples", "calibration_effective_samples", "calibration_ready", "calibration_last_label_ts",
         "trial_estimated_net_r", "calibration_applied"}

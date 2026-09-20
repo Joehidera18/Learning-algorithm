@@ -29,6 +29,9 @@ for _market in ELIGIBLE_BASELINE["markets"]:
 RELIABILITY_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-v11.14-partial.json").read_text())
 for _market in RELIABILITY_BASELINE["markets"]:
     REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
+RESPONSE_BASELINE = json.loads((Path(__file__).resolve().parents[1]/"research_baselines"/"report-13-reviewed.json").read_text())
+for _market in RESPONSE_BASELINE["markets"]:
+    REVIEWED_THROUGH[_market["symbol"]] = max(REVIEWED_THROUGH.get(_market["symbol"],0),_market["reviewed_through_ts"])
 DATA_FIELDS = ("ts", "open", "high", "low", "close", "volume", "quote_volume", "trades")
 
 

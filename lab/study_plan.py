@@ -10,9 +10,10 @@ INTERVAL_HISTORY_LIMITS = {'5m':365, '15m':1825, '1h':2920, '6h':2920}
 DEFAULT_PRACTICE_SYMBOLS = (
     'BTC-USD', 'ETH-USD', 'SOL-USD', 'HBAR-USD', 'XRP-USD', 'XLM-USD',
     'ADA-USD', 'DOGE-USD', 'AVAX-USD', 'LINK-USD', 'LTC-USD', 'BCH-USD', 'DOT-USD',
-    'UNI-USD', 'AAVE-USD', 'ATOM-USD', 'NEAR-USD', 'FIL-USD', 'ETC-USD', 'ALGO-USD',
-    'XTZ-USD', 'ICP-USD', 'INJ-USD', 'OP-USD', 'ARB-USD', 'RENDER-USD', 'APT-USD',
-    'SUI-USD', 'SHIB-USD', 'PEPE-USD')
+    'UNI-USD', 'AAVE-USD')
+FOCUS_UNIVERSE = {"version":"focus-15-v1", "selected_on":"2026-09-20",
+    "symbols":list(DEFAULT_PRACTICE_SYMBOLS),
+    "rule":"Fixed 15-coin research scope retaining the user's core markets. Not a market-cap ranking or selected by backtest profit. Verify active USD products and volume at monitoring startup; report unavailable markets without substitution."}
 
 
 def normalize_plan(intervals, days, primary_interval):

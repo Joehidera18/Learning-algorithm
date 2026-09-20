@@ -16,6 +16,7 @@ from .engine import build_feature_cache, evaluate_signal
 from .strategies import profit_candidates
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr
 from .daily_context import independent_daily_context, DAY_MS
+from .study_plan import DEFAULT_PRACTICE_SYMBOLS, FOCUS_UNIVERSE
 from .paper_store import (init_continuous_db, db_connect, load_state, log_activity,
                          recent_trades, activity_rows, memory_leaderboard)
 
@@ -25,7 +26,7 @@ DEFAULTS = {
     "starting_balance": 500.0, "risk_per_trade": .0075, "max_positions": 5,
     "max_total_risk": .03, "max_notional_fraction": .30, "max_gross_exposure": 1.0,
     "exploration_rate": .10, "fee_rate": .004, "slippage_rate": .0005,
-    "universe_size": 30, "daily_loss_limit": .03, "max_spread": .003,
+    "universe_size": 15, "universe_version":FOCUS_UNIVERSE["version"], "daily_loss_limit": .03, "max_spread": .003,
     "stale_after_seconds": 60, "allow_shorts": False, "entries_paused": False,
     "decision_interval": "15m", "validated_only": True, "learning_enabled": False,
 }
@@ -33,7 +34,7 @@ BOUNDS = {
     "risk_per_trade": (.001, .02), "max_positions": (1, 10),
     "max_total_risk": (.005, .08), "max_notional_fraction": (.05, 1),
     "max_gross_exposure": (.1, 1), "exploration_rate": (0, .3),
-    "fee_rate": (0, .02), "slippage_rate": (0, .01), "universe_size": (1, 30),
+    "fee_rate": (0, .02), "slippage_rate": (0, .01), "universe_size": (1, 15),
     "daily_loss_limit": (.005, .10), "max_spread": (.0001, .02),
     "stale_after_seconds": (10, 300),
 }
@@ -149,6 +150,8 @@ class ContinuousLearner:
 
     def _load(self):
         self.settings = {**DEFAULTS, **load_state(self.db_path, "continuous_settings", {})}
+        self.settings["universe_size"] = min(15, self.settings["universe_size"])
+        self.settings["universe_version"] = FOCUS_UNIVERSE["version"]
         self.portfolio = load_state(self.db_path, "continuous_portfolio", {
             "balance": 500.0, "starting_balance": 500.0, "peak_balance": 500.0,
             "realized_pnl": 0.0, "completed_trades": 0, "wins": 0, "losses": 0,
@@ -402,9 +405,14 @@ class ContinuousLearner:
     def _main(self):
         try:
             log_activity(self.db_path, "info", "Finding active Coinbase USD markets")
-            selected = self.client.discover_top_usd(self.settings["universe_size"], self.stop_event)
+            selected = self.client.discover_top_usd(self.settings["universe_size"], self.stop_event,
+                                                    allowed_symbols=DEFAULT_PRACTICE_SYMBOLS)
             if self.stop_event.is_set():
                 return
+            missing = sorted(set(DEFAULT_PRACTICE_SYMBOLS)-set(selected))
+            log_activity(self.db_path, "info", "Focused market selection", {
+                "universe":FOCUS_UNIVERSE, "selected":selected,
+                "not_selected":missing, "note":"Missing, restricted, zero-volume or outside the configured count; no replacements added."})
             with self.lock:
                 # Continue to monitor positions even if they leave the ranked universe.
                 self.product_ids = list(dict.fromkeys(selected + list(self.open_positions)))

@@ -110,7 +110,7 @@ class EventCollector:
             self._snapshot=snapshot
             self.indexes={}
             self.generation+=1
-            if snapshot['polls']:
+            if any(p['ok'] for p in snapshot['polls']):
                 self.initial_poll.set()
 
     def snapshot(self):
@@ -176,8 +176,11 @@ class EventCollector:
             # Bounded I/O concurrency; historical replay never calls this method.
             with ThreadPoolExecutor(max_workers=3) as pool:
                 tasks=[pool.submit(collect,s) for s in due if not self.stop_event.is_set()]
-                for task in as_completed(tasks):task.result()
-            self._reload()
+                for task in as_completed(tasks):
+                    task.result()
+                    # Publish completed feeds immediately; a slow source must not
+                    # hide successful observations until the entire batch ends.
+                    self._reload()
             self.last_error=None
             return True
         finally:

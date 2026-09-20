@@ -67,7 +67,7 @@ class EntryForecastTests(unittest.TestCase):
         policy = AdaptivePolicy(trained_state()); p = policy.candidates[0]
         vector = feature_vector(F,p,0,0)
         forecast = entry_snapshot(dict(policy.forecast(p,vector),estimated_net_r=3,
-            raw_estimated_net_r=3,trial_estimated_net_r=3,calibration_key='low/above_0.5R'),100)
+            base_estimated_net_r=3,raw_estimated_net_r=3,trial_estimated_net_r=3,calibration_key='low/above_0.5R'),100)
         before = policy.state["observations"]
         for stamp in range(100,130):
             policy.observe(p,vector,-1.,stamp,outcome={"entry_forecast":forecast})

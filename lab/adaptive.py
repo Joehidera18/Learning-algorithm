@@ -18,9 +18,10 @@ from .exit_management import FIXED_EXIT, EXIT_POLICIES
 from .forecast_calibration import (bucket_key, empty_bucket, update_bucket, correction,
     validate_buckets)
 from . import failure_predictions
+from . import forecast_response
 from .event_context import INPUT_NAMES as EVENT_INPUT_NAMES, vector as event_vector
 
-POLICY_VERSION = "online-net-r-v18-forecast-reliability"
+POLICY_VERSION = "online-net-r-v19-forecast-response"
 MIN_SAMPLES = 30
 MIN_ESTIMATED_R = .10
 MIN_REGIME_SAMPLES = 15
@@ -191,6 +192,8 @@ class AdaptivePolicy:
                     raise ValueError("Invalid eligible evidence count")
                 groups.append(eligible)
         for model in groups:
+            forecast_response.validate(model.get("forecast_response"), model["entry_error_samples"],
+                                       self.state["last_label_ts"])
             failure_predictions.validate(model.get("failure_models", {}), DIMENSIONS, model["samples"])
             validate_buckets(model.get("forecast_bands",{}), model["entry_error_samples"],
                              self.state["last_label_ts"])
@@ -231,7 +234,7 @@ class AdaptivePolicy:
     def export(self):
         return copy.deepcopy(self.state)
 
-    def raw_predict(self, params, vector):
+    def base_predict(self, params, vector):
         model = self.evidence(params, vector)
         if not model:
             return 0.
@@ -248,8 +251,18 @@ class AdaptivePolicy:
             pooled = (1-weight)*pooled+weight*context["recent_net_r"]
         return bounded(pooled, -3, 3)
 
+    def response_estimate(self, params, vector):
+        model = self._group(params, vector) or {}
+        response = model.get("forecast_response") if signal_eligible(params, vector) else None
+        return forecast_response.estimate(response, self.base_predict(params, vector))
+
+    def raw_predict(self, params, vector):
+        response = self.response_estimate(params, vector)
+        return response["base_estimated_net_r"] + response["response_adjustment_r"]
+
     def calibrated_estimate(self, params, vector):
-        raw = self.raw_predict(params, vector)
+        response = self.response_estimate(params, vector)
+        raw = response["base_estimated_net_r"] + response["response_adjustment_r"]
         key = bucket_key(cost_context(vector), raw)
         model = self._group(params, vector) or {}
         adjustment = correction(model.get("forecast_bands",{}).get(key))
@@ -259,7 +272,7 @@ class AdaptivePolicy:
         # A two-sided correction remains a separate research-only policy.
         selected = trial if self.forecast_correction else (
             min(raw, shrunk) if signal_eligible(params, vector) and raw > 0 else raw)
-        return {"estimated_net_r":selected,
+        return {**response, "estimated_net_r":selected,
             "raw_estimated_net_r":raw, "trial_estimated_net_r":trial,
             "calibration_applied":selected != raw,
             "calibration_policy":"two_sided_experiment" if self.forecast_correction else "eligible_downside_shrinkage",
@@ -373,6 +386,9 @@ class AdaptivePolicy:
                 bucket = group.setdefault("forecast_bands",{}).setdefault(forecast["calibration_key"],empty_bucket())
                 update_bucket(bucket,forecast["raw_estimated_net_r"],result_r,available_ts)
         if eligible:
+            if forecast and forecast["ready"] and "base_estimated_net_r" in forecast:
+                response = groups[-1].setdefault("forecast_response", forecast_response.empty_response())
+                forecast_response.update(response, forecast["base_estimated_net_r"], result_r, available_ts)
             failure_predictions.update(groups[-1].setdefault("failure_models", {}), vector, detail)
         # Multiple estimates of ONE outcome: do not double-count evidence.
         self.state["observations"] += 1

@@ -23,6 +23,7 @@ REST = "https://api.exchange.coinbase.com"
 WS = "wss://ws-feed.exchange.coinbase.com"
 GRANULARITY = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "6h": 21600, "1d": 86400}
 STABLE_BASES = {"USDC", "USDT", "DAI", "PYUSD", "EURC", "USDG", "GUSD", "PAX", "TUSD", "USDP", "FDUSD", "USDS", "RLUSD"}
+WRAPPED_BASES = {"WBTC", "CBBTC", "CBETH", "WETH", "STETH", "WSTETH"}
 PREFERRED = ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "DOGE-USD", "ADA-USD", "LINK-USD", "AVAX-USD", "LTC-USD", "BCH-USD"]
 
 
@@ -100,14 +101,16 @@ class CoinbaseClient:
             end = start
         return [result[t] for t in sorted(result)][-limit:]
 
-    def discover_top_usd(self, limit=30, stop_event=None):
+    def discover_top_usd(self, limit=15, stop_event=None, allowed_symbols=None):
         from concurrent.futures import ThreadPoolExecutor, as_completed
         eligible = []
         for p in self.products():
             pid = p.get("id", "")
-            if (p.get("quote_currency") == "USD" and p.get("base_currency") not in STABLE_BASES
+            if (p.get("quote_currency") == "USD" and p.get("base_currency", "").upper() not in STABLE_BASES | WRAPPED_BASES
                     and p.get("status") == "online" and not p.get("trading_disabled")
-                    and not p.get("cancel_only") and not p.get("auction_mode") and pid.endswith("-USD")):
+                    and not p.get("cancel_only") and not p.get("auction_mode")
+                    and not p.get("post_only") and not p.get("limit_only") and pid.endswith("-USD")
+                    and (allowed_symbols is None or pid in allowed_symbols)):
                 eligible.append(pid)
         preferred = [p for p in PREFERRED if p in eligible]
         candidates = (preferred + sorted(p for p in eligible if p not in preferred))[:80]

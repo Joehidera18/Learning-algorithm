@@ -25,7 +25,7 @@ from .study_plan import (HISTORY_DAYS, MAX_PRACTICE_MARKETS, DEFAULT_PRACTICE_SY
     DEFAULT_PRACTICE_INTERVALS, INTERVAL_HISTORY_LIMITS, normalize_plan, study_days,
     study_key, unique_market_hours, history_coverage)
 
-TRAINING_MARKETS = 10
+TRAINING_MARKETS = 15
 REVIEW_SECONDS = 28*86400
 UNQUALIFIED_REVIEW_SECONDS = 86400
 
@@ -482,7 +482,7 @@ class AutoLearner:
                 if not settings.get("learning_enabled"):
                     break
                 # A restart can select different markets before the 28-day review.
-                symbols = list(self.agent.product_ids)[:TRAINING_MARKETS]
+                symbols = [s for s in self.agent.product_ids if s in DEFAULT_PRACTICE_SYMBOLS][:TRAINING_MARKETS]
                 if not symbols:
                     raise RuntimeError("No Coinbase USD markets are available")
                 if self._needs_review(symbols, settings):

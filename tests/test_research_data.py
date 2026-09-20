@@ -76,6 +76,15 @@ class MarketDataTests(unittest.TestCase):
         client.products = lambda: []
         with self.assertRaises(RuntimeError): client.discover_top_usd()
 
+    def test_focus_list_rejects_restricted_or_wrapped_markets_without_replacements(self):
+        client=CoinbaseClient()
+        names=('BTC','ETH','SOL','WBTC','USDC','HBAR','XRP','DOGE')
+        rows=[{'id':s+'-USD','base_currency':s,'quote_currency':'USD','status':'online'} for s in names]
+        rows[1]['post_only']=True;rows[2]['limit_only']=True;rows[5]['auction_mode']=True
+        client.products=lambda:rows
+        client.stats=lambda pid:{'last':100,'volume':0 if pid=='XRP-USD' else 20}
+        self.assertEqual(client.discover_top_usd(15,allowed_symbols=[s+'-USD' for s in names if s!='DOGE']),['BTC-USD'])
+
 
 class ResearchTests(unittest.TestCase):
     def test_data_rejects_gaps_duplicates_nonfinite_and_unfinished(self):

@@ -1,5 +1,31 @@
 # Observed news and trade reviews — V11.13
 
+## V11.16 additions
+
+The collector now has 15 sources. Alternative.me Fear & Greed is checked every
+15 minutes, with a 24-hour successful-poll lifetime and a separate two-day maximum
+index age. The source is a Bitcoin-focused market index, not coin-specific
+sentiment. Its value, provider date, actual observation time and source link are
+displayed together. Backfilled dates and revisions remain unavailable before
+receipt. Missing values have their own availability flags; neutral 50 is distinct.
+
+The feature vector now has 52 inputs: the original 32, the previous 15 event
+inputs, sentiment-source coverage and four value/change availability inputs.
+The prior 15 event fields keep their order. No preset bullish/bearish trade rule
+is added. A separate sentiment-disabled control runs only when actual observed
+sentiment covers candles, retaining other news. All source revisions and polls
+remain in the exact study export.
+
+Completed feed results are published immediately while slower requests continue.
+The first successful result can unblock bounded startup; total failure stays
+unknown. On 20 September 2026 the direct Alternative.me smoke check returned two
+valid observations. The Coinbase product metadata request timed out locally;
+this does not establish current availability of every focus-list coin.
+
+See [V11.16 design and measured results](FORECAST_RESPONSE_RESEARCH.md). The source
+inventory and results below describe the earlier V11.13 work, preserved for audit.
+
+
 The learner records selected news sources and official calendars, joins the versions known at each signal close, and learns from later net outcomes. V11.13 expands that context and records what arrived between a paper signal, entry and closure. This does not establish that news predicts returns or explains why a particular trade lost.
 
 ## Sources and coverage

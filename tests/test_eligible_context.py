@@ -70,7 +70,8 @@ class EligibleEvidenceTests(unittest.TestCase):
         for reward in (-1.,1.):
             policy=AdaptivePolicy();p=policy.candidates[0];v=feature_vector(F,p,0,0)
             for i in range(80):policy.observe(p,v,.5,i)
-            with patch.object(policy,"raw_predict",return_value=.4):
+            from lab.forecast_response import estimate as response_estimate
+            with patch.object(policy,"response_estimate",return_value=response_estimate(None,.4)):
                 for i in range(40):
                     f=entry_snapshot(policy.forecast(p,v),100+i*2)
                     policy.observe(p,v,reward,101+i*2,outcome={"entry_forecast":f})

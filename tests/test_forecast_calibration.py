@@ -7,6 +7,7 @@ from unittest.mock import patch
 from lab.adaptive import AdaptivePolicy, action_key, feature_vector
 from lab.chronological_learning import ChronologicalTrainer
 from lab.forecast_calibration import correction, empty_bucket, update_bucket
+from lab.forecast_response import estimate as response_estimate
 from lab.prediction_audit import entry_snapshot, summarize_predictions
 from tests.test_adaptive import F, trained_state
 
@@ -16,7 +17,7 @@ class ForecastCalibrationTests(unittest.TestCase):
         state=dict(trained_state(),forecast_correction=applied)
         policy=AdaptivePolicy(state,forecast_correction=applied);params=policy.candidates[0]
         vector=feature_vector(F,params,0,0)
-        with patch.object(policy,'raw_predict',return_value=.4):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.4)):
             for i in range(n):
                 forecast=entry_snapshot(policy.forecast(params,vector),100+i*2)
                 policy.observe(params,vector,reward,101+i*2,outcome={'entry_forecast':forecast})
@@ -89,11 +90,11 @@ class ForecastCalibrationTests(unittest.TestCase):
     def test_cost_bands_actions_and_forecast_bands_do_not_share_corrections(self):
         policy,params,v,_=self.collect(-1)
         costly=list(v);costly[16]=1.
-        with patch.object(policy,'raw_predict',return_value=.4):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.4)):
             self.assertLess(policy.predict(params,v),.4)
             self.assertEqual(policy.predict(params,costly),.4)
             self.assertEqual(policy.predict(policy.candidates[1],v),.4)
-        with patch.object(policy,'raw_predict',return_value=.8):
+        with patch.object(policy,'response_estimate',return_value=response_estimate(None,.8)):
             self.assertEqual(policy.predict(params,v),.8)
 
     def test_tail_losses_keep_their_actual_size(self):
