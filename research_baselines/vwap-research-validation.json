@@ -1,0 +1,33 @@
+{
+  "experiment": "vwap-proxy-research-v1",
+  "date": "2026-09-20",
+  "base_commit": "ecd0caeb98670057b0d45bde75ec75a6b898517b",
+  "final_lab_source_sha256": "444807ab8c07b139813834c0708e7cd0fbfb00d1ae7b9ec8eca026e89e188907",
+  "validation": {
+    "full_python_suite_passed": 408,
+    "final_targeted_passed": 32,
+    "distinct_python_tests_passed": 409,
+    "full_suite_preceded_final_gap_and_utc_boundary_refinements": true,
+    "final_targeted_includes_gap_and_utc_boundary_refinements": true,
+    "dashboard_checks_passed": ["check_learning_ui.js", "check_finances_ui.js"],
+    "syntax_checks_passed": true,
+    "app_routes_passed": true,
+    "offline_csv_cli_fixture_passed": true,
+    "browser_visual_review": false,
+    "generated_fixtures_are_market_evidence": false
+  },
+  "market_attempt": {
+    "provider": "Coinbase Exchange",
+    "symbol": "BTC-USD",
+    "interval": "1m",
+    "requested_days": 7,
+    "exclusive_end_utc": "2026-09-19",
+    "initial_probe": "HTTP 502 Bad Gateway",
+    "cli_result": "The read operation timed out",
+    "completed": false,
+    "market_profit_result": null,
+    "synthetic_fallback": false
+  },
+  "eligible_for_trading": false,
+  "existing_model_updates": 0
+}

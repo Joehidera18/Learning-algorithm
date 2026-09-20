@@ -686,17 +686,40 @@
         '<button data-forward-export="'+escape(s.id)+'">Download this study</button></details>';
     }).join('') || '<p class="empty">No forward study registered yet.</p>';
   }
+  function renderVwap(value) {
+    const active=['running','downloading','testing'].includes(value.status);
+    $('vwapRun').disabled=active;
+    $('vwapCancel').disabled=!active;
+    $('vwapExport').disabled=!(value.results || []).length;
+    $('vwapMessage').textContent=value.message || 'No VWAP comparison yet';
+    $('vwapResults').innerHTML=(value.results || []).map(function(report) {
+      if (report.error) return '<p class="callout">'+escape(report.symbol)+': '+escape(report.error)+'</p>';
+      const rows=(report.results || []).map(function(variant) {
+        return ['earlier','later'].map(function(period) {
+          const w=variant.windows[period], a=w.standard.metrics, stress=w.higher_cost.metrics;
+          return '<tr><td>'+escape(variant.label)+'</td><td>'+period+'</td><td>'+num(a.trades,0)+'</td><td>'+money(a.net_pnl)+
+            '</td><td>'+money(stress.net_pnl)+'</td><td>'+pct(a.win_rate)+'</td><td>'+num(a.profit_factor)+
+            '</td><td>'+pct(a.max_drawdown_pct)+'</td><td>'+escape(a.complete && stress.complete ? 'Complete' : 'Incomplete: missing prices')+'</td></tr>';
+        }).join('');
+      }).join('');
+      const q=report.data_quality || {}, costs=report.costs || {};
+      return '<h3>'+escape(report.symbol)+'</h3><p>'+date(q.start_ts,true)+' – '+date(q.end_ts,true)+
+        ' · '+num(q.rows,0)+' one-minute candles · '+num(q.gaps,0)+' missing · fee '+pct(costs.fee_rate*100)+' per side.</p>'+
+        '<div class="table-wrap"><table><thead><tr><th>Version</th><th>History window</th><th>Trades</th><th>Net P&amp;L</th><th>Higher-cost net</th><th>Win rate</th><th>Profit factor</th><th>Drawdown</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        '<p class="footnote">Each row is a separately funded $500 simulation. Earlier 70% and later 30% are chronological historical windows, not fresh forward evidence. Higher-cost accounts pay 50% more fees and execution friction and may select different entries. Holding cash returns $0. No winner is automatically selected.</p>';
+    }).join('') || '<p class="empty">Run a comparison to see results, including rejected and zero-trade versions.</p>';
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
     try {
       const responses = await Promise.allSettled([
         api("/api/continuous/status"), api("/api/continuous/analytics"),
-        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status")
+        api("/api/continuous/trades?limit=100"), api("/api/continuous/activity?limit=20"), api("/api/research/status"), api("/api/learning/status"), api("/api/events/status"), api("/api/forward/status"), api("/api/vwap/status")
       ]);
       const renderers = [renderState,renderAnalytics,renderJournal,function (rows) {
         $("activity").innerHTML = rows.length ? rows.map(function (a) { return '<div class="activity-row">' + escape(a.message) + "<small>" + escape(date(a.ts)) + "</small></div>"; }).join("") : '<p class="empty">No activity yet.</p>';
-      },renderResearch,renderLearning,renderEvents,renderForward];
+      },renderResearch,renderLearning,renderEvents,renderForward,renderVwap];
       let firstError = null;
       responses.forEach(function (response,i) {
         if (response.status === "fulfilled") renderers[i](response.value);
@@ -705,6 +728,7 @@
           if (i===5) updateFinances("history",null,true);
           if (i===6) $("eventsStatus").textContent="Event status unavailable";
           if (i===7) $("forwardStatus").textContent="Study update unavailable · displayed results may be stale";
+          if (i===8) $('vwapMessage').textContent='Comparison update unavailable · displayed results may be stale';
           if (!firstError) firstError=response.reason;
         }
       });
@@ -779,6 +803,16 @@
     try { const result = await api("/api/continuous/close",{product_id:button.dataset.close}); notice("Paper position closed. Net P&L: " + money(result.pnl)); await refresh(); }
     catch (e) { notice(e.message,true); } finally { button.disabled = false; }
   });
+  $('vwapForm').addEventListener('submit',async function(event) {
+    event.preventDefault(); $('vwapRun').disabled=true;
+    try {
+      await api('/api/vwap/start',{symbols:$('vwapSymbols').value.toUpperCase().split(/[,\s]+/).filter(Boolean),
+        days:Number($('vwapDays').value),fee_rate:Number($('vwapFee').value)/100});
+      await refresh();
+    } catch(e) {notice(e.message,true);$('vwapRun').disabled=false;}
+  });
+  bind('vwapCancel',async function(){await api('/api/vwap/cancel',{});await refresh();});
+  bind('vwapExport',function(){return download('/api/vwap/export','vwap-research.json');});
   $("researchForm").addEventListener("submit",async function (event) {
     event.preventDefault(); $("researchRun").disabled = true;
     try { await api("/api/research/start",{symbols:$("researchSymbols").value.split(/[,\s]+/).filter(Boolean),days:Number($("researchDays").value)}); await refresh(); }

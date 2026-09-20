@@ -30,6 +30,13 @@ The predeployment review also corrects time-based exits that ran one candle late
 
 ## Start here
 
+**New isolated experiment:** under **Advanced research**, choose **Test the Reddit
+strategy** to compare VWAP mean-reversion variants on recorded one-minute Coinbase
+candles. It reports earlier/later windows, full costs, split exits and a higher-cost
+comparison. The delta and volume profile are explicitly candle-based proxies;
+the author's private rules cannot be reproduced exactly. It does not replace
+models or enable trading. See [the declared rules and offline runner](VWAP_RESEARCH.md).
+
 1. Open the app locally or follow [WEBSITE_SETUP.md](WEBSITE_SETUP.md) to put it on Render.
 2. Enter your actual Coinbase fee per side. The initial 0.4% is an assumption until confirmed.
 3. Edit **Coins to practice on** (or choose **Use focused 15 coins**), choose the timeframes and history length, then click **Practice on real market history**. The learning worker starts event collection and waits up to 15 seconds for an initial attempt. Check the Market events panel for source freshness and errors; empty or failed collection stays missing coverage. Starting collection earlier can build a longer observed archive.

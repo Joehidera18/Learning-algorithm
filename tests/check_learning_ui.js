@@ -17,8 +17,19 @@ const context={console,Intl,Date,Number,Set,Map,encodeURIComponent,
   URL:{createObjectURL(){return "blob:test";},revokeObjectURL(){}},
   fetch:async()=>({ok:true,blob:async()=>({})})};
 const code=fs.readFileSync(path.join(root,"static/app.js"),"utf8").replace("\n  poll();\n})();",
-  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails,renderEvents,renderForward};\n})();");
+  "\n  globalThis.testUI={renderLearning,renderJournal,download,practicePlan,showLearningDetails,renderEvents,renderForward,renderVwap};\n})();");
 vm.createContext(context);vm.runInContext(code,context);
+context.testUI.renderVwap({status:'error',message:'Download unavailable',results:[{symbol:'BTC-USD',error:'Failed <img src=x>'}]});
+assert.match(element('vwapResults').innerHTML,/Failed &lt;img/);
+assert.doesNotMatch(element('vwapResults').innerHTML,/<img/);
+const vwapAccount={metrics:{trades:0,net_pnl:0,win_rate:null,profit_factor:null,max_drawdown_pct:0,complete:true}};
+context.testUI.renderVwap({status:'complete',results:[{symbol:'BTC-USD',costs:{fee_rate:.004},data_quality:{rows:4320,gaps:0},
+  results:[{label:'VWAP re-entry',windows:{earlier:{standard:vwapAccount,higher_cost:vwapAccount},later:{standard:vwapAccount,higher_cost:vwapAccount}}}]}]});
+assert.match(element('vwapResults').innerHTML,/\$0\.00/);
+assert.match(element('vwapResults').innerHTML,/separately funded/);
+assert.match(element('vwapResults').innerHTML,/not fresh forward evidence/);
+assert.equal(element('vwapRun').disabled,false);
+assert.equal(element('vwapCancel').disabled,true);
 context.testUI.renderEvents({running:true,versions:2,sources:[{name:'<script>bad</script>',url:'https://example.org',healthy:false,error:'Unavailable <img src=x>'}],
   recent:[{title:'<img src=x onerror=bad()>',url:'javascript:bad()',published_ts:1789862572845,category:'regulation',source:'sec'}],
   upcoming:[{title:'Scheduled release',url:'https://example.org/release',event_ts:1789862572845,precision:'day',category:'macro',source:'bls'}]});
