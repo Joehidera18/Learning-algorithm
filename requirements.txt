@@ -3,3 +3,5 @@ gunicorn>=22,<24
 requests>=2.31,<3
 websocket-client>=1.8,<2
 -r requirements-coinbase.txt
+
+pandas-market-calendars>=5.1,<6

@@ -11,7 +11,7 @@ from .practice import PRACTICE_LANES
 
 
 class HistoricalFeedback:
-    def __init__(self, rows, features, start, end, settings, policy, step, cancelled=None):
+    def __init__(self, rows, features, start, end, settings, policy, step, cancelled=None, execution_options=None, lanes=PRACTICE_LANES):
         self.policy, self.pending, self.runs = policy, [], []
         self.last_clock = -1
         self.count, self.by_family, self.gap_censored = 0, {}, 0
@@ -32,13 +32,13 @@ class HistoricalFeedback:
                 self.seen_entries.add(identity)
                 trade["entry_forecast"] = entry_snapshot(
                     policy.forecast(trade["decision_params"], trade["training_vector"]),
-                    trade["signal_ts"]+step)
-            for lane in PRACTICE_LANES:
+                    trade.get("signal_close_ts",trade["signal_ts"]+step))
+            for lane in lanes:
                 run = simulation_steps(rows, features, start, end, 500,
                     settings["risk_per_trade"], policy.fee_rate, policy.slippage_rate, params,
                     cancelled=cancelled, training_examples=True, bar_interval_ms=step,
                     on_resolved=resolved, on_entry=opened, practice_cost_mode=lane,
-                    on_training_event=self._training_event, stream_only=True)
+                    on_training_event=self._training_event, stream_only=True, **(execution_options or {}))
                 try:
                     self.runs.append([next(run), run])
                 except StopIteration:

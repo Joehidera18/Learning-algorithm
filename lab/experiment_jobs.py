@@ -18,6 +18,8 @@ from .paper_store import db_connect
 from .research import ResearchManager
 from .study_plan import ACTIVE_INTERVALS, DEFAULT_PRACTICE_SYMBOLS
 
+RESEARCH_SLOT = threading.Lock()  # One bounded comparison at a time in the single-worker web service.
+
 ACTIVE = ("queued", "downloading", "features", "training", "testing")
 COST_KEYS = ("fee_rate", "slippage_rate", "risk_per_trade", "max_notional_fraction", "daily_loss_limit")
 
@@ -256,7 +258,8 @@ class ExperimentJobs:
                     continue
                 self.active_id = job["id"]
                 try:
-                    self._run_job(job)
+                    with RESEARCH_SLOT:
+                        self._run_job(job)
                 except InterruptedError:
                     self._patch(job["id"], status="queued", message="Paused; resume from saved checkpoints with the same inputs")
                 except Exception as exc:

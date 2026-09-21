@@ -12,6 +12,16 @@ The predeployment capacity fixture used **412 MiB just to build five years of 15
 
 Check disk headroom as well. At the observed LTC CSV size, a fully covered five-year 15m/1h/6h plan across 60 coins would require about **949 MiB of candle CSVs**, before reports, candidate checkpoints, temporary rewrites and backups. Actual listing histories and row sizes vary. The template's 1 GB disk does not establish that this maximum plan will fit. Keep both persistence paths under `/var/data`; [Render persists only files under the disk mount](https://render.com/docs/disks).
 
+## Stock practice in V11.19
+
+The **Stock practice** page uses public historical data immediately. Optional
+Alpaca data requires `ALPACA_API_KEY` and `ALPACA_SECRET_KEY` as server environment
+variables; neither is an app/browser token. No broker trading endpoint is used.
+The build installs `pandas-market-calendars` for exchange sessions. Stock state
+lives in `RESEARCH_DATA_DIR/equity-practice/`; keep that entire directory on the
+persistent disk. The crypto-account-only backup excludes it. See
+[STOCK_PRACTICE.md](STOCK_PRACTICE.md) for feeds, retention, exports and practice limits.
+
 ## Update an existing Render service
 
 1. Merge the reviewed changes into the branch your existing Render service deploys, usually `main`. Changes that remain only in a pull request do not update that branch.
