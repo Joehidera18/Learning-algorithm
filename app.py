@@ -27,6 +27,7 @@ atexit.register(app.service.autolearn.stop)
 atexit.register(app.service.events.stop, persist=False)
 atexit.register(app.service.forward.shutdown)
 atexit.register(app.service.experiments.shutdown)
+atexit.register(app.service.equities.shutdown)
 
 if __name__ == "__main__":
     from socketserver import ThreadingMixIn

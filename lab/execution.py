@@ -8,6 +8,7 @@ import statistics
 from collections import deque
 from .trade_quality import net_payoff, cooldown_minutes, signal_atr, signal_cost_check
 from .trade_review import close_review
+from .market_clock import close_ts, consecutive, session_id
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT, EXIT_POLICIES, protect_after_close
 
 
@@ -26,7 +27,8 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
              training_examples=False, daily_loss_limit=None, bar_interval_ms=None,
              feedback=None, on_resolved=None, on_entry=None, practice_cost_mode="all",
              on_training_event=None, stream_only=False, signal_evaluator=None,
-             level_provider=None):
+             level_provider=None, stock_execution=False, close_at_session_end=False,
+             liquidate_end=True, fractional_shares=True):
     """Yield BEFORE processing a candle; its OHLC is usable at the yielded close.
 
     A feedback clock can therefore advance independent simulations only through
@@ -41,6 +43,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         raise ValueError("Research signals and price levels must be supplied together")
     if signal_evaluator is not None and (policy is not None or training_examples):
         raise ValueError("Custom research levels cannot update or select a trading model")
+    if stock_execution and (params.get("direction", "LONG") != "LONG" or
+            any(r.get("asset_class") != "equity" or "next_ts" not in r for r in rows)):
+        raise ValueError("Stock practice requires calendar-validated equity bars and long-only strategies")
     cash, position, next_entry_ts = float(balance), None, 0
     trades, curve = [], deque([cash], maxlen=2) if stream_only else [cash]
     direction = params.get("direction", "LONG")
@@ -121,8 +126,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                  outcome="WIN" if pnl > 0 else "LOSS" if pnl < 0 else "BREAK_EVEN", balance_after=cash)
         # Preserve exit_ts as the OHLC bar identifier. Close-priced exits have
         # a known execution boundary; intrabar stop/target touch times do not.
-        if reason in ("TIME", "END"):
-            p["exit_time_ts"] = candle["ts"]+bar_ms
+        p["available_ts"] = close_ts(candle, bar_ms)
+        if reason in ("TIME", "END", "SESSION_CLOSE"):
+            p["exit_time_ts"] = close_ts(candle, bar_ms)
         # The existing excursion estimator assumes the full position remains
         # open. Do not invent a net excursion path for a scaled-out position.
         review_input = p if not p.get("target1_fraction") else {
@@ -141,15 +147,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             override = delay > base_delay and reason != "END"
             funnel["loss_pause_overrides"] += int(override)
             if override and on_training_event:
-                on_training_event("loss_pause_overrides", candle["ts"]+bar_ms)
+                on_training_event("loss_pause_overrides", close_ts(candle, bar_ms))
             delay = base_delay
-        next_entry_ts = candle["ts"] + bar_ms + delay*60000
+        next_entry_ts = close_ts(candle, bar_ms) + delay*60000
         if on_resolved and reason != "END":
-            on_resolved(p, pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms)
+            on_resolved(p, pnl/max(p["risk_dollars"], 1e-12), close_ts(candle, bar_ms))
         if policy and feedback is None and reason != "END":
             from .outcome_memory import trade_feedback
             policy.observe(p["decision_params"], p["learning"]["vector"],
-                           pnl/max(p["risk_dollars"], 1e-12), candle["ts"]+bar_ms,
+                           pnl/max(p["risk_dollars"], 1e-12), close_ts(candle, bar_ms),
                            outcome=trade_feedback(p))
         if training_examples:
             # Label collection: independently funded examples, not account returns.
@@ -184,28 +190,31 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         if cancelled and i % 500 == 0 and cancelled():
             raise InterruptedError("Learning cancelled")
         signal, candle = rows[i], rows[i + 1]
-        yield candle["ts"]+bar_ms
+        yield close_ts(candle, bar_ms)
         if feedback is not None:
-            feedback.advance(signal["ts"]+bar_ms)
-        if bar_interval_ms is not None and candle["ts"]-signal["ts"] != bar_ms:
+            feedback.advance(close_ts(signal, bar_ms))
+        if bar_interval_ms is not None and not consecutive(signal, candle, bar_ms):
             # At this point only the last observed bar is known. Do not invent a
             # pre-gap exit, a missing-bar fill, or a profitable path through it.
             reject("missing_market_candles")
             if position:
                 if not training_examples:
-                    complete, stopped_at = False, signal["ts"]+bar_ms
+                    complete, stopped_at = False, close_ts(signal, bar_ms)
                     break
                 funnel["gap_censored_examples"] += 1
                 if on_training_event:
-                    on_training_event("gap_censored_examples", candle["ts"]+bar_ms)
+                    on_training_event("gap_censored_examples", close_ts(candle, bar_ms))
                 position, cash = None, float(balance)
             continue
         if daily_loss_limit is not None:
-            current_day = candle["ts"]//86400000
+            current_day = session_id(candle) if stock_execution else candle["ts"]//86400000
             if current_day != day_id:
                 day_id, day_start, day_halted = current_day, curve[-1], False
             check_daily_limit(curve[-1])
         f = features[i]
+        if stock_execution and close_at_session_end and session_id(signal) != session_id(candle):
+            f = None
+            reject("overnight_signal_expired")
         if not stream_only:
             funnel["candles_checked"] += 1
             funnel["features_available"] += int(bool(f))
@@ -292,6 +301,13 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     else:
                         fraction = min(1.0, trade_params.get("max_notional_fraction", .30))
                         qty = min(cash * risk / unit_risk, cash * fraction / (entry * (1 + fee_rate)))
+                        if stock_execution:
+                            factor = float(candle.get("split_factor",1.))
+                            if not math.isfinite(factor) or factor <= 0:
+                                raise ValueError("Invalid stock share adjustment factor")
+                            native_qty = qty/factor
+                            native_qty = math.floor(native_qty*1e6)/1e6 if fractional_shares else math.floor(native_qty)
+                            qty = native_qty*factor
                         if qty * entry < 1:
                             reject("position_size_zero", entry=True)
                         else:
@@ -302,7 +318,7 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 from .adaptive import feature_vector
                                 training_vector = feature_vector(f, trade_params, fee_rate, base_slip)
                             position = {"entry_ts": candle["ts"], "entry": entry, "signal_entry": signal["close"],
-                                "signal_ts":signal["ts"], "fee_rate":fee_rate, "slippage_rate":base_slip,
+                                "signal_ts":signal["ts"], "signal_close_ts":close_ts(signal, bar_ms), "fee_rate":fee_rate, "slippage_rate":base_slip,
                                 "entry_gap_pct": (entry / signal["close"] - 1) * 100,
                                 "entry_slippage_pct": base_slip * 100, "direction": direction,
                                 "strategy_family": trade_params["family"], "entry_mode": mode,
@@ -321,12 +337,15 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                                 "features": {k: v for k, v in f.items() if not k.startswith("_")},
                                 "edge_probability": detail.get("probability"), "score": score,
                                 "mfe_price": raw, "mae_price": raw}
+                            if stock_execution:
+                                position.update(actual_entry_shares=native_qty, entry_split_factor=factor,
+                                                share_basis="split-adjusted units")
                             if level_provider is not None:
                                 position["target1_fraction"] = partial_fraction
                             from .prediction_audit import entry_snapshot
                             position["entry_forecast"] = entry_snapshot(
                                 (choice.get("learning") or {}).get("forecast") if choice else None,
-                                signal["ts"]+bar_ms)
+                                close_ts(signal, bar_ms))
                             if on_entry:
                                 on_entry(position)
                             funnel["entries_opened"] += 1
@@ -344,7 +363,7 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                 reason = ("BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None
                           and candle["open"] == p["stop"] else "STOP_GAP")
                 close(candle["open"], candle, reason)
-            elif p.get("target1_fraction") and sign*(candle["open"]-p["target2"]) >= 0:
+            elif sign*(candle["open"]-p["target2"]) >= 0:
                 # An existing order crossed at the open precedes the later
                 # intrabar path. Keep conservative target-level exit prices.
                 partial_close(candle)
@@ -378,10 +397,12 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                     # The fill below uses the close, so measure age at the close.
                     # Fixed learning deadlines align with every study interval.
                     # Other deadlines resolve at the first available bar close.
-                    if candle["ts"] + bar_ms - p["entry_ts"] >= p["decision_params"].get("time_stop_hours", 24) * 3600000:
+                    if close_ts(candle, bar_ms) - p["entry_ts"] >= p["decision_params"].get("time_stop_hours", 24) * 3600000:
                         close(candle["close"], candle, "TIME")
+            if position and stock_execution and close_at_session_end and close_ts(candle, bar_ms) == candle["session_close_ts"]:
+                close(candle["close"], candle, "SESSION_CLOSE")
             if position:
-                protect_after_close(position, candle, bar_ms)
+                protect_after_close(position, candle, close_ts(candle, bar_ms)-candle["ts"])
         if track_equity:
             mark = cash
             if position:
@@ -392,9 +413,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
             if daily_loss_limit is not None:
                 check_daily_limit(mark)
     if feedback is not None:
-        through = rows[end-1]["ts"]+bar_ms if complete else stopped_at
+        through = close_ts(rows[end-1], bar_ms) if complete else stopped_at
         feedback.advance(through)
-    if position and complete:
+    if position and complete and liquidate_end:
         close(rows[end - 1]["close"], rows[end - 1], "END")
         curve.append(cash)
     if stream_only:
@@ -415,8 +436,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
     for equity in curve:
         peak = max(peak, equity)
         dd = max(dd, (peak - equity) / max(peak, 1e-12))
-    metrics = {"ending_balance": cash, "return_pct": (cash / balance - 1) * 100,
-        "trades": len(trades), "net_pnl": cash - balance,
+    ending_equity = curve[-1] if position and not liquidate_end else cash
+    metrics = {"ending_balance": ending_equity, "return_pct": (ending_equity / balance - 1) * 100,
+        "trades": len(trades), "net_pnl": ending_equity - balance,
         "win_rate": sum(r > 0 for r in returns) / len(returns) * 100 if returns else None,
         "profit_factor": profit / loss if loss else None,
         "expectancy_r": statistics.mean(returns) if returns else None,
@@ -426,6 +448,12 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
         "slippage_notional":sum(t["slippage_notional"] for t in trades),
         "halted_utc_days":halted_days, "daily_loss_limit":daily_loss_limit,
         "family": params["family"], "direction": direction}
+    if stock_execution:
+        metrics.update(asset_class="equity", halted_exchange_sessions=halted_days,
+            execution_mode="long-only unleveraged paper", fractional_shares=fractional_shares)
+    if not liquidate_end:
+        metrics.update(open_position=position, realized_pnl=cash-balance,
+                       unrealized_pnl=ending_equity-cash, as_of_ts=close_ts(rows[end-1], bar_ms) if complete else stopped_at)
     if bar_interval_ms is not None:
         metrics.update(complete=complete, stopped_at_ts=stopped_at)
         if not complete:

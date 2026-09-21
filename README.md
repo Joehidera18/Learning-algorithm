@@ -1,5 +1,14 @@
 # CryptO — Crypto + Stocks
 
+**V11.19: stock learning and paper practice.** Open **Stock practice** to train
+and test the existing learner on US stocks and ETFs, including your 20-company
+watchlist. Eight candle timeframes, day/swing modes, exchange calendars, separate
+stock costs, whole/fractional shares, saved comparisons, candle exports and
+registered forward paper practice are included. Data is delayed; no stock orders
+are submitted. Read [the stock practice guide](STOCK_PRACTICE.md) and
+[the recorded-data findings](research/stock-practice-v11.19-results.md).
+
+
 **V11.18: controlled experiments.** The new **Experiments** section compares
 breakout/retest entries, exit rules and continued learning under the same costs.
 It includes a saved research queue, journal-based suggestions, an optional bounded
@@ -17,7 +26,7 @@ percentage changes, and a selectable price/volume chart for all 20 US listings.
 Stock feeds may be delayed; the provider's quote time and market-status labels apply.
 Download the full report or export the list from the same page. The research is
 dated September 20, 2026; market snapshots are September 18. See
-[the section guide](STOCK_RESEARCH.md). These stock features remain included in V11.18.
+[the section guide](STOCK_RESEARCH.md). These stock features remain included in V11.19.
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 

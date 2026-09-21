@@ -45,7 +45,13 @@ class Service:
         from .experiment_jobs import ExperimentJobs
         self.experiments = ExperimentJobs(self.db_path, self.data_dir, blocked=lambda: any(
             obj.worker and obj.worker.is_alive() for obj in (self.autolearn, self.research, self.vwap)))
+        from .equity_jobs import EquityJobs
+        self.equities = EquityJobs(self.data_dir, blocked=lambda: self.experiments.busy() or any(
+            obj.worker and obj.worker.is_alive() for obj in (self.autolearn, self.research, self.vwap)))
+        self.experiments.blocked = lambda: self.equities.busy() or any(
+            obj.worker and obj.worker.is_alive() for obj in (self.autolearn, self.research, self.vwap))
         self.experiments.resume()
+        self.equities.resume()
 
     def _limit(self, query, default=100):
         value = query.get("limit", str(default))
@@ -69,11 +75,14 @@ class Service:
                 return 200, (self.base_dir / "templates/index.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and path in ("/stocks", "/stocks/"):
                 return 200, (self.base_dir / "templates/stocks.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
+            if method == "GET" and path in ("/stock-practice", "/stock-practice/"):
+                return 200, (self.base_dir / "templates/stock-practice.html").read_bytes(), {"Content-Type":"text/html; charset=utf-8"}
             if method == "GET" and path in ("/experiments", "/experiments/"):
                 return 200, (self.base_dir / "templates/experiments.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and path in ("/static/app.js", "/static/coinbase.js", "/static/style.css",
                                            "/static/stocks.js", "/static/stocks.css",
-                                           "/static/experiments.js", "/static/experiments.css"):
+                                           "/static/experiments.js", "/static/experiments.css",
+                                           "/static/stock-practice.js", "/static/stock-practice.css"):
                 name = path.rsplit("/", 1)[-1]
                 mime = "application/javascript; charset=utf-8" if name.endswith(".js") else "text/css; charset=utf-8"
                 return 200, (self.base_dir / "static" / name).read_bytes(), {"Content-Type": mime}
@@ -81,7 +90,35 @@ class Service:
                 return 200, {"ok": True, "api_version": "11.0", "default_mode": "paper",
                              "live_capable":True, "starting_balance":500,
                              "stock_research_version":STOCK_RESEARCH_EDITION,
-                             "app_version":"11.18", "experiments_version":"controlled-experiments-v1"}, {}
+                             "app_version":"11.19", "stock_practice_version":"stock-practice-v1", "experiments_version":"controlled-experiments-v1"}, {}
+            if path.startswith("/api/stocks/practice/"):
+                prefix = "/api/stocks/practice/"
+                action = path.removeprefix(prefix)
+                if action == "status" and method == "GET":
+                    return 200, self.equities.status(), {}
+                if action == "start" and method == "POST":
+                    return 202, self.equities.start(body), {}
+                if action in ("cancel", "retry", "forward/start", "forward/stop") and method == "POST":
+                    if set(body) != {"id"}:
+                        raise ValueError("Choose one stock practice ID")
+                    operation = {"cancel":self.equities.cancel,"retry":self.equities.retry,
+                                 "forward/start":self.equities.start_forward,"forward/stop":self.equities.stop_forward}[action]
+                    return 200, operation(body["id"]), {}
+                if action in ("export", "candles", "forward/export") and method == "GET":
+                    if action == "forward/export":
+                        value = self.equities.forward_list(full=True)
+                    else:
+                        job = self.equities.get(query.get("id"),full=True)
+                        value = job
+                        if action == "candles":
+                            from .experiment_jobs import read_gzip
+                            stored = self.equities.snapshot_path(job["manifest"])
+                            if not stored.exists():
+                                raise ValueError("Stock candles have not been downloaded for this run yet")
+                            value = read_gzip(stored)
+                    return 200, json.dumps(value,indent=2,allow_nan=False).encode(), {
+                        "Content-Type":"application/json","Content-Disposition":'attachment; filename="stock-practice.json"'}
+                return 404, {"error":"Stock practice route not found"}, {}
             if path.startswith("/api/experiments/"):
                 if path == "/api/experiments/status" and method == "GET":
                     return 200, self.experiments.status(), {}
@@ -116,8 +153,8 @@ class Service:
                     return (200, json.loads(report.read_text()), {}) if report.exists() else (200, {"reports":[]}, {})
                 return 404, {"error":"Experiment route not found"}, {}
             if (method == "POST" and path in ("/api/learning/start", "/api/learning/practice", "/api/research/start",
-                                               "/api/vwap/start", "/api/continuous/reset") and self.experiments.busy()):
-                raise RuntimeError("Finish or cancel the active experiment before starting another heavy research task")
+                                               "/api/vwap/start", "/api/continuous/reset") and (self.experiments.busy() or self.equities.busy())):
+                raise RuntimeError("Finish or cancel the active research task before starting another heavy task")
             if method == "GET" and path.startswith("/api/stocks/research"):
                 from .stock_research import research_payload, report_bytes, REPORT_NAME
                 if path == "/api/stocks/research/report":

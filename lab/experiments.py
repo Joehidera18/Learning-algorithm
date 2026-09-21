@@ -15,6 +15,7 @@ from collections import deque
 from .adaptive import AdaptivePolicy
 from .chronological_learning import ChronologicalTrainer
 from .data import INTERVAL_MS
+from .market_clock import consecutive
 from .evaluation import dataset_digest, reviewed_boundary
 from .execution import simulate
 from .exit_management import FIXED_EXIT, BREAK_EVEN_EXIT, TRAILING_EXIT
@@ -92,7 +93,7 @@ def retest_features(rows, features, step, params):
     """
     result, highs, pending = [], deque(maxlen=55), None
     for i, (row, f) in enumerate(zip(rows, features)):
-        if i and row["ts"]-rows[i-1]["ts"] != step:
+        if i and not consecutive(rows[i-1], row, step):
             highs.clear()
             pending = None
         output = dict(f) if f else None
@@ -122,7 +123,8 @@ def compact_trade(t):
     keys = ("entry_ts", "exit_ts", "exit_time_ts", "signal_ts", "entry", "exit", "initial_stop", "stop",
             "target2", "qty_initial", "risk_dollars", "pnl", "r_multiple", "reason", "regime",
             "gross_pnl", "fees_paid", "slippage_notional", "decision_params", "strategy_family",
-            "break_even_active_ts", "trailing_active_ts", "planned_cost_r", "planned_net_rr")
+            "break_even_active_ts", "trailing_active_ts", "planned_cost_r", "planned_net_rr",
+            "actual_entry_shares", "entry_split_factor", "share_basis")
     return {k: t[k] for k in keys if k in t}
 
 
