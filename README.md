@@ -1,5 +1,14 @@
 # CryptO — Crypto + Stocks
 
+**V11.18: controlled experiments.** The new **Experiments** section compares
+breakout/retest entries, exit rules and continued learning under the same costs.
+It includes a saved research queue, journal-based suggestions, an optional bounded
+AI planner, entry rejection reasons and the 15-coin archive coverage inventory.
+Paper entries now check portfolio quote freshness and related-market risk.
+All seven requested timeframes are integrated. Read [the guide](EXPERIMENTS.md)
+and [the recorded-market results](research/experiments-v11.18-results.md).
+The tests do not yet demonstrate dependable profitability.
+
 **New: Stock research.** Open **Stock research** in the top navigation for the
 20-stock research universe, five growth priorities, company investment cases,
 source links, catalyst calendar, dated valuation checks, and a saved watchlist.
@@ -8,13 +17,13 @@ percentage changes, and a selectable price/volume chart for all 20 US listings.
 Stock feeds may be delayed; the provider's quote time and market-status labels apply.
 Download the full report or export the list from the same page. The research is
 dated September 20, 2026; market snapshots are September 18. See
-[the section guide](STOCK_RESEARCH.md). The crypto engine remains V11.16.
+[the section guide](STOCK_RESEARCH.md). These stock features remain included in V11.18.
 
 A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
 
-**Complete combined package:** V11.16 learning, sentiment and focused practice,
-plus the Reddit VWAP strategy tester. Open [START_HERE.md](START_HERE.md) for
-setup, the two workflows and the current evidence limits.
+**Complete combined package:** learning, sentiment, focused practice, stock research,
+the Reddit VWAP tester and controlled experiments. Open [START_HERE.md](START_HERE.md)
+for setup, the workflows and current evidence limits.
 
 **Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.16 learns how saved entry forecasts translate into later net returns, using only resolved eligible examples. It adds timestamped Alternative.me Fear & Greed inputs, displays source/freshness, publishes completed news feeds immediately, and aligns default practice and monitoring around 15 coins.
 
@@ -59,7 +68,14 @@ models or enable trading. See [the declared rules and offline runner](VWAP_RESEA
 
 Historical practice defaults to the same 15 Coinbase USD markets used by monitoring and automatic learning. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
 
-The dashboard defaults to separate **15-minute, hourly and 6-hour** studies, with **five years** requested. Optional 5-minute studies are supported. Requests are bounded to one year at 5m, five years at 15m and eight years at 1h/6h. Every report shows requested/effective history, actual candle dates and the percentage of the effective window covered. A younger listing cannot supply history before it existed. At least 3,000 observed candles remain required; a 6-hour study therefore needs at least 750 observed days. The daily context uses only completed daily candles available at each historical signal. See [the data design, sources and replay results](MARKET_COVERAGE_RESEARCH.md).
+The dashboard defaults to separate **1m, 4m, 5m, 15m, 30m, 1h and 4h** studies,
+with five years requested. Effective practice history is capped at 90 days for 1m,
+365 days for 4m/5m, 1,825 days for 15m/30m and 2,920 days for 1h/4h. Old 6h reports
+remain readable but are no longer selected by default. Each report shows requested
+and effective history, observed dates and coverage; a listing cannot supply prices
+from before it existed. At least 3,000 candles are required. Controlled experiments
+have a separate 50,000-candle capacity limit. The downloadable full archives are
+not truncated by these processing limits. See [the candle guide](CANDLE_LIBRARY.md).
 
 Each coin/timeframe has its own model, simulated account, result, cache identity and resumable checkpoint. Practice finishes without starting monitoring or order runners. Existing runners keep their current state. Only the configured **Decision interval** in Settings may install a qualified forward profile. Secondary timeframe studies cannot overwrite or delete it. Six-hour models remain research only and cannot install a forward profile; coarser candles need a separate execution-precision review before enabling that trading interval. Changing timeframes requires that timeframe's qualification; the app does not choose a winner from the highest backtest profit. Previously reviewed prices remain reviewed across timeframe and history-length changes.
 

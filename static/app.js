@@ -6,9 +6,9 @@
   let practiceSelectionLoaded = false;
   let forwardState = null;
   let learningDetail = null, learningDetailLoading = null, learningDetailRequest = 0;
-  const practiceIntervals=["5m","15m","1h","6h"];
+  const practiceIntervals=["1m","4m","5m","15m","30m","1h","4h"];
   const financeData = {paper:null,coinbase:null,history:null};
-  const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
+  const percentFields = new Set(["fee_rate","slippage_rate","risk_per_trade","max_total_risk","max_related_risk","daily_loss_limit","max_notional_fraction","max_spread"]);
   const escape = function (value) { return String(value == null ? "—" : value).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
   const finite = function (v) { return typeof v === "number" && Number.isFinite(v); };
   const money = function (v) { return finite(v) ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2}).format(v) : "—"; };
@@ -146,7 +146,10 @@
     }).join("") : emptyRow(6,"No open paper positions.");
     $("marketsTable").innerHTML = s.coins.length ? s.coins.map(function (c) {
       const blocks = rejectionSummary(c.rejections);
-      return "<tr><td><b>" + escape(c.product_id) + "</b></td><td>" + price(c.price) + '</td><td class="' + (c.price_stale ? "negative" : "") + '">' + (c.quote_age_seconds == null ? "No quote" : num(c.quote_age_seconds,0) + "s") + "</td><td>" + ["5m","15m","1h","4h"].map(function (iv) { return c.bar_counts[iv] || 0; }).join(" / ") + "</td><td>" + escape(c.regime) + "<small>" + escape(c.structure) + "</small></td><td>" + escape(c.last_decision || c.readiness) +
+      const coverage=practiceIntervals.map(function(iv){const v=(c.candle_coverage||{})[iv];
+        return v ? iv+": "+v.internal_missing+" internal gaps, "+v.zero_volume+" zero-volume" : iv+": unavailable";
+      }).join(" · ");
+      return "<tr><td><b>" + escape(c.product_id) + "</b></td><td>" + price(c.price) + '</td><td class="' + (c.price_stale ? "negative" : "") + '">' + (c.quote_age_seconds == null ? "No quote" : num(c.quote_age_seconds,0) + "s") + "</td><td>" + practiceIntervals.map(function (iv) { return c.bar_counts[iv] || 0; }).join(" / ") + "<details><summary>Rolling candle coverage</summary><small>" + escape(coverage) + "</small></details></td><td>" + escape(c.regime) + "<small>" + escape(c.structure) + "</small></td><td>" + escape(c.last_decision || c.readiness) +
         (blocks ? '<details><summary>Candidate checks</summary><small>'+blocks+'</small></details>' : '') + "</td></tr>";
     }).join("") : emptyRow(6,"Start the paper trader to load markets.");
     if (!settingsLoaded) {
@@ -540,7 +543,7 @@
     if (!practiceSelectionLoaded) {
       const saved=s.practice_symbols || s.default_practice_symbols;
       if (Array.isArray(saved) && saved.length) $("practiceSymbols").value=saved.map(function (symbol) { return symbol.replace(/-USD$/, ""); }).join(", ");
-      const intervals=s.practice_intervals || s.default_practice_intervals || ["15m","1h","6h"];
+      const intervals=s.practice_intervals || s.default_practice_intervals || ["1m","4m","5m","15m","30m","1h","4h"];
       practiceIntervals.forEach(function (iv) { $("practiceInterval"+iv).checked=intervals.includes(iv); });
       $("practiceHistory").value=String(s.history_days || 1825);
       practiceSelectionLoaded=true;

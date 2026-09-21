@@ -5,6 +5,14 @@ It is a declared crypto adaptation, not a reconstruction of private source code.
 No profit benefit has been established. It cannot qualify or install a model,
 update existing learning, start monitoring, or submit orders.
 
+V11.18 now includes a real-data replay on 14 days of recorded BTCUSDT one-minute
+Binance candles. It observed 43 band setups, 15 with profile, two with delta and
+one with trend filtering across the whole window, but no executed trades under
+the configured fee/reward checks in either evaluation window. This is an
+inconclusive crypto adaptation test, not Coinbase profitability evidence. The
+original failed Coinbase download is no longer the only research record; see
+[the release results](research/experiments-v11.18-results.md).
+
 ## What the research suggests
 
 The economic hypothesis is that a temporary price extension can reverse after

@@ -3,7 +3,7 @@ from datetime import datetime,timezone,timedelta
 import csv,time
 
 BINANCE="https://api.binance.us"
-INTERVAL_MS={"1m":60000,"5m":300000,"15m":900000,"1h":3600000,"4h":14400000,"6h":21600000,"1d":86400000}
+INTERVAL_MS={"1m":60000,"4m":240000,"5m":300000,"15m":900000,"30m":1800000,"1h":3600000,"4h":14400000,"6h":21600000,"1d":86400000}
 
 def data_path(out_dir,symbol,interval):
     return out_dir/f"{symbol}_{interval}.csv"
@@ -14,6 +14,18 @@ def download_binance_history(symbol,interval,years,out_dir):
         raise ValueError("unsupported interval")
     out_dir.mkdir(parents=True,exist_ok=True)
     path=data_path(out_dir,symbol,interval)
+    if interval == "4m":
+        from .data_repair import aggregate_complete
+        source_path, _ = download_binance_history(symbol, "1m", years, out_dir)
+        source = load_history(source_path)
+        step = INTERVAL_MS[interval]
+        end = int(time.time()*1000)//step*step
+        start = (source[0]['ts']+step-1)//step*step if source else end
+        rows = aggregate_complete(source, 60000, step, min(start,end), end)
+        with path.open("w",newline="") as handle:
+            writer = csv.DictWriter(handle,fieldnames=["ts","open","high","low","close","volume","quote_volume","trades"])
+            writer.writeheader();writer.writerows(rows)
+        return path,len(rows)
     start=int((datetime.now(timezone.utc)-timedelta(days=365.25*years)).timestamp()*1000)
     end=int(datetime.now(timezone.utc).timestamp()*1000)
     rows=[];cursor=start;s=requests.Session()

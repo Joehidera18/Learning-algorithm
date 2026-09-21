@@ -42,6 +42,10 @@ class Service:
             pass  # A different process holds this study's worker lease.
         if self.events.store.enabled():
             self.events.start()
+        from .experiment_jobs import ExperimentJobs
+        self.experiments = ExperimentJobs(self.db_path, self.data_dir, blocked=lambda: any(
+            obj.worker and obj.worker.is_alive() for obj in (self.autolearn, self.research, self.vwap)))
+        self.experiments.resume()
 
     def _limit(self, query, default=100):
         value = query.get("limit", str(default))
@@ -65,15 +69,55 @@ class Service:
                 return 200, (self.base_dir / "templates/index.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and path in ("/stocks", "/stocks/"):
                 return 200, (self.base_dir / "templates/stocks.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
+            if method == "GET" and path in ("/experiments", "/experiments/"):
+                return 200, (self.base_dir / "templates/experiments.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and path in ("/static/app.js", "/static/coinbase.js", "/static/style.css",
-                                           "/static/stocks.js", "/static/stocks.css"):
+                                           "/static/stocks.js", "/static/stocks.css",
+                                           "/static/experiments.js", "/static/experiments.css"):
                 name = path.rsplit("/", 1)[-1]
                 mime = "application/javascript; charset=utf-8" if name.endswith(".js") else "text/css; charset=utf-8"
                 return 200, (self.base_dir / "static" / name).read_bytes(), {"Content-Type": mime}
             if method == "GET" and path == "/api/health":
                 return 200, {"ok": True, "api_version": "11.0", "default_mode": "paper",
                              "live_capable":True, "starting_balance":500,
-                             "stock_research_version":STOCK_RESEARCH_EDITION}, {}
+                             "stock_research_version":STOCK_RESEARCH_EDITION,
+                             "app_version":"11.18", "experiments_version":"controlled-experiments-v1"}, {}
+            if path.startswith("/api/experiments/"):
+                if path == "/api/experiments/status" and method == "GET":
+                    return 200, self.experiments.status(), {}
+                if path == "/api/experiments/start" and method == "POST":
+                    return 202, self.experiments.start(body, dict(self.agent.settings)), {}
+                if path in ("/api/experiments/cancel", "/api/experiments/retry") and method == "POST":
+                    if set(body) != {"id"}:
+                        raise ValueError("Choose one experiment ID")
+                    action = self.experiments.cancel if path.endswith("/cancel") else self.experiments.retry
+                    return 200, action(body["id"]), {}
+                if path == "/api/experiments/export" and method == "GET":
+                    return 200, json.dumps(self.experiments.get(query.get("id"), full=True), indent=2, allow_nan=False).encode(), {
+                        "Content-Type":"application/json", "Content-Disposition":'attachment; filename="controlled-experiment.json"'}
+                if path == "/api/experiments/planner" and method == "GET":
+                    from .experiment_planner import planner_payload
+                    return 200, planner_payload(self.db_path, self.experiments.status()["jobs"], len(self.token) >= 16), {}
+                if path == "/api/experiments/planner" and method == "POST":
+                    if body != {"mode":"openai"}:
+                        raise ValueError("Use mode: openai for the optional AI planner")
+                    if len(self.token) < 16:
+                        raise RuntimeError("Configure protected app access before using paid AI planning")
+                    from .experiment_planner import ai_plan, planner_context
+                    context = planner_context(self.db_path, self.experiments.status()["jobs"])
+                    return 200, ai_plan(self.db_path, context), {}
+                if path == "/api/experiments/coverage" and method == "GET":
+                    rows = json.loads((self.base_dir/"candle-coverage-2026-09-20.json").read_text())
+                    return 200, {"as_of":"2026-09-20", "provider":"Binance", "quote_currency":"USDT",
+                        "scope":"Dated archive inventory; not the Coinbase USD cache or a live coverage check",
+                        "coins":[{k:r[k] for k in ("coin","pair","first_available_ts","end_ts_exclusive","timeframes")} for r in rows]}, {}
+                if path == "/api/experiments/release-results" and method == "GET":
+                    report = self.base_dir/"research"/"experiments-v11.18.json"
+                    return (200, json.loads(report.read_text()), {}) if report.exists() else (200, {"reports":[]}, {})
+                return 404, {"error":"Experiment route not found"}, {}
+            if (method == "POST" and path in ("/api/learning/start", "/api/learning/practice", "/api/research/start",
+                                               "/api/vwap/start", "/api/continuous/reset") and self.experiments.busy()):
+                raise RuntimeError("Finish or cancel the active experiment before starting another heavy research task")
             if method == "GET" and path.startswith("/api/stocks/research"):
                 from .stock_research import research_payload, report_bytes, REPORT_NAME
                 if path == "/api/stocks/research/report":

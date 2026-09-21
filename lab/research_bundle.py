@@ -8,12 +8,13 @@ import zipfile
 from .data import load_history
 from .evaluation import DATA_FIELDS, dataset_digest, canonical_candle
 from .paper_store import load_state
+from .study_plan import PRACTICE_INTERVALS
 
 
 def market_bundle(learner, symbol, interval):
     if (not isinstance(symbol,str) or not re.fullmatch(r"[A-Z0-9]{2,16}-USD",symbol)
-            or interval not in ("5m","15m","1h","6h")):
-        raise ValueError("Choose a Coinbase USD market and a 5m, 15m, 1h or 6h interval")
+            or interval not in PRACTICE_INTERVALS):
+        raise ValueError("Choose a Coinbase USD market and a supported candle interval")
     with learner.lock:
         report = next((dict(r) for r in learner.state.get("results", [])
                        if r.get("symbol")==symbol and r.get("interval")==interval), None)

@@ -80,8 +80,8 @@ assert.equal(element('forwardStop').disabled,false);
 context.testUI.renderForward({registered_studies:0,studies:[]});
 assert.equal(element('forwardExport').disabled,true);
 assert.match(element('forwardResults').innerHTML,/No forward study/);
-const savedIntervals=original.practice_intervals || original.default_practice_intervals || ["15m","1h","6h"];
-for (const iv of ["5m","15m","1h","6h"]) {
+const savedIntervals=original.practice_intervals || original.default_practice_intervals || ["1m","4m","5m","15m","30m","1h","4h"];
+for (const iv of ["1m","4m","5m","15m","30m","1h","4h"]) {
   assert.equal(element("practiceInterval"+iv).checked,savedIntervals.includes(iv));
   element("practiceInterval"+iv).checked=iv !== "5m";
 }
@@ -90,11 +90,11 @@ element("autoFee").reportValidity=()=>true;
 element("practiceSymbols").value="BTC, eth, BTC-USD";
 element("practiceHistory").value="2920";
 const plan=JSON.parse(JSON.stringify(context.testUI.practicePlan()));
-assert.deepEqual(plan,{fee_rate:.004,symbols:["BTC-USD","ETH-USD"],intervals:["15m","1h","6h"],history_days:2920});
-for (const iv of ["5m","15m","1h","6h"]) element("practiceInterval"+iv).checked=false;
+assert.deepEqual(plan,{fee_rate:.004,symbols:["BTC-USD","ETH-USD"],intervals:["1m","4m","15m","30m","1h","4h"],history_days:2920});
+for (const iv of ["1m","4m","5m","15m","30m","1h","4h"]) element("practiceInterval"+iv).checked=false;
 assert.throws(()=>context.testUI.practicePlan(),/at least one timeframe/);
-element("practiceInterval6h").checked=true;
-assert.deepEqual(JSON.parse(JSON.stringify(context.testUI.practicePlan().intervals)),["6h"]);
+element("practiceInterval4m").checked=true;
+assert.deepEqual(JSON.parse(JSON.stringify(context.testUI.practicePlan().intervals)),["4m"]);
 if (original.results.length) {
   assert.match(element("learningResults").innerHTML,/BTC-USD/);
   assert.equal(element("learningTestTrades").textContent,String(original.results.reduce((n,r)=>n+(r.holdout?.trades||0),0)));

@@ -2,11 +2,13 @@
 HISTORY_DAYS = 1825
 MAX_HISTORY_DAYS = 2920
 MAX_PRACTICE_MARKETS = 60
-PRACTICE_INTERVALS = ('5m', '15m', '1h', '6h')
-DEFAULT_PRACTICE_INTERVALS = ('15m', '1h', '6h')
+ACTIVE_INTERVALS = ('1m', '4m', '5m', '15m', '30m', '1h', '4h')
+# Keep old six-hour reports and explicit legacy requests readable.
+PRACTICE_INTERVALS = (*ACTIVE_INTERVALS, '6h')
+DEFAULT_PRACTICE_INTERVALS = ACTIVE_INTERVALS
 # Keep fine-grained studies within a practical single-process candle budget.
 # The requested and effective lookback are both shown, never silently conflated.
-INTERVAL_HISTORY_LIMITS = {'5m':365, '15m':1825, '1h':2920, '6h':2920}
+INTERVAL_HISTORY_LIMITS = {'1m':90, '4m':365, '5m':365, '15m':1825, '30m':1825, '1h':2920, '4h':2920, '6h':2920}
 DEFAULT_PRACTICE_SYMBOLS = (
     'BTC-USD', 'ETH-USD', 'SOL-USD', 'HBAR-USD', 'XRP-USD', 'XLM-USD',
     'ADA-USD', 'DOGE-USD', 'AVAX-USD', 'LINK-USD', 'LTC-USD', 'BCH-USD', 'DOT-USD',
@@ -21,7 +23,7 @@ def normalize_plan(intervals, days, primary_interval):
     intervals = [primary_interval] if intervals is None else intervals
     if (not isinstance(intervals, list) or not 1 <= len(intervals) <= len(PRACTICE_INTERVALS)
             or any(iv not in PRACTICE_INTERVALS for iv in intervals)):
-        raise ValueError('Choose one or more of 5m, 15m, 1h and 6h for historical practice')
+        raise ValueError('Choose one or more of 1m, 4m, 5m, 15m, 30m, 1h and 4h for historical practice')
     if type(days) is not int or not 365 <= days <= MAX_HISTORY_DAYS:
         raise ValueError('Practice history must be 365–2920 whole days')
     return list(dict.fromkeys(intervals)), days

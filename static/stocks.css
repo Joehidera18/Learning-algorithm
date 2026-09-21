@@ -7,3 +7,5 @@
 .market-table-hint{font-size:10px;color:var(--muted);margin:10px 20px}.market-widget-host iframe{color-scheme:normal}
 
 .market-board-controls{padding:12px 18px;border-bottom:1px solid var(--border)}
+
+.market-nav{flex-wrap:wrap}
