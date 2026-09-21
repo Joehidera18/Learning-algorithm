@@ -1,0 +1,1348 @@
+[
+  {
+    "coin": "BTC",
+    "venue": "Binance",
+    "pair": "BTCUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1502942400000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "27c800c10a69a41dc874b18f554cf64b2208e9c570d917313767d8914122e538",
+      "recovered_minutes": 4773,
+      "requests": 38,
+      "errors": [
+        {
+          "start_ts": 1529978400000,
+          "end_ts": 1530014400000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1530104400000,
+          "end_ts": 1530110700000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1530642960000,
+          "end_ts": 1530702900000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1539928800000,
+          "end_ts": 1539941400000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1542160800000,
+          "end_ts": 1542186000000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1552356000000,
+          "end_ts": 1552377600000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1557889200000,
+          "end_ts": 1557925200000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1559886660000,
+          "end_ts": 1559946600000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1565834400000,
+          "end_ts": 1565863200000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1573610400000,
+          "end_ts": 1573618800000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1573623000000,
+          "end_ts": 1573623180000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1574647200000,
+          "end_ts": 1574654400000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1581213600000,
+          "end_ts": 1581217200000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1582073640000,
+          "end_ts": 1582133580000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1583272440000,
+          "end_ts": 1583332380000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1587780000000,
+          "end_ts": 1587789000000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1593309600000,
+          "end_ts": 1593322200000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1606716000000,
+          "end_ts": 1606719600000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1608519060000,
+          "end_ts": 1608579000000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1608861600000,
+          "end_ts": 1608865200000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1612976760000,
+          "end_ts": 1613036700000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1614996000000,
+          "end_ts": 1615001400000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1618884000000,
+          "end_ts": 1618893000000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1619273160000,
+          "end_ts": 1619333100000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1619333100000,
+          "end_ts": 1619340300000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1628794980000,
+          "end_ts": 1628854920000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1632898800000,
+          "end_ts": 1632906000000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1640294820000,
+          "end_ts": 1640354760000,
+          "error": "Supplemental retry unavailable in offline mode"
+        },
+        {
+          "start_ts": 1679606820000,
+          "end_ts": 1679666760000,
+          "error": "Supplemental retry unavailable in offline mode"
+        }
+      ],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4766346,
+        "missing_candles": 16784,
+        "zero_volume_rows": 23664,
+        "coverage_pct": 99.6491000662746,
+        "sha256": "c10b6ddf186daa26075cd29906f6a9b5715b46924ffc014e0a633e2875b8e6f9",
+        "file": "binance_BTCUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1191567,
+        "missing_candles": 4215,
+        "zero_volume_rows": 1462,
+        "coverage_pct": 99.64751100116911,
+        "sha256": "a0a778e3c462739d2d64010054c26144f6a310c03ec84b3c75f23d6d4209d576",
+        "file": "binance_BTCUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 953259,
+        "missing_candles": 3367,
+        "zero_volume_rows": 867,
+        "coverage_pct": 99.6480338188592,
+        "sha256": "76ec64be8b5656bdb088da56f5e3094a7a535842483971f1402d9d954337889a",
+        "file": "binance_BTCUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 317742,
+        "missing_candles": 1133,
+        "zero_volume_rows": 41,
+        "coverage_pct": 99.64468835750687,
+        "sha256": "4f0bea350437d59a12be4e795f49285da0b4a75473a13a731d72b1a87283b650",
+        "file": "binance_BTCUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 158859,
+        "missing_candles": 578,
+        "zero_volume_rows": 1,
+        "coverage_pct": 99.6374743629145,
+        "sha256": "7a21c2c373e62ceaf8099cba735e85d1c2013480acaf5dc1589ed76ab7f448bc",
+        "file": "binance_BTCUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 79419,
+        "missing_candles": 299,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.62492787074437,
+        "sha256": "519bc7ad1e3bf5f03e8a9834353f6b38faf79d1c93f6198936ae6197937568d0",
+        "file": "binance_BTCUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 19827,
+        "missing_candles": 102,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.48818304982689,
+        "sha256": "88b932a762ed04d2717723bd914d2cddbe741237de453b1894f9ef4a614d1696",
+        "file": "binance_BTCUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "ETH",
+    "venue": "Binance",
+    "pair": "ETHUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1502942400000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "06525c502270091b8d80a9341fe577e4a2269323c5b2502388f2fa16aa74ef11",
+      "recovered_minutes": 12908,
+      "requests": 38,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4774481,
+        "missing_candles": 8649,
+        "zero_volume_rows": 32136,
+        "coverage_pct": 99.81917698243619,
+        "sha256": "4dbe30ab4333d8f2fe468c27db214c02c3fcd4d1c2059121a189662590437fdc",
+        "file": "binance_ETHUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1193605,
+        "missing_candles": 2177,
+        "zero_volume_rows": 2772,
+        "coverage_pct": 99.8179434043998,
+        "sha256": "bf392add084ecf94c0f29fd693d77cadfe2796112fe590af0ab8582823d186b4",
+        "file": "binance_ETHUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 954889,
+        "missing_candles": 1737,
+        "zero_volume_rows": 1795,
+        "coverage_pct": 99.81842433720179,
+        "sha256": "aaaed1906d68b9262b9522e530f5eae12efbbe76555b6a5b0c87008144d9d0db",
+        "file": "binance_ETHUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 318287,
+        "missing_candles": 588,
+        "zero_volume_rows": 146,
+        "coverage_pct": 99.8156017248138,
+        "sha256": "d43364f2f221dfbcd581cc4056629e012f9d88d9aed2ef10e8f54390a5f32930",
+        "file": "eth_15minute_verified.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 159135,
+        "missing_candles": 302,
+        "zero_volume_rows": 18,
+        "coverage_pct": 99.81058349065775,
+        "sha256": "b5679fb0173cdb117b14662b0fc7cb2914f1c05639019e267585421981275411",
+        "file": "binance_ETHUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 79557,
+        "missing_candles": 161,
+        "zero_volume_rows": 2,
+        "coverage_pct": 99.79803808424697,
+        "sha256": "dd5927ee624625649fef1e402ade56ebbe9744051da5ab81b355a74364abc162",
+        "file": "binance_ETHUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 19861,
+        "missing_candles": 68,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.6587886998846,
+        "sha256": "fd655632e96804ca967ba72188874a924fec4b88855ad702a5f4a9341aef0454",
+        "file": "binance_ETHUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "SOL",
+    "venue": "Binance",
+    "pair": "SOLUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1597125600000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "02c3f541d3de80e1a9c7c08eaf11a9071c92cec8a9b5bda41c236455556cc9eb",
+      "recovered_minutes": 4146,
+      "requests": 11,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3211961,
+        "missing_candles": 1449,
+        "zero_volume_rows": 22331,
+        "coverage_pct": 99.95490771485743,
+        "sha256": "ab8a7dd0f83a5dcc87e4903527d3c1b13cab494fc91d12df38cfd2801ad80dd3",
+        "file": "binance_SOLUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 802985,
+        "missing_candles": 367,
+        "zero_volume_rows": 400,
+        "coverage_pct": 99.9543164142244,
+        "sha256": "cf20b69ee2ac530c989fd9b758139a6424f0ff5a10ef33972d54a4304b569eb3",
+        "file": "binance_SOLUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 642390,
+        "missing_candles": 292,
+        "zero_volume_rows": 179,
+        "coverage_pct": 99.95456539937325,
+        "sha256": "a50c948370d54cf269ada2428bb84e1b2c01e5ea66ca8dbd4552efcc8135b3ab",
+        "file": "binance_SOLUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 214128,
+        "missing_candles": 99,
+        "zero_volume_rows": 8,
+        "coverage_pct": 99.95378733773053,
+        "sha256": "f83d676999c5cc3f3b0ae25d97aa1ffc636a0c0f444cfc80dde5befa6fafa74e",
+        "file": "binance_SOLUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 107062,
+        "missing_candles": 51,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.95238673176925,
+        "sha256": "76a07e6ce58ba1f3b1ee8dc804b33803fb4a5c74af577c83903955c7044f21d7",
+        "file": "binance_SOLUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 53527,
+        "missing_candles": 29,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.94585107177534,
+        "sha256": "4117ebfaaa45cede21516a47136b39e84b27e89b2486bbf9e49a5dfd0de831ad",
+        "file": "binance_SOLUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 13372,
+        "missing_candles": 16,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.88048999103675,
+        "sha256": "d09fbbc620c6435ab9deb786f0f10713fd94889b2616bccb0b8952825f70166c",
+        "file": "binance_SOLUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "HBAR",
+    "venue": "Binance",
+    "pair": "HBARUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1569729600000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "3e2338380ed3fb1aa12c11e8cc52fa8385a20f1eed4b454cff83976bcfcd15bb",
+      "recovered_minutes": 6657,
+      "requests": 20,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3667392,
+        "missing_candles": 2618,
+        "zero_volume_rows": 326026,
+        "coverage_pct": 99.92866504450942,
+        "sha256": "7c4d57518cafed8a79bfe73adb2b147cb3973c282eda685cb461826fa21c40dd",
+        "file": "binance_HBARUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 916838,
+        "missing_candles": 664,
+        "zero_volume_rows": 23756,
+        "coverage_pct": 99.92762958554859,
+        "sha256": "8a50dce40d5e7e1a74098e0870db6d7c43cafd0a6d7441364d622140e528f205",
+        "file": "binance_HBARUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 733475,
+        "missing_candles": 527,
+        "zero_volume_rows": 14451,
+        "coverage_pct": 99.92820183051272,
+        "sha256": "24ea04b4f016ba2ddf9a16a7e063cc8fd0accdccea096f94edcdc51f7ad8fa5b",
+        "file": "binance_HBARUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 244487,
+        "missing_candles": 180,
+        "zero_volume_rows": 765,
+        "coverage_pct": 99.92643061794193,
+        "sha256": "aea69f6613c6d83b46fc332986f1edbfab98f967e54cab755878b71e794b9d9f",
+        "file": "binance_HBARUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 122240,
+        "missing_candles": 93,
+        "zero_volume_rows": 61,
+        "coverage_pct": 99.92397799449044,
+        "sha256": "0373c74f93911b5a07e8a99883fe156943092b36fdace2403a751a74389bd824",
+        "file": "binance_HBARUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 61112,
+        "missing_candles": 54,
+        "zero_volume_rows": 1,
+        "coverage_pct": 99.91171565902626,
+        "sha256": "235e3b34d646544d0662ad552ba139a8016238e42dc65843fee5d1749496b8c5",
+        "file": "binance_HBARUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 15262,
+        "missing_candles": 29,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.81034595513701,
+        "sha256": "6e5c0e61d4661caa21c766c5e1e0af010a5a315b34f1100603467c5d567f03d6",
+        "file": "binance_HBARUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "XRP",
+    "venue": "Binance",
+    "pair": "XRPUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1525421460000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "618b565e0c5055fdbba0e91f218826a43b3d2f222c4f50274b92408a36adbab9",
+      "recovered_minutes": 7138,
+      "requests": 28,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4402568,
+        "missing_candles": 5911,
+        "zero_volume_rows": 5220,
+        "coverage_pct": 99.86591747403129,
+        "sha256": "21db5d44ee60d607aabc268479a6baf68ebce40e3ac75cd6423cc934bb0de51c",
+        "file": "binance_XRPUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1100630,
+        "missing_candles": 1489,
+        "zero_volume_rows": 62,
+        "coverage_pct": 99.86489662187114,
+        "sha256": "4747a9da78e7c23a81540cef7f2cb00b625774acfceb18eccdbf626f9abb8a84",
+        "file": "binance_XRPUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 880509,
+        "missing_candles": 1186,
+        "zero_volume_rows": 43,
+        "coverage_pct": 99.86548636433234,
+        "sha256": "cec83787329476cd99eb4e64fa4298fb6e0550c1bcfc1b79aad00e28b2eeb191",
+        "file": "binance_XRPUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 293498,
+        "missing_candles": 400,
+        "zero_volume_rows": 11,
+        "coverage_pct": 99.86389835929472,
+        "sha256": "52052ad98a58ed65d91967f3a068ee036701e50f03d98e2dcb01569617b1e982",
+        "file": "binance_XRPUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 146744,
+        "missing_candles": 204,
+        "zero_volume_rows": 5,
+        "coverage_pct": 99.8611753817677,
+        "sha256": "2a30307368f4932590b838dbece69e37ac365b035da45f04a6e79209957cd8c7",
+        "file": "binance_XRPUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 73363,
+        "missing_candles": 110,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.85028513875845,
+        "sha256": "a9fcf68ca35ac4e3b08672522bf9736ae82bfa9c88e5478e076b938a72565a93",
+        "file": "binance_XRPUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 18318,
+        "missing_candles": 49,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.73321718299124,
+        "sha256": "d112418241febab3a0048c141a1a61f815b413043f0e96bf3966eb4dd055e070",
+        "file": "binance_XRPUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "XLM",
+    "venue": "Binance",
+    "pair": "XLMUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1527759000000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "6fe3661bf9dc032e260c6719f5c3b022f41b8529605be40ea8d2deed572e507f",
+      "recovered_minutes": 7138,
+      "requests": 28,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4363609,
+        "missing_candles": 5911,
+        "zero_volume_rows": 105947,
+        "coverage_pct": 99.86472198319267,
+        "sha256": "0b62100ead41a9aeee4a0c34a3a42ac5743d30e5a94b4ebffb45fb886d5e6eae",
+        "file": "binance_XLMUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1090890,
+        "missing_candles": 1489,
+        "zero_volume_rows": 462,
+        "coverage_pct": 99.86369199700836,
+        "sha256": "0d9a1399211a563a33565406cd197b54c2627c447d3fac872904e30da2691817",
+        "file": "binance_XLMUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 872718,
+        "missing_candles": 1186,
+        "zero_volume_rows": 154,
+        "coverage_pct": 99.86428715282227,
+        "sha256": "a40175e560f86c85d0dffc70cb6b28c3eeaffd15de7ee8168573753f1e9ee76c",
+        "file": "binance_XLMUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 290901,
+        "missing_candles": 400,
+        "zero_volume_rows": 11,
+        "coverage_pct": 99.8626849890663,
+        "sha256": "ea0c210cd4b97c94c56e931349a02978470ee888f1efb57e1c0eedca09571f22",
+        "file": "binance_XLMUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 145446,
+        "missing_candles": 204,
+        "zero_volume_rows": 5,
+        "coverage_pct": 99.85993820803296,
+        "sha256": "226eb1d909771da18a4fa2ae10ee3c00e40002e47435c7c8ada110944782d372",
+        "file": "binance_XLMUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 72714,
+        "missing_candles": 110,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.84895089530924,
+        "sha256": "8bc160a817802754e74a54d129c2be3178ab7c0f4b9775c0b18c10f2a091e545",
+        "file": "binance_XLMUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 18156,
+        "missing_candles": 49,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.73084317495194,
+        "sha256": "f6815bb01ef57b38068445518a29e8ac57fc37de1f51c2176ea8fdd524106846",
+        "file": "binance_XLMUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "ADA",
+    "venue": "Binance",
+    "pair": "ADAUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1523937720000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "8072c5fda87c822b301c0fef81fa8db40ae1ca2feda9ce8aa73232e0add0e711",
+      "recovered_minutes": 8135,
+      "requests": 29,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4427295,
+        "missing_candles": 5913,
+        "zero_volume_rows": 56395,
+        "coverage_pct": 99.8666202894157,
+        "sha256": "49240618d50d0351eb36b6d0b0630f25eb98c4547c100a43110a34021c8b17b4",
+        "file": "binance_ADAUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1106811,
+        "missing_candles": 1490,
+        "zero_volume_rows": 468,
+        "coverage_pct": 99.86555998776505,
+        "sha256": "6d7c90472ab1985b615cff67571790438b531625e69d19430f4cd740436d3b4c",
+        "file": "binance_ADAUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 885454,
+        "missing_candles": 1187,
+        "zero_volume_rows": 167,
+        "coverage_pct": 99.86612394418937,
+        "sha256": "7584220850fc7dd63687f4a97701ff45ffccff356f999846f9ee236fa85820dd",
+        "file": "binance_ADAUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 295145,
+        "missing_candles": 401,
+        "zero_volume_rows": 11,
+        "coverage_pct": 99.86431892158919,
+        "sha256": "153ae750401fac47580a60cc4bf22d08100a47e360c4f024dafe5911000ba34d",
+        "file": "binance_ADAUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 147567,
+        "missing_candles": 205,
+        "zero_volume_rows": 5,
+        "coverage_pct": 99.861272771567,
+        "sha256": "d860f273f4bd70f9f52b1927cf1591cbbed258d8d51a4ce7d1ad7db66803491f",
+        "file": "binance_ADAUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 73774,
+        "missing_candles": 111,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.84976652906543,
+        "sha256": "1927242851999f5aaf1ec2e7d2e1c7126d99a4d837c57301af4af2830590bd63",
+        "file": "binance_ADAUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 18420,
+        "missing_candles": 50,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.72929074174337,
+        "sha256": "65efc9bd428cf0f299c99d59bda24d42fbae2410c08e06f12439bfe0a786f188",
+        "file": "binance_ADAUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "DOGE",
+    "venue": "Binance",
+    "pair": "DOGEUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1562328000000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "29281bd4f8a1089b3977c6062b99bcb7ba86a4d15f70a82c9531958af997fd80",
+      "recovered_minutes": 6657,
+      "requests": 21,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3790272,
+        "missing_candles": 3098,
+        "zero_volume_rows": 356484,
+        "coverage_pct": 99.91833119363521,
+        "sha256": "9cfc41462dd7f24215f3d6e186f7a529bc7a6060e4096de507051fffe7e4915b",
+        "file": "binance_DOGEUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 947558,
+        "missing_candles": 784,
+        "zero_volume_rows": 28624,
+        "coverage_pct": 99.91732940226206,
+        "sha256": "b22fcbc627c8ecf24bb21b05b4a94f332759061389d901c850428f1f684d6ae9",
+        "file": "binance_DOGEUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 758051,
+        "missing_candles": 623,
+        "zero_volume_rows": 17032,
+        "coverage_pct": 99.91788304330977,
+        "sha256": "8734b0fd00bff38deb5b7a24c4f1ef9059322616e08beedd429b4dd2e0b34f71",
+        "file": "binance_DOGEUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 252679,
+        "missing_candles": 212,
+        "zero_volume_rows": 611,
+        "coverage_pct": 99.9161694168634,
+        "sha256": "7f5a4429dc5901869927c71833d08bcd75280abb4e998e66a08fa000f7868c9c",
+        "file": "binance_DOGEUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 126336,
+        "missing_candles": 109,
+        "zero_volume_rows": 33,
+        "coverage_pct": 99.9137965123176,
+        "sha256": "c188712abbb95999e619af5763c7bbad02d1fe38a1da1cdab04d76b6ecbc02e7",
+        "file": "binance_DOGEUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 63160,
+        "missing_candles": 62,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.90193287146879,
+        "sha256": "747e9b229f8aab618b5850e2428878f2fc7e80bc84060fdcffa5f6efe4dda6a7",
+        "file": "binance_DOGEUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 15773,
+        "missing_candles": 32,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.79753242644733,
+        "sha256": "ffea07435a019f27ab63a4737a117dcd2cc699461c989b58a73d19481f20704d",
+        "file": "binance_DOGEUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "AVAX",
+    "venue": "Binance",
+    "pair": "AVAXUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1600756200000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "eb526953157c74645fe3db22112eba31ee21b120c1fb5e214604ea7e97b2e21f",
+      "recovered_minutes": 5143,
+      "requests": 12,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3151449,
+        "missing_candles": 1451,
+        "zero_volume_rows": 51123,
+        "coverage_pct": 99.9539788765898,
+        "sha256": "736bfaaacf2dcfca478fe0c830cacf7ece030cb2dee28c0fe0ded27a9201472b",
+        "file": "binance_AVAXUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 787856,
+        "missing_candles": 368,
+        "zero_volume_rows": 1255,
+        "coverage_pct": 99.95331276388438,
+        "sha256": "c2a3c9f44abe5e68e1b82b32ef79a0b79115b62f1a5d0abf391e13e780dc60b1",
+        "file": "binance_AVAXUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 630287,
+        "missing_candles": 293,
+        "zero_volume_rows": 611,
+        "coverage_pct": 99.9535348409401,
+        "sha256": "c830fec62f75a6067b1adf1787d8b8a517fc0e77baf92168d18a764b6690fb82",
+        "file": "binance_AVAXUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 210093,
+        "missing_candles": 100,
+        "zero_volume_rows": 11,
+        "coverage_pct": 99.95242467636886,
+        "sha256": "e71bd4555dd1dec49900ba8879bada04e4bf6894181ce1bc4a6446dcf9f361a6",
+        "file": "binance_AVAXUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 105044,
+        "missing_candles": 52,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.95052142802771,
+        "sha256": "874aed5a51462521abf8b43f9c658c1ad0188f077bdf08c581fe10feb55ed557",
+        "file": "binance_AVAXUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 52517,
+        "missing_candles": 30,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.94290825356347,
+        "sha256": "424495e5dfe2a7b927f50fc1e54bf8d20ba17492cafe2fa1fcd4409930e64102",
+        "file": "binance_AVAXUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 13119,
+        "missing_candles": 17,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.87058465286236,
+        "sha256": "70328367b456defe8de4c6496c4523def3cc9f8370099bb6989ffb5ad3f3b9da",
+        "file": "binance_AVAXUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "LINK",
+    "venue": "Binance",
+    "pair": "LINKUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1547632800000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "183b5efdd3f2fea4441549a17b2b04bfbebce80cf0532216d49e25e0fd8fcf72",
+      "recovered_minutes": 7595,
+      "requests": 24,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4034171,
+        "missing_candles": 4119,
+        "zero_volume_rows": 130243,
+        "coverage_pct": 99.89800138177297,
+        "sha256": "e92311086d7d56e1e7e53da32f3e13619122f4a5c773ffae55244686e1e887de",
+        "file": "binance_LINKUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1008532,
+        "missing_candles": 1040,
+        "zero_volume_rows": 7564,
+        "coverage_pct": 99.89698604953387,
+        "sha256": "9312ba8a727821362479c613fcdc5b92012fa73d426b8911768bd9689b41441b",
+        "file": "binance_LINKUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 806830,
+        "missing_candles": 828,
+        "zero_volume_rows": 4413,
+        "coverage_pct": 99.89748135968442,
+        "sha256": "0ce78cdcd63436ddff58ce30ba5340d114166a2fcbb0cfb1b43f0e66389e2a30",
+        "file": "binance_LINKUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 268938,
+        "missing_candles": 281,
+        "zero_volume_rows": 158,
+        "coverage_pct": 99.89562400870666,
+        "sha256": "85ede89a780ad375ce04e49d5de4d691a507f0d5a80a5ef2dd9599f51e5d1969",
+        "file": "binance_LINKUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 134465,
+        "missing_candles": 144,
+        "zero_volume_rows": 14,
+        "coverage_pct": 99.89302349768589,
+        "sha256": "0cbf6a7430c41d9e1c8fa52c7cbdb2409796e74838ea7a0f02407ef4d4daa1a3",
+        "file": "binance_LINKUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 67224,
+        "missing_candles": 80,
+        "zero_volume_rows": 1,
+        "coverage_pct": 99.88113633662189,
+        "sha256": "b76c4df700c4387d0866ec0e0dc52cdfed6f9f31231843f5a6ec31e55261b9da",
+        "file": "binance_LINKUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 16786,
+        "missing_candles": 39,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.76820208023774,
+        "sha256": "7a2fdf482b953082eff68319cb4e854ecc115c0ac3ced7751adb5421aa8fdbc9",
+        "file": "binance_LINKUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "LTC",
+    "venue": "Binance",
+    "pair": "LTCUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1513135920000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "bb17088a0f6a10993a702889efadd098c99be3b32f775215abfb88744deb7b04",
+      "recovered_minutes": 11870,
+      "requests": 36,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 4605059,
+        "missing_candles": 8179,
+        "zero_volume_rows": 18196,
+        "coverage_pct": 99.82270587383526,
+        "sha256": "152d7f19326bf4429c377490052f85e216851878d73206cc72050015129f4172",
+        "file": "binance_LTCUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 1151250,
+        "missing_candles": 2059,
+        "zero_volume_rows": 100,
+        "coverage_pct": 99.82147022177057,
+        "sha256": "d0d277ec9eb9b72f02feaa62e7cf28c19a2f4fc028434aa1e83c2dfcfad11339",
+        "file": "binance_LTCUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 921004,
+        "missing_candles": 1643,
+        "zero_volume_rows": 54,
+        "coverage_pct": 99.8219253950861,
+        "sha256": "589287d58612abd5085d21c0c4f0ab04a3d05aeed95481be5e3ada281ba08f05",
+        "file": "binance_LTCUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 306992,
+        "missing_candles": 556,
+        "zero_volume_rows": 11,
+        "coverage_pct": 99.81921521193439,
+        "sha256": "fc11f68103d0ebae94f01fd28b5ac694184fd142e8e8f78b2f0d475e79a3b9b6",
+        "file": "binance_LTCUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 153487,
+        "missing_candles": 286,
+        "zero_volume_rows": 5,
+        "coverage_pct": 99.81401156249797,
+        "sha256": "7efe7bc0c3d9ca17dd5c950f67bf72a2f6b4289564a3bd560c5c21d5a35f2976",
+        "file": "binance_LTCUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 76733,
+        "missing_candles": 153,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.80100408396848,
+        "sha256": "41a5707ae0936ed356842621c996aba70ea92ed7ddb9b7fd9c6ef5d6f1f3fde3",
+        "file": "binance_LTCUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 19156,
+        "missing_candles": 65,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.66182820873003,
+        "sha256": "878a01a8ebb7be2dbc6060e025c7926a2b1355ba795dcc09bef964808d3165ba",
+        "file": "binance_LTCUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "BCH",
+    "venue": "Binance",
+    "pair": "BCHUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1574935200000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "25af61aeb5ccb123e0b327b31b3ba8e198ffcace7719d4ba597220337a55c5e3",
+      "recovered_minutes": 6657,
+      "requests": 17,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3580895,
+        "missing_candles": 2355,
+        "zero_volume_rows": 81026,
+        "coverage_pct": 99.93427754133818,
+        "sha256": "e92a61e1eb8aa7d177f3d7b51c76d8e786c1787b75fe41bd64efb301a2de7f5c",
+        "file": "binance_BCHUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 895215,
+        "missing_candles": 597,
+        "zero_volume_rows": 426,
+        "coverage_pct": 99.93335655249092,
+        "sha256": "c79c385a23062094bb5d167050577ebd86f82730c10844962a8e1b6631ff91a5",
+        "file": "binance_BCHUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 716176,
+        "missing_candles": 474,
+        "zero_volume_rows": 147,
+        "coverage_pct": 99.93385892695179,
+        "sha256": "f6eef2cc2bd289015c4358e6a4dc39c5567bb1ec0c922217d83a76897b1c35c6",
+        "file": "binance_BCHUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 238722,
+        "missing_candles": 161,
+        "zero_volume_rows": 8,
+        "coverage_pct": 99.93260298974812,
+        "sha256": "f12a0edd582d441c20f5becb5ddc9f5240b0cbdfffc6a73da26f4b7406b79ff6",
+        "file": "binance_BCHUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 119358,
+        "missing_candles": 83,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.93050962399846,
+        "sha256": "c1324f40a290bc707cc001ce63ba1788bd20970e1897e132d0a6df7fd4f20bbc",
+        "file": "binance_BCHUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 59672,
+        "missing_candles": 48,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.91962491627595,
+        "sha256": "825dad8751845b2e6e8c14fa593f07fb8a327541fb5ce3096ea007e4d87a99ff",
+        "file": "binance_BCHUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 14903,
+        "missing_candles": 26,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.82584232031617,
+        "sha256": "0c3cdddab25b0d7b33c648173f8c6b6e63c29db8d63185c579c0f0253015a633",
+        "file": "binance_BCHUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "DOT",
+    "venue": "Binance",
+    "pair": "DOTUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1597791600000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "6325fbd6b94c2fcd2760d108255f98bc73efcc09f29d983dfdcabd7df417d0dc",
+      "recovered_minutes": 5143,
+      "requests": 12,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3200859,
+        "missing_candles": 1451,
+        "zero_volume_rows": 21819,
+        "coverage_pct": 99.9546889589078,
+        "sha256": "d9d9e2c6989b7f3a038c80ed20e4f8c40e233fb9d75f48787ecaa7aa3bea9df8",
+        "file": "binance_DOTUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 800209,
+        "missing_candles": 368,
+        "zero_volume_rows": 95,
+        "coverage_pct": 99.95403315358797,
+        "sha256": "5a8f418c565fc873371b27bb8194b4772a97c3895c7ec9c21f30bdef2b84289b",
+        "file": "binance_DOTUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 640169,
+        "missing_candles": 293,
+        "zero_volume_rows": 44,
+        "coverage_pct": 99.95425177450028,
+        "sha256": "aa7ff610dd4b92a16182aa368916190522a1cb84844351c89048fff027bd4f05",
+        "file": "binance_DOTUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 213387,
+        "missing_candles": 100,
+        "zero_volume_rows": 8,
+        "coverage_pct": 99.95315874034485,
+        "sha256": "ee5ea19c4d4caf258ca7d13909446164a360ca55cf7fe9a2a0e468f79e77d3ca",
+        "file": "binance_DOTUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 106691,
+        "missing_candles": 52,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.9512848617708,
+        "sha256": "d23890926b4d0430b5340dae230578055af06c3cd577a65ba48eb0c01c339d7d",
+        "file": "binance_DOTUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 53341,
+        "missing_candles": 30,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.94378969852542,
+        "sha256": "84f6079f14ae1fb0d720e4fdc072aee3d8a85fe5810fa419ca7a84369fb6d622",
+        "file": "binance_DOTUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 13325,
+        "missing_candles": 17,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.87258282116625,
+        "sha256": "32b71a2c0ec369e4225c2dc4620e78ee1c3971a2bb56b9eca852cc8f57f53d2f",
+        "file": "binance_DOTUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "UNI",
+    "venue": "Binance",
+    "pair": "UNIUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1600311600000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "98d94ff6783dfbc84e7e524320a6a3b08b0538f74256871e3f53faaf4411026b",
+      "recovered_minutes": 4146,
+      "requests": 11,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3158861,
+        "missing_candles": 1449,
+        "zero_volume_rows": 51229,
+        "coverage_pct": 99.95415006755667,
+        "sha256": "ce60297ddbd5940753ceb91e3c5013da7275a67a7f04f50a7b5f7e250db6dd93",
+        "file": "binance_UNIUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 789710,
+        "missing_candles": 367,
+        "zero_volume_rows": 156,
+        "coverage_pct": 99.95354883131644,
+        "sha256": "266b5aa95feb6e2906f868d47fb392b3ce9ebcac3b1838fb91253a67285be5e6",
+        "file": "binance_UNIUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 631770,
+        "missing_candles": 292,
+        "zero_volume_rows": 57,
+        "coverage_pct": 99.95380200043667,
+        "sha256": "24c692524499cd4a442ce3859a2dffc3d73a01025d051494b9bfd68e4c55dbb6",
+        "file": "binance_UNIUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 210588,
+        "missing_candles": 99,
+        "zero_volume_rows": 8,
+        "coverage_pct": 99.9530108644577,
+        "sha256": "7e8524ce223ff2ebc6c443f349741f8f96b9c67ab0f858683b7854a4b9101ce0",
+        "file": "binance_UNIUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 105292,
+        "missing_candles": 51,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.95158672147177,
+        "sha256": "a0697ea5182a19b0436b6e7fe58feb4fd24b5bdbaf982b435b9c527f072000e5",
+        "file": "binance_UNIUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 52642,
+        "missing_candles": 29,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.94494123901198,
+        "sha256": "bf43251a48d982bf38600c73cb7e24d42a89cd2cd94a905cec845aa22013dccc",
+        "file": "binance_UNIUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 13151,
+        "missing_candles": 16,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.8784840890104,
+        "sha256": "9a413048db3b25a03cb25d3c707e4268b0183b670009b5205658a05ce1c3770d",
+        "file": "binance_UNIUSDT_4h.csv.gz"
+      }
+    ]
+  },
+  {
+    "coin": "AAVE",
+    "venue": "Binance",
+    "pair": "AAVEUSDT",
+    "quote_currency": "USDT",
+    "first_available_ts": 1602730800000,
+    "end_ts_exclusive": 1789930200000,
+    "supplemental_repair": {
+      "input_archive_sha256": "532aeb7c1025009818a612ed01922dff2a9c3c739633fe70d40f39402191dad6",
+      "recovered_minutes": 5143,
+      "requests": 12,
+      "errors": [],
+      "rule": "Malformed observations rejected individually; all original valid candles preserved."
+    },
+    "timeframes": [
+      {
+        "interval": "1m",
+        "rows": 3118539,
+        "missing_candles": 1451,
+        "zero_volume_rows": 79250,
+        "coverage_pct": 99.9534934406841,
+        "sha256": "e9d343e40533f66b641bd54585ddb930c5c52707f7833bea5a17791dc0de0dd3",
+        "file": "binance_AAVEUSDT_1m.csv.gz"
+      },
+      {
+        "interval": "4m",
+        "rows": 779629,
+        "missing_candles": 368,
+        "zero_volume_rows": 912,
+        "coverage_pct": 99.95282033136024,
+        "sha256": "940ab118f1468ea846c6fa5a6e75c09c4c6a490f89b2cbe0b701c532324918bd",
+        "file": "binance_AAVEUSDT_4m.csv.gz"
+      },
+      {
+        "interval": "5m",
+        "rows": 623705,
+        "missing_candles": 293,
+        "zero_volume_rows": 355,
+        "coverage_pct": 99.95304472129719,
+        "sha256": "d37ff4866f274d8c0f63c8013cb706aac2886dd4bca8e0ed77bf8c5b270ae640",
+        "file": "binance_AAVEUSDT_5m.csv.gz"
+      },
+      {
+        "interval": "15m",
+        "rows": 207899,
+        "missing_candles": 100,
+        "zero_volume_rows": 8,
+        "coverage_pct": 99.95192284578292,
+        "sha256": "8b444491c2f3b270d0da37eb42c0285e3097e0de42891ffb438a2ce1f91267f2",
+        "file": "binance_AAVEUSDT_15m.csv.gz"
+      },
+      {
+        "interval": "30m",
+        "rows": 103947,
+        "missing_candles": 52,
+        "zero_volume_rows": 4,
+        "coverage_pct": 99.94999951922614,
+        "sha256": "5b054482408609ba9a9f240dbf80de8aee3d46ec9f7c0e13dcdbac433d524c97",
+        "file": "binance_AAVEUSDT_30m.csv.gz"
+      },
+      {
+        "interval": "1h",
+        "rows": 51969,
+        "missing_candles": 30,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.9423065828189,
+        "sha256": "5be2c11eb76f5fa1a513c8cedcda558510f3afc275002f95033223320201b944",
+        "file": "binance_AAVEUSDT_1h.csv.gz"
+      },
+      {
+        "interval": "4h",
+        "rows": 12982,
+        "missing_candles": 17,
+        "zero_volume_rows": 0,
+        "coverage_pct": 99.86922070928533,
+        "sha256": "1712e238dfee982ff070702fb53fa28274f8189830f08bd3f47949220e162be3",
+        "file": "binance_AAVEUSDT_4h.csv.gz"
+      }
+    ]
+  }
+]

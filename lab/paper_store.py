@@ -2,8 +2,10 @@ from __future__ import annotations
 import json, random, sqlite3, threading, time
 from pathlib import Path
 
-INTERVAL_MS={"5m":300000,"15m":900000,"1h":3600000,"4h":14400000}
-MAX_BARS={"5m":1200,"15m":800,"1h":500,"4h":300}
+from .data import INTERVAL_MS as ALL_INTERVAL_MS
+from .study_plan import ACTIVE_INTERVALS
+INTERVAL_MS={iv:ALL_INTERVAL_MS[iv] for iv in ACTIVE_INTERVALS}
+MAX_BARS={"1m":2400,"4m":600,"5m":1200,"15m":800,"30m":400,"1h":1200,"4h":300}
 def now_ms():return int(time.time()*1000)
 def clamp(x,a,b):return max(a,min(b,x))
 

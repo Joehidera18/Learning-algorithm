@@ -278,7 +278,7 @@ class PaperAccountTests(unittest.TestCase):
             self.agent._decision_cycle(self.pid)
             opened.assert_not_called()
         self.agent.settings['learning_enabled']=False
-        self.assertEqual(set(self.agent._required_signal_intervals()),set(INTERVAL_MS))
+        self.assertEqual(set(self.agent._required_signal_intervals()),{"5m","15m","1h","4h"})
 
     def test_coinbase_adaptive_signal_uses_the_same_required_history(self):
         now=1700006400000//900000*900000

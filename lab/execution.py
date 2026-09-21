@@ -362,7 +362,9 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                 if stop_hit:
                     # Never credit a target touched in a candle that also hits the stop.
                     p["mae_price"] = min(p["mae_price"], p["stop"]) if sign == 1 else max(p["mae_price"], p["stop"])
-                    close(p["stop"], candle, "BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None else "STOP")
+                    reason = ("TRAILING_STOP" if p.get("trailing_active_ts") is not None else
+                              "BREAK_EVEN_STOP" if p.get("break_even_active_ts") is not None else "STOP")
+                    close(p["stop"], candle, reason)
                 elif target_hit:
                     partial_close(candle)
                     p["mfe_price"] = max(p["mfe_price"], p["target2"]) if sign == 1 else min(p["mfe_price"], p["target2"])

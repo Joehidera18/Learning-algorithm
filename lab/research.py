@@ -19,6 +19,7 @@ from .engine import build_feature_cache, ENGINE_VERSION
 from .strategies import profit_candidates
 from .execution import simulate
 from .paper_store import load_state, save_state
+from .study_plan import PRACTICE_INTERVALS
 
 COST_KEYS = ("decision_interval", "fee_rate", "slippage_rate", "risk_per_trade", "max_notional_fraction", "daily_loss_limit")
 
@@ -46,8 +47,8 @@ def bootstrap_interval(values, seed=7, runs=500):
 
 
 def validate_rows(rows, interval, allow_gaps=False):
-    if interval not in ("5m", "15m", "1h", "6h"):
-        raise ValueError("Use 5m, 15m, 1h or 6h candles")
+    if interval not in PRACTICE_INTERVALS:
+        raise ValueError("Use a supported intraday or swing candle interval")
     if len(rows) < 3000:
         raise ValueError("Research needs at least 3,000 completed candles")
     step = INTERVAL_MS[interval]
