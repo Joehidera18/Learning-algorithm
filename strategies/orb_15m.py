@@ -5,6 +5,7 @@ Rules (long only, first signal of the day):
 - After that box is complete, a close above the box high is the signal.
 - Require this morning's opening-range volume to beat the average of the prior 20 sessions.
 - Stop is the box low. Targets are 1x and 2x the box width.
+- If news features are present and the 24h score is clearly negative, skip the long.
 - Missing session metadata or an incomplete box is a skip, never a guessed range.
 """
 from .base import StrategySpec, register
@@ -12,6 +13,7 @@ from .base import StrategySpec, register
 RANGE_MS = 15 * 60 * 1000
 RVOL_LOOKBACK = 20
 MIN_RVOL = 1.0
+NEWS_BLOCK = -0.35
 
 
 def _end(row):
@@ -21,7 +23,7 @@ def _end(row):
 @register
 class OpeningRange15m(StrategySpec):
     name = "orb_15m"
-    version = "orb-15m-v1"
+    version = "orb-15m-v1-news-filter"
     direction = "LONG"
     params = dict(StrategySpec.params,
                   family="orb_15m",
@@ -100,6 +102,9 @@ class OpeningRange15m(StrategySpec):
             return None, "zero_opening_range"
         if not orb.get("first_break"):
             return None, "no_first_orb_breakout"
+        news = features.get("news")
+        if news and news.get("ready") and news.get("score", 0) <= params.get("news_block", NEWS_BLOCK):
+            return None, "negative_news_filter"
         return 70.0, None
 
     def levels(self, features, params):
