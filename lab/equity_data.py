@@ -11,6 +11,7 @@ import re
 import time
 from datetime import datetime, timezone, timedelta
 from functools import lru_cache
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 from .data import INTERVAL_MS
@@ -22,6 +23,9 @@ WATCHLIST = ("VRTX", "ALNY", "AVGO", "GOOGL", "TSM", "ETN", "NVDA", "ARGX", "CEG
              "VRT", "IBM", "BEAM", "CRSP", "ASML", "KEYS", "ANET", "RBRK", "VKTX", "IONQ")
 SYMBOLS = ("SPY", "QQQ", "IWM", "DIA", "AAPL", "MSFT")+WATCHLIST
 YAHOO_LIMITS = {"1m":29, "4m":29, "5m":59, "15m":59, "30m":59, "1h":729, "4h":729, "1d":3650}
+MASSIVE_LIMITS = {"1m":365, "4m":365, "5m":730, "15m":730, "30m":730, "1h":1825, "4h":1825, "1d":3650}
+MASSIVE_SPAN = {"1m":(1,"minute"), "5m":(5,"minute"), "15m":(15,"minute"),
+                "30m":(30,"minute"), "1h":(1,"hour"), "1d":(1,"day")}
 
 
 def ticker(value):
@@ -91,7 +95,6 @@ def normalize(raw, source_interval, target_interval, start, end):
     for source in raw:
         ts = source["ts"]
         if source_interval == "1d":
-            # Vendors label a daily observation at midnight or the session open.
             day = datetime.fromtimestamp(ts/1000, NY).date().isoformat()
             ts = by_day.get(day, ts)
         if ts not in expected:
@@ -142,15 +145,21 @@ class EquityData:
         self.http = session or requests.Session()
         self.key = os.getenv("ALPACA_API_KEY") or os.getenv("APCA_API_KEY_ID", "")
         self.secret = os.getenv("ALPACA_SECRET_KEY") or os.getenv("APCA_API_SECRET_KEY", "")
+        self.massive_key = os.getenv("MASSIVE_API_KEY", "")
 
     def catalog(self):
         return {"symbols":list(SYMBOLS), "intervals":list(INTERVALS), "custom_us_tickers":True,
-            "providers":{"yahoo":{"available":True, "max_days":YAHOO_LIMITS,
-                "note":"Public Yahoo historical data; delayed, rate limited, and not an execution feed."},
+            "providers":{
+                "yahoo":{"available":True, "max_days":YAHOO_LIMITS,
+                    "note":"Public Yahoo historical data; delayed, rate limited, short 1m/5m windows."},
                 "alpaca":{"available":bool(self.key and self.secret),
                     "max_days":{iv:(3650 if iv == "1d" else 700 if iv in ("1h", "4h") else 180) for iv in INTERVALS},
-                    "note":"Server data credentials required. SIP or IEX is chosen explicitly; feeds are never mixed."}},
-            "default_provider":"yahoo", "default_interval":"1h", "default_days":365}
+                    "note":"Server Alpaca data keys required. SIP or IEX chosen explicitly."},
+                "massive":{"available":bool(self.massive_key),
+                    "max_days":MASSIVE_LIMITS,
+                    "note":"MASSIVE_API_KEY. US stocks/ETFs from Massive (api.massive.com). Plan limits still apply. Not a live order feed."}},
+            "default_provider":"yahoo", "default_interval":"15m", "default_days":59,
+            "day_trade_symbols":["SPY", "QQQ", "IWM", "DIA", "AAPL", "MSFT", "NVDA"]}
 
     def history(self, symbol, interval, days, cutoff=None, provider="yahoo", feed="sip", cancelled=None):
         ticker(symbol)
@@ -161,15 +170,20 @@ class EquityData:
             raise ValueError(f"{provider} {interval} history is limited to {limit} calendar days per request")
         if feed not in ("sip", "iex"):
             raise ValueError("Choose SIP or IEX")
-        # Both paths deliberately lag 20 minutes. Neither is a live quote feed.
         cutoff = min(cutoff or int(time.time()*1000), int(time.time()*1000)-20*60000)
         start = cutoff-days*DAY
         if cancelled and cancelled():
             raise InterruptedError("Stock download cancelled")
+        extra = {}
         if provider == "yahoo":
             base = {"4m":"1m", "4h":"1h"}.get(interval, interval)
             raw, extra = (self._yahoo_chunks(symbol,start,cutoff,cancelled) if base == "1m"
                           else self._yahoo(symbol, base, start, cutoff))
+        elif provider == "massive":
+            if not self.massive_key:
+                raise ValueError("Configure MASSIVE_API_KEY on the server for stock Massive history")
+            base = {"4m":"1m", "4h":"1h"}.get(interval, interval)
+            raw, extra = self._massive(symbol, base, start, cutoff, cancelled)
         else:
             if not self.key or not self.secret:
                 raise ValueError("Configure ALPACA_API_KEY and ALPACA_SECRET_KEY on the server")
@@ -180,7 +194,7 @@ class EquityData:
             for row in raw:
                 original = native_by_ts.get(row["ts"])
                 if not valid_prices(row) or not original or not valid_prices(original):
-                    row["close"] = None  # Missing raw counterpart cannot establish share sizing.
+                    row["close"] = None
                     continue
                 factor = original["close"]/row["close"]
                 if any(not math.isclose(original[k]/row[k],factor,rel_tol=1e-5) for k in ("open","high","low")):
@@ -192,17 +206,55 @@ class EquityData:
         if len(rows) > 50000:
             raise ValueError("Shorten this request to at most 50,000 stock candles")
         from importlib.metadata import version
+        feed_name = {"yahoo":"Yahoo consolidated historical chart",
+                     "massive":"Massive US stock aggregates (split-adjusted)",
+                     "alpaca":feed}[provider]
         return {"rows":rows, "quality":quality, "market_data":{
             "calendar_package_version":version("pandas_market_calendars"),
-            "provider":provider, "feed":feed if provider == "alpaca" else "Yahoo consolidated historical chart",
+            "provider":provider, "feed":feed_name,
             "symbol":symbol, "currency":"USD", "asset_class":"equity", "interval":interval,
             "requested_start_ts":start, "cutoff_ts":cutoff, "recorded_at":int(time.time()),
             "minimum_delay_minutes":20, "live_quotes":False, "dividends_included":False,
             "adjustment":"split-adjusted OHLC; cash dividends excluded", **extra}}
 
+    def _massive(self, symbol, interval, start, end, cancelled):
+        if interval not in MASSIVE_SPAN:
+            raise ValueError("Massive stock download needs 1m, 5m, 15m, 30m, 1h or 1d source bars")
+        multiplier, timespan = MASSIVE_SPAN[interval]
+        rows, request_ids, cursor = [], [], start
+        while cursor < end:
+            if cancelled and cancelled():
+                raise InterruptedError("Stock Massive download cancelled")
+            cutoff = min(end, cursor + 30*DAY)
+            path = "/v2/aggs/ticker/%s/range/%s/%s/%s/%s" % (
+                quote(symbol, safe=""), multiplier, timespan, cursor, cutoff-1)
+            response = self.http.get("https://api.massive.com"+path,
+                params={"sort":"asc", "limit":50000, "adjusted":"true"},
+                headers={"Authorization":"Bearer "+self.massive_key,
+                         "Accept":"application/json",
+                         "User-Agent":"Learning-algorithm-stock/11.19"},
+                timeout=30)
+            if response.status_code != 200:
+                raise RuntimeError("Massive stock data unavailable (HTTP %s); check MASSIVE_API_KEY and plan limits" % response.status_code)
+            data = response.json()
+            if not isinstance(data, dict) or data.get("status") not in ("OK", "DELAYED"):
+                raise ValueError("Massive did not return a successful stock response")
+            if data.get("next_url"):
+                raise ValueError("Massive returned an incomplete stock page; shorten the window")
+            for r in data.get("results") or []:
+                if type(r.get("t")) is not int:
+                    raise ValueError("Massive stock candle missing timestamp")
+                rows.append({"ts":r["t"], "open":r["o"], "high":r["h"], "low":r["l"],
+                             "close":r["c"], "volume":r["v"], "trades":r.get("n", 0),
+                             "split_factor":1.})
+            request_ids.append(data.get("request_id"))
+            cursor = cutoff
+            time.sleep(12.2)
+        return rows, {"instrument_type":"US equity", "provider_guarantee":False,
+                      "request_ids":request_ids,
+                      "scope":"Massive US listed aggregates mapped onto the NYSE regular session. Extended-hours prints outside session slots are dropped, not filled."}
+
     def _yahoo_chunks(self, symbol, start, end, cancelled):
-        # The minute endpoint limits the duration of each request separately
-        # from its rolling retention. Keep requests shorter than seven days.
         rows, extra, events = {}, {}, {}
         cursor = start
         while cursor < end:
@@ -218,8 +270,6 @@ class EquityData:
             extra = metadata
             cursor = boundary
         result = sorted(rows.values(),key=lambda r:r["ts"])
-        # All chunks use today's split-adjusted prices. Earlier chunks must also
-        # carry splits whose event dates were returned by a later chunk.
         for row in result:
             factor = 1.
             for event in events.get("splits",{}).values():
@@ -237,7 +287,7 @@ class EquityData:
                     "includePrePost":"false", "events":"div,splits"},
             headers={"User-Agent":"Mozilla/5.0"}, timeout=25)
         if response.status_code != 200:
-            raise RuntimeError(f"Yahoo data unavailable (HTTP {response.status_code}); retry later or select configured Alpaca data")
+            raise RuntimeError(f"Yahoo data unavailable (HTTP {response.status_code}); retry later or select Alpaca or Massive")
         chart = response.json().get("chart", {})
         if chart.get("error") or not chart.get("result"):
             raise ValueError("Yahoo returned no historical data for this ticker and period")
