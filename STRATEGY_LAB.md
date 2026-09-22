@@ -13,9 +13,11 @@ places a live order.
 4. The existing paper engine fills on the **next** decision bar open, charges
    fees, and assumes stop-first when a bar is ambiguous.
 5. History is split: first 70% development, last 30% later test, plus a 1.5×
-   cost stress on the later window. `eligible_for_bot` is true only if the later
-   window has at least 20 trades, positive mean R, positive net PnL, and still
-   positive mean R at higher costs.
+   cost stress on the later window. Both later tests must finish with at least
+   20 resolved trades, positive mean R and positive account PnL. An unresolved
+   position at a candle gap makes account PnL unknown and prevents eligibility.
+   Total account PnL includes window-end marks; those marks do not count toward
+   the 20 resolved trades. This flag does not authorize or enable live trading.
 
 ## Run it
 
@@ -44,6 +46,37 @@ python run_strategy_lab.py --strategy breakout_volume_simple --symbol BTCUSDT --
 ```
 
 `orb_15m` is a cash-session strategy. It will skip crypto CSVs that have no `session_open_ts`.
+It supports 1m, 5m and 15m decision candles. Every opening candle from the session
+open through minute 15 must be present with its full duration. A missing first,
+middle or final opening candle invalidates the range. Relative volume needs
+20 prior complete observed opening ranges; an incomplete observed range resets
+that history. A whole missing session cannot be inferred from absent input.
+
+## Corrected reports (version 2)
+
+Reports from the earlier lab must be rerun. Their saved files are retained, but
+the website and export API no longer treat their old eligibility flag as valid.
+Current incomplete reports show unavailable account PnL and the stopping reason.
+
+The website uses the same `APP_ACCESS_TOKEN` check and JSON request validation as
+the rest of the app. Strategy scripts and pages are public; status, job creation
+and report exports require the configured token.
+
+Indicator warmup restarts after missing decision candles. Stock indicators and
+coverage use the exchange calendar, including weekends, holidays and early
+closes. A context candle is usable only when it matches the latest expected
+close; an older observed candle cannot replace a missing one. The final bar of
+the previous stock session remains valid until a new context bar is due.
+
+Massive 1h/4h stock data is built from complete 30-minute bars anchored to the
+regular-session open. Native Massive hourly bars start on the hour and cannot
+be used as 09:30-based stock candles. See [Massive's timestamp documentation](https://massive.com/knowledge-base/article/how-does-massive-treat-hourly-bars-when-querying-regular-trading-hours).
+Identical bars repeated by snapped chunk boundaries are deduplicated; conflicting
+observations fail the download.
+
+The optional context selector supplies completed candles to a strategy. It does
+not add a new entry filter to a strategy that never uses those fields. Strategies
+with `require_context` reject unavailable required frames in the shared runner.
 
 ## Add a strategy
 

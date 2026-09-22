@@ -11,6 +11,7 @@ class StrategySpec:
     version = "v1"
     direction = "LONG"
     require_context = ()
+    allowed_intervals = ALLOWED_INTERVALS
     params = {
         "stop_atr": 1.5,
         "rr1": 1.0,

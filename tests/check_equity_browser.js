@@ -41,8 +41,7 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
     await page.locator('#interval').selectOption('1m');assert.equal(await page.locator('#days').getAttribute('max'),'29');
     await page.locator('#interval').selectOption('1d');assert.equal(await page.locator('#mode').inputValue(),'swing');
     assert.equal(await page.locator('#mode option[value="day"]').evaluate(e=>e.disabled),true);
-    await page.locator('#provider').selectOption('alpaca');
-    assert.equal(await page.locator('#runButton').isDisabled(),true);
+    assert.equal(await page.locator('#provider option[value="alpaca"]').evaluate(e=>e.disabled),true);
     await page.locator('#provider').selectOption('yahoo');await page.locator('#interval').selectOption('1h');
   });
   await check('Queue and cancellation use the stock-only API',async()=>{

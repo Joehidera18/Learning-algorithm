@@ -107,6 +107,52 @@ class StockCalendarTests(unittest.TestCase):
 
 
 class StockProviderTests(unittest.TestCase):
+    def test_massive_builds_session_hours_from_thirty_minute_bars(self):
+        for start, end, expected in (("2026-09-18T00:00:00Z", "2026-09-19T00:00:00Z", {"1h":7, "4h":2}),
+                                     ("2026-11-27T00:00:00Z", "2026-11-28T00:00:00Z", {"1h":4, "4h":1})):
+            raw = stock_rows("30m", start, end, moving=True)
+            response = Mock(status_code=200)
+            response.json.return_value = {"status":"OK", "results":[
+                {"t":r["ts"], "o":r["open"], "h":r["high"], "l":r["low"], "c":r["close"], "v":r["volume"]}
+                for r in raw]}
+            http = Mock(); http.get.return_value = response
+            client = EquityData(http); client.massive_key = "test-only"
+            with patch("lab.equity_data.time.time", return_value=(stamp(end)+86400000)/1000):
+                for interval in ("1h", "4h"):
+                    result = client.history("SPY", interval, 1, cutoff=stamp(end), provider="massive")
+                    self.assertEqual(len(result["rows"]), expected[interval])
+                    self.assertEqual(result["quality"]["missing_candles"], 0)
+                    self.assertEqual(result["rows"][0]["ts"], raw[0]["session_open_ts"])
+                    self.assertEqual(result["rows"][-1]["end_ts"], raw[-1]["session_close_ts"])
+                    self.assertIn("/range/30/minute/", http.get.call_args.args[0])
+                    self.assertEqual(http.get.call_args.kwargs["params"]["adjusted"], "true")
+
+    def test_massive_missing_half_hour_invalidates_its_hour(self):
+        start, end = "2026-09-18T00:00:00Z", "2026-09-19T00:00:00Z"
+        raw = stock_rows("30m", start, end)
+        del raw[1]
+        client = EquityData(Mock()); client.massive_key = "test-only"
+        with patch.object(client, "_massive", return_value=(raw, {})):
+            result = client.history("SPY", "1h", 1, cutoff=stamp(end), provider="massive")
+        self.assertEqual(result["quality"]["missing_candles"], 1)
+        self.assertEqual(result["rows"][0]["ts"], raw[0]["ts"]+3600000)
+
+    def test_massive_snapped_chunk_overlap_is_deduplicated_or_rejected_if_revised(self):
+        one = {"t":123, "o":100, "h":101, "l":99, "c":100, "v":100}
+        for revised in (False, True):
+            first = Mock(status_code=200); second = Mock(status_code=200)
+            first.json.return_value = {"status":"OK", "results":[one]}
+            second.json.return_value = {"status":"OK", "results":[dict(one, c=101 if revised else 100)]}
+            http = Mock(); http.get.side_effect = [first, second]
+            client = EquityData(http)
+            with patch("lab.equity_data.time.sleep"):
+                if revised:
+                    with self.assertRaisesRegex(ValueError, "conflicting"):
+                        client._massive("SPY", "30m", 0, 31*86400000, None)
+                else:
+                    rows, _ = client._massive("SPY", "30m", 0, 31*86400000, None)
+                    self.assertEqual(len(rows), 1)
+
     def test_yahoo_invalid_instrument_and_rate_limit_are_visible(self):
         http=Mock()
         http.get.return_value.status_code=429

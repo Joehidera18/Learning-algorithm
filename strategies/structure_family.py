@@ -3,11 +3,11 @@ from lab.strategies import simple_signal
 from .base import StrategySpec, register
 
 
-def _family(name):
+def _family(family_name):
     class Family(StrategySpec):
-        name = name
+        name = family_name
         version = "structure-v1"
-        params = dict(StrategySpec.params, family=name, direction="LONG", threshold=60)
+        params = dict(StrategySpec.params, family=family_name, direction="LONG", threshold=60)
 
         def signal(self, features, params):
             missing = [iv for iv in params.get("require_context", self.require_context)
@@ -15,7 +15,7 @@ def _family(name):
             if missing:
                 return None, "higher_timeframe_not_ready:" + ",".join(missing)
             return simple_signal(features, params)
-    Family.__name__ = name
+    Family.__name__ = family_name
     return Family
 
 
