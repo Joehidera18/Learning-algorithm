@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from lab.data import INTERVAL_MS, load_history, validate_history
-from lab.equity_data import EquityData, YAHOO_LIMITS
+from lab.equity_data import EquityData, MASSIVE_LIMITS, YAHOO_LIMITS
 from lab.equity_research import DEFAULT_COSTS as STOCK_COSTS
 from lab.strategy_lab import DECISION_INTERVALS, run_backtest, write_report
 from strategies import list_strategies, load_strategy
@@ -34,7 +34,7 @@ def main():
                         help="Comma-separated higher timeframes, or empty")
     parser.add_argument("--days", type=int, default=59)
     parser.add_argument("--csv-dir", default="", help="For crypto: folder of SYMBOL_interval.csv files")
-    parser.add_argument("--provider", default="yahoo", choices=("yahoo", "alpaca"))
+    parser.add_argument("--provider", default="yahoo", choices=("yahoo", "alpaca", "massive"))
     parser.add_argument("--out", default="")
     parser.add_argument("--list", action="store_true", help="Print registered strategies and exit")
     args = parser.parse_args()
@@ -49,13 +49,17 @@ def main():
     stock = args.asset == "equity"
     if stock:
         data = EquityData()
-        limit = YAHOO_LIMITS[args.decision] if args.provider == "yahoo" else 180
+        limits = {"yahoo": YAHOO_LIMITS, "massive": MASSIVE_LIMITS}.get(args.provider)
+        if limits:
+            limit = limits[args.decision]
+        else:
+            limit = data.catalog()["providers"][args.provider]["max_days"][args.decision]
         if args.days > limit:
             raise SystemExit("%s %s history is capped at %s days" % (args.provider, args.decision, limit))
         snap = data.history(args.symbol, args.decision, args.days, provider=args.provider)
         rows = snap["rows"]
         for interval in context:
-            cap = YAHOO_LIMITS[interval] if args.provider == "yahoo" else 180
+            cap = data.catalog()["providers"][args.provider]["max_days"][interval]
             ctx = data.history(args.symbol, interval, min(args.days, cap), provider=args.provider)
             frames[interval] = ctx["rows"]
         costs = dict(STOCK_COSTS)
