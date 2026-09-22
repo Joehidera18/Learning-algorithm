@@ -2,35 +2,24 @@
 import atexit
 import os
 from pathlib import Path
-from lab.service import Service, wsgi_application
-from lab.website_lab import attach
+from lab.stock_service import StockService
+from lab.http import wsgi_application
 
 BASE_DIR = Path(__file__).resolve().parent
 
 
 def create_app(db_path=None, data_dir=None):
-    service = Service(BASE_DIR,
+    service = StockService(BASE_DIR,
         db_path or os.getenv("RESEARCH_DB_PATH", str(BASE_DIR / "research.sqlite3")),
         data_dir or os.getenv("RESEARCH_DATA_DIR", str(BASE_DIR / "data")),
         token=os.getenv("APP_ACCESS_TOKEN"))
-    attach(service)
     application = wsgi_application(service)
     application.service = service
     return application
 
 
 app = create_app()
-agent = app.service.agent
-atexit.register(agent.stop)
-atexit.register(app.service.research.cancel)
-atexit.register(app.service.vwap.cancel)
-atexit.register(app.service.coinbase.stop)
-atexit.register(app.service.autolearn.stop)
-atexit.register(app.service.events.stop, persist=False)
-atexit.register(app.service.forward.shutdown)
-atexit.register(app.service.experiments.shutdown)
-atexit.register(app.service.equities.shutdown)
-atexit.register(app.service.strategy_lab.shutdown)
+atexit.register(app.service.shutdown)
 
 if __name__ == "__main__":
     from socketserver import ThreadingMixIn
@@ -43,7 +32,7 @@ if __name__ == "__main__":
 
     host, port = os.getenv("HOST", "127.0.0.1"), int(os.getenv("PORT", "5000"))
     with make_server(host, port, app, server_class=ThreadedServer) as server:
-        print(f"CryptO V11 — stocks, strategy lab, and Coinbase: http://{host}:{port}", flush=True)
+        print(f"Stock Lab V12 — stock research, learning and paper trading: http://{host}:{port}", flush=True)
         if os.getenv("OPEN_BROWSER") == "1":
             threading.Timer(.5, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
         server.serve_forever()

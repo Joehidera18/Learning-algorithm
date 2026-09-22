@@ -12,7 +12,7 @@ details{margin:18px 0}summary{cursor:pointer;font-weight:600;padding:10px 0}summ
 
 .event-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.event-columns .activity-row{overflow-wrap:anywhere}@media(max-width:700px){.event-columns{grid-template-columns:1fr}}
 
-/* Shared navigation for the existing crypto desk and equity research. */
+/* Shared navigation for the stock workspace. */
 .market-nav{display:flex;align-items:center;gap:8px;padding:15px 0;border-bottom:1px solid var(--border)}.market-nav a{display:flex;align-items:center;gap:9px;color:var(--muted);text-decoration:none;font-size:13px;padding:8px 14px;border:1px solid transparent;border-radius:7px}.market-nav a:hover{background:#17232e;color:var(--text)}.market-nav a[aria-current=page]{color:var(--accent);border-color:#34584f;background:#142623}.market-nav a:focus-visible,.stock-entry a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.market-nav a span{font-size:10px;border:1px solid #3d5359;border-radius:4px;padding:0 5px}.stock-entry{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 22px;margin:22px 0;background:#112323;border:1px solid #294a43;border-radius:10px}.stock-entry strong{font-size:14px;font-weight:600}.stock-entry p{font-size:12px;color:var(--muted);margin:4px 0 0}.stock-entry a{color:var(--accent);font-size:12px;text-decoration:none;white-space:nowrap}.stock-entry a span{margin-left:8px}@media(max-width:580px){.market-nav a{font-size:12px;padding:8px 10px}.stock-entry{align-items:flex-start;flex-direction:column;gap:12px;padding:17px}}
 
 .market-nav{flex-wrap:wrap}

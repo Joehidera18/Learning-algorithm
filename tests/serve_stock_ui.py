@@ -5,7 +5,9 @@ from pathlib import Path
 from socketserver import ThreadingMixIn
 from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
 
-from lab.service import Service, wsgi_application
+from lab.service import Service
+from lab.stock_service import StockService
+from lab.http import wsgi_application
 
 
 class ThreadedServer(ThreadingMixIn, WSGIServer):
@@ -19,12 +21,15 @@ class QuietHandler(WSGIRequestHandler):
 
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory() as directory:
-        service = Service(Path(__file__).resolve().parents[1], Path(directory) / 'browser.sqlite3',
-                          Path(directory) / 'data', token='stock-ui-test-token')
-        from lab.website_lab import attach
-        attach(service)
+        legacy = os.getenv('EXPERIMENT_UI_FIXTURES') == '1'
+        factory = Service if legacy else StockService
+        service = factory(Path(__file__).resolve().parents[1], Path(directory) / 'browser.sqlite3',
+                          Path(directory) / 'data', token='stock-ui-test-token',
+                          **({} if legacy else {'resume':False}))
+        if legacy:
+            from lab.website_lab import attach
+            attach(service)
         if os.getenv('STRATEGY_LAB_UI_FIXTURES') == '1':
-            service.strategy_lab.worker.join(timeout=2)
             service.strategy_lab.resume = lambda: None
             first = service.strategy_lab.start({})
             service.strategy_lab._patch(first['id'], status='complete', message='Generated incomplete test fixture',
@@ -46,7 +51,7 @@ if __name__ == '__main__':
             rows = candles(3100,start=job['manifest']['cutoff_ts']-3100*900000)
             with patch.object(ExperimentHistory,'_history',return_value=rows):
                 service.experiments._run_job(job)
-        if os.getenv('EQUITY_UI_FIXTURES') == '1':
+        if os.getenv('EQUITY_UI_FIXTURES') == '1' or os.getenv('STOCK_DASHBOARD_UI_FIXTURES') == '1':
             from unittest.mock import Mock
             from tests.test_equity_practice import stock_rows, snapshot
             service.equities.resume = lambda: None
@@ -59,9 +64,12 @@ if __name__ == '__main__':
                 print(f'http://127.0.0.1:{server.server_port}', flush=True)
                 server.serve_forever()
         finally:
-            service.strategy_lab.shutdown()
-            service.experiments.shutdown()
-            service.equities.shutdown()
-            service.forward.shutdown()
-            service.events.stop(persist=False)
-            service.agent.stop()
+            if legacy:
+                service.strategy_lab.shutdown()
+                service.experiments.shutdown()
+                service.equities.shutdown()
+                service.forward.shutdown()
+                service.events.stop(persist=False)
+                service.agent.stop()
+            else:
+                service.shutdown()

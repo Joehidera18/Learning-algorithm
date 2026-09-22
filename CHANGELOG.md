@@ -1,3 +1,21 @@
+# V12 — stock-only workspace
+
+- The deployed app now uses a dedicated stock service. Crypto workers, Coinbase
+  controls and legacy crypto APIs are retired; old stored data is preserved.
+- Added a stock dashboard with session clock, selectable market chart, provider
+  status, recent jobs and an independent forward paper account with journal
+  export and stop control.
+- Unified stock navigation, kept the 20-company research section, and linked each
+  selected stock to learner and strategy forms.
+- Preserved app-token sessions and all existing stock persistence paths.
+- Stock learning and strategy jobs share the heavy-computation slot. Strategy
+  jobs use a single runtime lease, persist a common candle cutoff, support
+  cancellation, and mark interrupted work explicitly on restart.
+- Removed the Coinbase SDK from default web dependencies. Retained historical
+  code and V11 setup documentation for reproducibility.
+- Stock trading remains a delayed, long-only paper simulation; funded brokerage
+  execution is not connected. This migration makes no profitability claim.
+
 # Strategy Lab reliability repair — 22 September 2026 UTC
 
 - Restore Stock Practice/Strategy Lab browser scripts and strategy registration.

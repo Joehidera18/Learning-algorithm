@@ -131,7 +131,7 @@
   }
 
   let token = '';
-  try { token = sessionStorage.getItem('cryptoAccessToken') || ''; } catch (_) { /* Token can still be used for this visit. */ }
+  try { token = StockSession.getToken(); } catch (_) { /* Token can still be used for this visit. */ }
   function notice(message = '') {
     $('stockNotice').textContent = message;
     $('stockNotice').hidden = !message;
@@ -183,7 +183,7 @@
     $('stockDetailBody').innerHTML = `<div class="detail-heading"><p class="eyebrow">RESEARCH PRIORITY ${stock.priority} · ${escape(stock.horizon)}</p><h2 id="detailTitle">${escape(stock.ticker)}</h2><p>${escape(stock.name)}</p>${profileTags(stock)}</div>
       <div class="detail-actions">${saveButton(stock)}<button class="small" data-chart-stock="${escape(stock.ticker)}">View price &amp; chart</button>${externalLink(stock.quote_url, 'Open quote source')}</div>
       <p class="detail-dates">Research: ${dateLabel(state.data.research_as_of)} · Valuation snapshot: ${dateLabel(state.data.market_data_as_of)} · Updating quotes are in Markets &amp; charts</p>
-      <p>${escape(stock.summary)}</p>
+      <p>${escape(stock.summary)}</p><p><a href="/stock-practice?symbol=${encodeURIComponent(stock.ticker)}">Train this stock ↗</a> · <a href="/strategy-lab?symbol=${encodeURIComponent(stock.ticker)}">Test a strategy ↗</a></p>
       <div class="detail-catalyst"><span class="badge catalyst-status ${escape(stock.catalyst.calendar_status)}">${escape(statusLabel(stock.catalyst))}</span><h3>${escape(stock.catalyst.title)}</h3><p>${escape(stock.catalyst.window)}. ${escape(stock.catalyst.interpretation)}</p></div>
       ${stock.blocks.map(block => `<section class="detail-block"><h3>${escape(block.title)}</h3>${block.paragraphs.map(p => `<p>${escape(p)}</p>`).join('')}</section>`).join('')}
       ${valuation ? `<section class="detail-valuation"><h3>Dated valuation check</h3><strong>${escape(valuation.result)}</strong><p>${escape(valuation.numerator)} compared with ${escape(valuation.denominator)}.</p><p>${escape(valuation.note)} Market snapshot: ${dateLabel(valuation.price_as_of)}.</p>${sources([{title: 'Market snapshot source', url: valuation.market_source}, {title: 'Results / guidance source', url: valuation.guidance_source}])}</section>` : ''}
@@ -293,7 +293,7 @@
   $('stockAccessForm').addEventListener('submit', event => {
     event.preventDefault();
     token = $('stockAccessToken').value.trim();
-    try { sessionStorage.setItem('cryptoAccessToken', token); } catch (_) { /* Session-only in memory fallback. */ }
+    try { StockSession.setToken(token); } catch (_) { /* Session-only in memory fallback. */ }
     $('stockAccessToken').value = '';
     loadResearch();
   });

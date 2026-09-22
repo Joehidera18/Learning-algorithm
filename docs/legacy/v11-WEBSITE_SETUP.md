@@ -1,0 +1,102 @@
+# Put CryptO V11 online
+
+This repository contains the Python web app and its Render Blueprint. If the project is already connected to Render, update the existing service using the next section. The new-deployment instructions below also support the original extracted source package. After deployment, you can open the dashboard on your phone.
+
+This setup creates a paid Render web service and persistent disk. Review the price Render displays before deploying. Hosting is an additional account expense and is not included in the app's trading returns. Check [current Render pricing](https://render.com/pricing).
+
+## Capacity before broad studies
+
+The included 512 MB service is intended for smaller runs. Begin with **one year, 15m and 1h**, on a few coins, and inspect Render's memory and disk usage before expanding. A one-year 6h study cannot meet the existing 3,000-candle minimum, so omit 6h from that initial plan.
+
+The predeployment capacity fixture used **412 MiB just to build five years of 15m features**, even after the memory reduction. That excludes web requests, model training and retained reports. For the full five-year/many-coin plan, choose more memory after checking the displayed price; Render lists **1c-2g (2 GB)** as its next web-service size. This is a capacity recommendation, not a verified hosted load limit. See [Render's compute definitions](https://render.com/docs/blueprint-spec) and [the measured review](PREDEPLOY_REVIEW.md). The existing Blueprint's paid plan has not been increased automatically.
+
+Check disk headroom as well. At the observed LTC CSV size, a fully covered five-year 15m/1h/6h plan across 60 coins would require about **949 MiB of candle CSVs**, before reports, candidate checkpoints, temporary rewrites and backups. Actual listing histories and row sizes vary. The template's 1 GB disk does not establish that this maximum plan will fit. Keep both persistence paths under `/var/data`; [Render persists only files under the disk mount](https://render.com/docs/disks).
+
+## Stock practice in V11.19
+
+The **Stock practice** page uses public historical data immediately. Optional
+Alpaca data requires `ALPACA_API_KEY` and `ALPACA_SECRET_KEY` as server environment
+variables; neither is an app/browser token. No broker trading endpoint is used.
+The build installs `pandas-market-calendars` for exchange sessions. Stock state
+lives in `RESEARCH_DATA_DIR/equity-practice/`; keep that entire directory on the
+persistent disk. The crypto-account-only backup excludes it. See
+[STOCK_PRACTICE.md](STOCK_PRACTICE.md) for feeds, retention, exports and practice limits.
+
+## Update an existing Render service
+
+1. Merge the reviewed changes into the branch your existing Render service deploys, usually `main`. Changes that remain only in a pull request do not update that branch.
+2. Open that service in Render and check its connected repository and branch. The included Blueprint disables automatic code deployments.
+3. After backing up any existing account state, select **Manual Deploy → Deploy latest commit** on the service's Deploys page. Check the deployment's commit and logs, and wait for it to finish before opening the service URL. See [Render's deployment controls](https://render.com/docs/deploys).
+4. Connect using your existing app access token. Set your actual fee rate and choose **Practice on real market history** to download and replay recorded Coinbase prices without starting market monitoring or an exchange runner.
+
+The repository's `.python-version` selects the latest Python 3.12 patch. If the service already has a `PYTHON_VERSION` environment variable, it overrides this file; remove a stale override or set it to an appropriate fully qualified 3.12 version. See [Render's Python version settings](https://render.com/docs/python-version).
+
+These instructions do not deploy the code. Local verification and a saved GitHub change do not establish which version is currently running on Render.
+
+## 1. Upload the extracted source
+
+1. Extract CryptO_Research_Lab_V11_COINBASE_COMPLETE.zip.
+2. On GitHub, create a private repository for the program.
+3. Use Add file → Upload files. Upload the CONTENTS of the extracted CryptO_Research_Lab_V11 folder, preserving its subfolders. Commit the upload. GitHub should show app.py, render.yaml, requirements.txt, lab/, static/, and templates/ directly at the repository root. Upload the source files, not the ZIP itself.
+4. Use the clean extracted package. Keep Coinbase keys, app tokens, your database, and account backups out of the repository.
+
+If you already have a working repository or hosted service, update that existing project and preserve its persistent database. Do not start a second trader against the same account. This guide describes a new paper/research deployment.
+
+## 2. Deploy the included configuration
+
+1. Sign in to Render and select New → Blueprint.
+2. Connect your GitHub account and select the repository.
+3. Leave the Blueprint path as render.yaml.
+4. Review the proposed paid web service and 1 GB disk, then select Deploy Blueprint when ready. Render installs the Python dependencies and starts the application.
+5. Open the HTTPS address shown on the resulting web service. A custom domain is optional.
+
+These steps follow [Render's Blueprint setup](https://render.com/docs/infrastructure-as-code). No website or billable resource was created during development; the configuration has been inspected locally, not deployed to Render.
+
+## 3. Unlock your dashboard
+
+In your Render service, open Environment and find the generated APP_ACCESS_TOKEN. Copy its value into the website's App access token field and select Connect. Treat this token as the password for your account controls; it is different from a Coinbase API key.
+
+The site address serves the dashboard shell publicly. The token protects account data and API actions. The website is a single-owner app, without separate user accounts or a password-reset service.
+
+Research and paper trading do not require a Coinbase key. Start with these modes. The template sets COINBASE_ALLOW_LIVE to 0 and includes no Coinbase credentials. Coinbase setup remains a separate step described in COINBASE_SETUP.md.
+
+## What the template configures
+
+| Setting | Included value | Purpose |
+| --- | --- | --- |
+| Runtime | Python 3.12 series via `.python-version` | Matches the major/minor version used for tests and local Gunicorn verification |
+| Compute | 0.5c-512mb paid service | Smaller initial runs; see the capacity limits above before broad studies |
+| Persistent disk | 1 GB at /var/data | Retain the database, candles, and backups across ordinary restarts |
+| RESEARCH_DB_PATH | /var/data/research.sqlite3 | Account state and order journal |
+| RESEARCH_DATA_DIR | /var/data/research-data | Candle downloads and database backups |
+| APP_ACCESS_TOKEN | Generated by Render | Protect the app API |
+| COINBASE_ALLOW_LIVE | 0 | Start with live submissions disabled |
+| Process count | One instance, one Gunicorn worker | Keep one owner of the trading runtime |
+| Auto-deploy on code commits | Off | Schedule restarts deliberately |
+| Health endpoint | /api/health | Let Render check that the web service responds |
+
+The build command is pip install -r requirements.txt. The start command is:
+
+    gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 300
+
+The configuration follows the [Blueprint reference](https://render.com/docs/blueprint-spec). Only files under the disk's mount path survive a restart; [Render's disk documentation](https://render.com/docs/disks) explains the persistence limits. Free web services cannot attach this disk and do not provide durable storage for this SQLite application; see [free-service limits](https://render.com/docs/free).
+
+## First use and later restarts
+
+Set your actual fee rate and click **Practice on real market history** for accelerated replay, initially on BTC, ETH and SOL. This control does not start a paper or exchange runner. A failed download shows an error and can be retried immediately with the same button; it never substitutes generated prices. Completed studies retain their scheduled review dates and saved results.
+
+**Start learning & paper trading** additionally starts market monitoring and the simulated account. Automatic mode studies up to ten liquid markets at the configured decision interval, using the last selected lookback (five years by default, subject to timeframe limits). Historical practice supports a separate multi-timeframe plan and longer hourly/6-hour history. Progress and completed work are saved. Monitor the small server's memory during the first real run and select a larger compute plan if needed. Advanced research remains available for smaller manual diagnostics. A successful website deployment establishes that the app is running, not that its strategy is profitable.
+
+Closing your phone browser leaves a running server process alone. Server restarts and deployments are different: the app retains its stored state but starts its runners stopped. Reopen the dashboard and inspect the account before restarting them. A healthy website does not prove that quotes are fresh or the paper trader is running.
+
+A persistent disk does not make the service interruption-free. Disk-backed deployments interrupt the old process. Export a database backup before upgrades. Turning off automatic code deploys does not prevent server restarts or Blueprint configuration syncs; also disable automatic Blueprint syncing in Render if you want to apply configuration updates manually.
+
+When upgrading an existing service, keep its current service identity and database. Never swap in a blank journal while a real Coinbase position remains. The website setup does not migrate an existing local database or reconnect any exchange account automatically.
+
+## If deployment fails
+
+- Missing app.py or requirements.txt: the source is probably one folder below the repository root. Move the extracted contents to the root, or configure the correct Root Directory.
+- The dashboard asks for a token: copy APP_ACCESS_TOKEN from this service's Render environment into the app's access-token field.
+- History vanishes after a restart: check that both persistent path variables point inside the attached /var/data disk.
+- Large research runs exhaust memory: reduce simultaneous workload or choose a larger compute plan after reviewing its cost. Changing plans does not require extra workers.
+- Dependency/build errors: inspect Render's build log and Python version. Dependency installation, Coinbase SDK imports and a local Gunicorn startup were verified on Python 3.12; the actual hosted Render build and service still need verification.

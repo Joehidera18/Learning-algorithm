@@ -8,7 +8,7 @@
   const when = x => x ? new Date(x).toLocaleString() : "—";
   const name = x => String(x || "").replace(/_/g," ");
   const apiRoot = "/api/stocks/practice/";
-  let token = sessionStorage.getItem("cryptoAccessToken") || "", state, initialized = false, refreshing = false;
+  let token = StockSession.getToken(), state, initialized = false, refreshing = false;
   function notice(message,error=false) {$("notice").textContent=message;$("notice").hidden=false;$("notice").className="notice"+(error?" error":"");}
   async function api(action,body,blob=false) {
     const options={credentials:"same-origin",headers:{}};
@@ -16,7 +16,7 @@
     if(body!==undefined) {options.method="POST";options.headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
     const response=await fetch(apiRoot+action,options);
     if(!response.ok) {
-      if(response.status===401) $("accessPanel").hidden=false;
+      if(response.status===401) {$("accessPanel").hidden=false;$("content").hidden=true;}
       let message="Request failed ("+response.status+")";
       try {message=(await response.json()).error || message;} catch(_) {}
       throw Error(message);
@@ -42,6 +42,8 @@
     $("interval").value=state.catalog.default_interval || "15m";
     const providers=state.catalog.providers;
     $("provider").innerHTML=Object.keys(providers).map(key=>'<option value="'+esc(key)+'"'+(providers[key].available?'':' disabled')+'>'+esc(key)+(providers[key].available?'':' · unavailable')+'</option>').join("");
+    const requested=new URLSearchParams(location.search).get("symbol");
+    if(requested && /^[A-Z]{1,5}([.\-][A-Z])?$/.test(requested)) $("symbol").value=requested;
     initialized=true;bounds();
   }
   function facts(items) {return '<div class="equity-facts">'+items.map(([v,label])=>'<div><strong>'+esc(v)+'</strong><span>'+esc(label)+'</span></div>').join("")+'</div>';}
@@ -49,7 +51,7 @@
   function renderJobs() {
     const opened=new Set([...document.querySelectorAll("details[data-job][open]")].map(e=>e.dataset.job));
     $("jobCount").textContent=state.total_jobs+" RUN"+(state.total_jobs===1?"":"S");
-    $("queueStatus").textContent=state.blocked_by_other_research?"Waiting for the other research task to finish.":state.pending_jobs?state.pending_jobs+" run(s) queued or running.":"Saved stock results stay separate from crypto practice.";
+    $("queueStatus").textContent=state.blocked_by_other_research?"Waiting for the other research task to finish.":state.pending_jobs?state.pending_jobs+" run(s) queued or running.":"Saved stock learning and comparison results.";
     $("jobs").innerHTML=state.jobs.length?state.jobs.map(job=>{
       const m=job.manifest,r=job.result,done=job.status==="complete";
       let html='<article class="equity-job"><div class="job-summary"><div class="job-title"><h3>'+esc(m.symbol)+' <span class="muted">· '+esc(m.interval)+' · '+esc(m.mode)+'</span></h3><span class="badge">'+esc(name(job.status))+'</span></div><p>'+esc(job.progress.message)+'</p><p class="muted">'+esc(m.provider)+(m.provider==="alpaca"?' / '+esc(m.feed):'')+' · '+esc(m.days)+' calendar days · '+(m.fractional_shares?'fractional':'whole')+' shares</p><div class="equity-actions">';
@@ -96,7 +98,7 @@
     const blob=await api(action,undefined,true),url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  $("accessForm").addEventListener("submit",async e=>{e.preventDefault();token=$("accessToken").value.trim();sessionStorage.setItem("cryptoAccessToken",token);await refresh();});
+  $("accessForm").addEventListener("submit",async e=>{e.preventDefault();token=$("accessToken").value.trim();StockSession.setToken(token);await refresh();});
   $("symbol").addEventListener("input",()=>{$("symbol").value=$("symbol").value.toUpperCase();});
   $("interval").addEventListener("change",()=>bounds(true));$("provider").addEventListener("change",()=>bounds(true));
   $("refresh").addEventListener("click",()=>refresh());

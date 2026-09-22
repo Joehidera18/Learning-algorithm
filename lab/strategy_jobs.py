@@ -8,6 +8,8 @@ import uuid
 from pathlib import Path
 
 from .paper_store import db_connect
+from .continuous import RuntimeLease
+from .experiment_jobs import RESEARCH_SLOT
 
 
 class StrategyLabJobs:
@@ -18,6 +20,8 @@ class StrategyLabJobs:
         self.lock = threading.Lock()
         self.worker = None
         self.stop_event = threading.Event()
+        self.lease = RuntimeLease(str(self.db_path)+".worker")
+        self.active_id = None
         con = db_connect(self.db_path)
         try:
             with con:
@@ -46,7 +50,7 @@ class StrategyLabJobs:
             req = json.loads(row["request_json"])
             jobs.append({"id": row["id"], "created": row["created"], "status": row["status"],
                          "message": row["message"], "request": req})
-        return {"jobs": jobs, "catalog": self.catalog(), "running": bool(self.worker and self.worker.is_alive())}
+        return {"jobs": jobs, "catalog": self.catalog(), "running": self.active_id is not None}
 
     def get(self, job_id):
         con = db_connect(self.db_path)
@@ -97,11 +101,13 @@ class StrategyLabJobs:
         if not isinstance(news, bool):
             raise ValueError("News must be true or false")
         payload = {"strategy": name, "symbol": symbol, "decision": decision,
-                   "context": context, "days": days, "provider": provider, "news": news}
+                   "context": context, "days": days, "provider": provider, "news": news,
+                   "cutoff_ts": (int(time.time()*1000)-20*60000)//60000*60000}
         ident = "%s-%s-%s-%s" % (name, symbol, decision, uuid.uuid4().hex[:12])
         con = db_connect(self.db_path)
         try:
             with con:
+                con.execute("BEGIN IMMEDIATE")
                 count = con.execute("SELECT COUNT(*) FROM lab_jobs WHERE status IN ('queued','running')").fetchone()[0]
                 if count >= 4:
                     raise ValueError("Finish queued strategy lab jobs first")
@@ -116,28 +122,70 @@ class StrategyLabJobs:
         with self.lock:
             if self.worker and self.worker.is_alive():
                 return
+            try:
+                self.lease.acquire()
+            except RuntimeError:
+                return
+            con = db_connect(self.db_path)
+            try:
+                with con:
+                    con.execute("UPDATE lab_jobs SET status='error', message=? WHERE status='running'",
+                        ("Interrupted by a server restart. Start a new backtest; partial results are not accepted.",))
+            finally:
+                con.close()
             self.stop_event.clear()
             self.worker = threading.Thread(target=self._loop, daemon=True, name="strategy-lab")
             self.worker.start()
 
     def shutdown(self):
         self.stop_event.set()
+        if self.worker and self.worker is not threading.current_thread():
+            self.worker.join(timeout=2)
+
+    def cancel(self, job_id):
+        self.get(job_id)
+        con = db_connect(self.db_path)
+        try:
+            with con:
+                con.execute("UPDATE lab_jobs SET status='cancelled', message='Cancelled by user' WHERE id=? AND status IN ('queued','running')", (job_id,))
+        finally:
+            con.close()
+        return self.get(job_id)
 
     def _loop(self):
-        while not self.stop_event.is_set():
-            con = db_connect(self.db_path)
-            try:
-                row = con.execute("SELECT * FROM lab_jobs WHERE status='queued' ORDER BY created LIMIT 1").fetchone()
-            finally:
-                con.close()
-            if not row:
-                return
-            self._run(dict(row))
+        try:
+            while not self.stop_event.is_set():
+                con = db_connect(self.db_path)
+                try:
+                    row = con.execute("SELECT * FROM lab_jobs WHERE status='queued' ORDER BY created,rowid LIMIT 1").fetchone()
+                finally:
+                    con.close()
+                if not row:
+                    self.stop_event.wait(1)
+                    continue
+                # Stock learning and named-strategy jobs share a bounded server.
+                if not RESEARCH_SLOT.acquire(timeout=.5):
+                    continue
+                try:
+                    if self.stop_event.is_set():
+                        return
+                    self.active_id = row["id"]
+                    if self.get(row["id"])["status"] == "queued":
+                        self._run(dict(row))
+                finally:
+                    self.active_id = None
+                    RESEARCH_SLOT.release()
+        finally:
+            self.lease.release()
 
     def _patch(self, job_id, **fields):
         con = db_connect(self.db_path)
         try:
             with con:
+                con.execute("BEGIN IMMEDIATE")
+                current = con.execute("SELECT status FROM lab_jobs WHERE id=?", (job_id,)).fetchone()
+                if current and current["status"] == "cancelled":
+                    return
                 if "result" in fields:
                     con.execute("UPDATE lab_jobs SET status=?, message=?, result_json=? WHERE id=?",
                                 (fields.get("status"), fields.get("message"), json.dumps(fields["result"]), job_id))
@@ -154,28 +202,41 @@ class StrategyLabJobs:
         from strategies import load_strategy
         job_id = row["id"]
         req = json.loads(row["request_json"])
+        def cancelled():
+            return self.stop_event.is_set() or self.get(job_id)["status"] == "cancelled"
+        def checkpoint():
+            if cancelled():
+                raise InterruptedError("Strategy backtest interrupted; start a new run to complete it")
         try:
+            checkpoint()
             self._patch(job_id, status="running", message="Downloading stock candles")
             data = EquityData()
-            snap = data.history(req["symbol"], req["decision"], req["days"], provider=req["provider"])
+            cutoff = req.get("cutoff_ts") or (int(time.time()*1000)-20*60000)//60000*60000
+            snap = data.history(req["symbol"], req["decision"], req["days"], cutoff=cutoff,
+                                provider=req["provider"], cancelled=cancelled)
             frames = {}
             for interval in req.get("context") or []:
                 if interval == req["decision"]:
                     continue
                 cap = data.catalog()["providers"][req["provider"]]["max_days"][interval]
-                frames[interval] = data.history(req["symbol"], interval, min(req["days"], cap), provider=req["provider"])["rows"]
+                checkpoint()
+                frames[interval] = data.history(req["symbol"], interval, min(req["days"], cap),
+                    cutoff=cutoff, provider=req["provider"], cancelled=cancelled)["rows"]
             articles = None
             if req.get("news"):
+                checkpoint()
                 self._patch(job_id, status="running", message="Downloading point-in-time news")
                 from news.massive_news import download
                 start = snap["rows"][0]["ts"]
                 end = snap["rows"][-1]["end_ts"]
                 articles = download(req["symbol"], start, end)
+            checkpoint()
             self._patch(job_id, status="running", message="Simulating strategy")
             strategy = load_strategy(req["strategy"])
             report = run_backtest(strategy, snap["rows"], req["decision"], dict(DEFAULT_COSTS),
                                   frames=frames or None, stock_execution=True, close_at_session_end=True,
-                                  articles=articles)
+                                  articles=articles, cancelled=cancelled)
+            checkpoint()
             report["symbol"] = req["symbol"]
             report["provider"] = req["provider"]
             dest = self.folder / (job_id + ".json")
