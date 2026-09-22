@@ -26,13 +26,13 @@ def _parse_intervals(raw):
 
 def main():
     parser = argparse.ArgumentParser(description="Strategy lab backtest (historical only)")
-    parser.add_argument("--strategy", required=True, help="Registered strategy name")
-    parser.add_argument("--symbol", required=True)
+    parser.add_argument("--strategy", default="", help="Registered strategy name")
+    parser.add_argument("--symbol", default="")
     parser.add_argument("--asset", choices=("equity", "crypto"), default="equity")
     parser.add_argument("--decision", default="15m", choices=DECISION_INTERVALS)
     parser.add_argument("--context", default="1h,4h",
                         help="Comma-separated higher timeframes, or empty")
-    parser.add_argument("--days", type=int, default=60)
+    parser.add_argument("--days", type=int, default=59)
     parser.add_argument("--csv-dir", default="", help="For crypto: folder of SYMBOL_interval.csv files")
     parser.add_argument("--provider", default="yahoo", choices=("yahoo", "alpaca"))
     parser.add_argument("--out", default="")
@@ -41,6 +41,8 @@ def main():
     if args.list:
         print("\n".join(list_strategies()) or "(none)")
         return
+    if not args.strategy or not args.symbol:
+        raise SystemExit("Provide --strategy and --symbol, or pass --list")
     strategy = load_strategy(args.strategy)
     context = [iv for iv in _parse_intervals(args.context) if iv != args.decision]
     frames = {}
