@@ -1,7 +1,7 @@
 "use strict";
 (() => {
   const $ = id => document.getElementById(id);
-  const esc = x => String(x == null ? "—" : x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const esc = x => String(x == null ? "—" : x).replace(/[&<>"']/g,c=>({"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c]));
   const finite = x => typeof x === "number" && Number.isFinite(x);
   const number = (x,d=2) => finite(x) ? x.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
   const money = x => finite(x) ? new Intl.NumberFormat(undefined,{style:"currency",currency:"USD"}).format(x) : "—";
@@ -39,7 +39,9 @@
     if(initialized) return;
     $("tickerList").innerHTML=state.catalog.symbols.map(s=>'<option value="'+esc(s)+'"></option>').join("");
     $("interval").innerHTML=state.catalog.intervals.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
-    $("interval").value="1h";
+    $("interval").value=state.catalog.default_interval || "15m";
+    const providers=state.catalog.providers;
+    $("provider").innerHTML=Object.keys(providers).map(key=>'<option value="'+esc(key)+'"'+(providers[key].available?'':' disabled')+'>'+esc(key)+(providers[key].available?'':' · unavailable')+'</option>').join("");
     initialized=true;bounds();
   }
   function facts(items) {return '<div class="equity-facts">'+items.map(([v,label])=>'<div><strong>'+esc(v)+'</strong><span>'+esc(label)+'</span></div>').join("")+'</div>';}
@@ -56,7 +58,7 @@
       else if(job.status!=="code_changed") html+=button("cancel",job.id,"Cancel");
       html+='</div></div>';
       if(r) {
-        html+='<details class="job-body" data-job="'+esc(job.id)+'"'+(opened.has(job.id)?' open':'')+'><summary>View learning, coverage &amp; strategy results</summary>';
+        html+='<details class="job-body" data-job="'+esc(job.id)+'"'+(opened.has(job.id)?' open':'')+'><summary>View learning, coverage & strategy results</summary>';
         html+=facts([[number(r.seed.resolved_examples,0),"earlier resolved learning examples"],[number(r.coverage.observed_candles,0),"observed stock candles"],[number(r.coverage.coverage_pct,2)+"%","requested session coverage"],[money(r.buy_hold_price_return.net_pnl),"buy & hold · price-only net"]]);
         html+='<p class="muted">Later comparison: '+esc(when(r.later_start_ts))+' → '+esc(when(r.end_ts))+'. Every row is an independent $500 simulation.</p><div class="result-table"><table><thead><tr><th>Strategy</th><th>Net P/L</th><th>Return</th><th>Higher-cost P/L</th><th>Closed trades</th><th>Drawdown</th><th>Learning updates</th></tr></thead><tbody>';
         for(const v of r.variants) {
@@ -68,7 +70,7 @@
         html+='<details><summary>Entry decisions, costs and data limits</summary><p>'+esc(r.market_data.adjustment)+'. '+number(r.coverage.missing_candles,0)+' scheduled candles missing. No synthetic candles.</p><pre>'+esc(JSON.stringify({costs:r.costs,source:r.market_data,training:r.training.map(t=>({family:t.family,examples:t.resolved_examples,rejections:t.signal_funnel.entry_rejections})),accounts:r.variants.map(v=>({strategy:v.id,rejections:v.windows.later.standard.metrics.signal_funnel.rejections,complete:v.windows.later.standard.metrics.complete})),limitations:r.limitations},null,2))+'</pre></details></details>';
       }
       return html+'</article>';
-    }).join(""):'<div class="equity-empty"><strong>Your stock learner is ready to practice.</strong>Start with a stock or an ETF and a year of hourly history. The results will show whether the strategy traded, what it learned, and what it earned after assumed costs.</div>';
+    }).join(""):'<div class="equity-empty"><strong>Your stock learner is ready to practice.</strong>Start with a stock or an ETF. The results will show whether the strategy traded, what it learned, and what it earned after assumed costs.</div>';
   }
   function renderForward() {
     $("forwardAccounts").innerHTML=state.forward.length?state.forward.map(f=>{
@@ -77,7 +79,7 @@
       if(m) h+=facts([[money(m.ending_balance),"marked account equity"],[money(m.net_pnl),"net P/L, including open mark"],[number(a.closed_trades,0),"closed paper trades"],[number(a.model_updates,0),"resolved setup learning updates"]])+'<p>'+(m.open_position?'Open paper position: '+esc(number(m.open_position.qty,6))+' shares · entry '+money(m.open_position.entry)+' · stop '+money(m.open_position.stop):'No open paper position.')+'</p>';
       if(f.status==="running") h+=button("forward/stop",f.id,"Stop forward practice");
       return h+'</div></article>';
-    }).join(""):'<div class="equity-empty"><strong>No forward stock account yet.</strong>Complete historical stock practice, then choose “Start forward practice” on its result. Paper entries begin from new signals after registration.</div>';
+    }).join(""):'<div class="equity-empty"><strong>No forward stock account yet.</strong>Complete historical stock practice, then choose “Start forward practice” on its result.</div>';
   }
   async function refresh(showError=true) {
     if(refreshing) return;
