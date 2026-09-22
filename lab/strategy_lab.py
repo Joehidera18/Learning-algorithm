@@ -14,7 +14,6 @@ from .data import INTERVAL_MS, load_history, validate_history
 from .engine import build_feature_cache
 from .execution import simulate
 from .finances import closed_trade_totals
-from .market_clock import close_ts
 from .study_plan import ACTIVE_INTERVALS
 
 DECISION_INTERVALS = ("1m", "5m", "15m", "30m", "1h", "4h")
@@ -114,6 +113,7 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
         raise ValueError("Context interval not in the supported set")
     coverage = validate_history(rows, interval)
     features, alignment = attach_features(rows, interval, frames)
+    strategy.prepare(rows, features, interval)
     params = dict(strategy.params)
     params.setdefault("family", strategy.name)
     params.setdefault("direction", strategy.direction)
@@ -125,10 +125,13 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
     def evaluator(feat, trade_params):
         return strategy.signal(feat, trade_params)
 
+    def levels(feat):
+        custom = strategy.levels(feat, params)
+        return custom if custom is not None else _default_levels(feat, params)
+
     common = dict(rows=rows, features=features, balance=starting_balance,
                   risk=costs.get("risk_per_trade", 0.0075), fee_rate=fee, base_slip=slip,
-                  params=params, signal_evaluator=evaluator,
-                  level_provider=lambda feat: _default_levels(feat, params),
+                  params=params, signal_evaluator=evaluator, level_provider=levels,
                   bar_interval_ms=bar_ms, stock_execution=stock_execution,
                   close_at_session_end=close_at_session_end, cancelled=cancelled)
     dev_metrics, dev_trades = simulate(start=start, end=later, **common)
