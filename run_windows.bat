@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title CryptO Research Lab V11
+title Stock Lab V12
 cd /d "%~dp0"
 if not exist .venv (
     py -3 -m venv .venv

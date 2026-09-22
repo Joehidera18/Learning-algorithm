@@ -251,9 +251,8 @@ class WebsiteTests(unittest.TestCase):
         self.service.base_dir = BASE
         self.service.data_dir = Path(self.temp.name)
         self.service.token = 'local-test-token'
-        attach(self.service)
+        attach(self.service, resume=False)
         self.jobs = self.service.strategy_lab
-        self.jobs.worker.join(timeout=2)
         self.jobs.resume = Mock()  # No downloads or market jobs in route tests.
         self.app = wsgi_application(self.service)
 

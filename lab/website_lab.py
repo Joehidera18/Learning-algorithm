@@ -2,6 +2,9 @@
 
 
 class _OfflineLab:
+    def resume(self):
+        return
+
     def shutdown(self):
         return
 
@@ -16,15 +19,19 @@ class _OfflineLab:
     def get(self, job_id):
         raise ValueError(self.message)
 
+    def cancel(self, job_id):
+        raise RuntimeError(self.message)
+
     def __init__(self, message):
         self.message = message
 
 
-def attach(service):
+def attach(service, resume=True):
     try:
         from .strategy_jobs import StrategyLabJobs
         service.strategy_lab = StrategyLabJobs(service.data_dir)
-        service.strategy_lab.resume()
+        if resume:
+            service.strategy_lab.resume()
     except Exception as exc:
         service.strategy_lab = _OfflineLab("Strategy lab did not start: %s" % exc)
     # Service.handle dispatches these routes after its shared authentication
@@ -57,6 +64,10 @@ def route(service, method, path, query, body):
             return 200, payload, {}
         if action == "start" and method == "POST":
             return 202, service.strategy_lab.start(body or {}), {}
+        if action == "cancel" and method == "POST":
+            if set(body or {}) != {"id"}:
+                raise ValueError("Choose one strategy backtest ID")
+            return 200, service.strategy_lab.cancel(body["id"]), {}
         if action == "export" and method == "GET":
             import json
             job = service.strategy_lab.get(query.get("id"))

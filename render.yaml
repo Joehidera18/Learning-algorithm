@@ -1,6 +1,7 @@
 # Creates a paid web service and a 1 GB persistent disk when you deploy it.
-# Read WEBSITE_SETUP.md before deployment. This archive has not been deployed.
-# The 512 MB plan is for smaller runs; full five-year studies need more headroom.
+# Deploy Stock Lab V12 to the existing service; see WEBSITE_SETUP.md.
+# Keep legacy service/disk identifiers to retain the same URL and saved state.
+# Stock learning and strategy tests share one computation slot.
 services:
   - type: web
     name: crypto-research-lab
@@ -22,5 +23,3 @@ services:
         value: /var/data/research.sqlite3
       - key: RESEARCH_DATA_DIR
         value: /var/data/research-data
-      - key: COINBASE_ALLOW_LIVE
-        value: "0"

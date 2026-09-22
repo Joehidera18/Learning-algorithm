@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strategy lab · stocks</title><meta name="description" content="Backtest one named stock strategy on historical US session bars. News is point-in-time. No live orders."><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/stock-practice.css"><script src="/static/strategy-lab.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strategy lab · stocks</title><meta name="description" content="Backtest one named stock strategy on historical US session bars. News is point-in-time. No live orders."><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/stock-practice.css"><script src="/static/stock-session.js" defer></script><script src="/static/strategy-lab.js" defer></script></head>
 <body class="equity-page"><a class="skip-link" href="#main">Skip to strategy lab</a><div class="shell">
-<header><a class="brand" href="/"><span class="brand-icon">C</span><span>CryptO</span></a><span class="badge">STOCKS FIRST</span></header>
-<nav class="market-nav" aria-label="Asset sections"><a href="/">Crypto trading</a><a href="/stocks">Stock research</a><a href="/stock-practice">Stock practice</a><a href="/strategy-lab" aria-current="page">Strategy lab</a><a href="/experiments">Experiments</a></nav>
-<main id="main"><section class="equity-hero"><p class="eyebrow">RESEARCH → BACKTEST → ONLY THEN THE BOT</p><h1>Test a stock<br><span>strategy first.</span></h1><p>Pick a named rule, US ticker, decision timeframe, and optional Massive news filter. The later window must stay profitable after costs or it stays in the lab.</p></section>
+<header><a class="brand" href="/"><span class="brand-icon">S</span><span>Stock Lab</span></a><span class="badge">STOCK STRATEGIES</span></header>
+<nav class="market-nav" aria-label="Stock workspace"><a href="/">Dashboard</a><a href="/stocks">Markets & research</a><a href="/stock-practice">Stock learner</a><a href="/strategy-lab" aria-current="page">Strategy lab</a><a href="/#paper-account">Paper account</a></nav>
+<main id="main"><section class="equity-hero"><p class="eyebrow">RESEARCH → BACKTEST → PAPER PRACTICE</p><h1>Test a stock<br><span>strategy first.</span></h1><p>Pick a named rule, US ticker, decision timeframe, and optional Massive news filter. The later window must stay profitable after costs or it stays in the lab.</p></section>
 <div id="notice" role="status" class="notice" hidden></div>
 <section id="accessPanel" class="panel" hidden><h2>Connect to your app</h2><form id="accessForm"><label>App access token<input id="accessToken" type="password" autocomplete="current-password" required></label><button class="primary">Connect</button></form></section>
 <noscript><p class="callout">Enable JavaScript to run the strategy lab.</p></noscript>
@@ -11,7 +11,7 @@
 <section class="panel"><form id="labForm"><div class="equity-fields">
 <label>Strategy<select id="strategy"></select></label>
 <label>Symbol<input id="symbol" value="SPY" maxlength="7" required></label>
-<label>Decision bar<select id="decision"><option>5m</option><option>15m</option><option>30m</option><option>1h</option></select></label>
+<label>Decision bar<select id="decision"><option>1m</option><option selected>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option></select></label>
 <label>Context<input id="context" value="15m,1h"></label>
 <label>Days<input id="days" type="number" min="20" value="59" required></label>
 <label>Data source<select id="provider"></select></label>
@@ -20,7 +20,7 @@
 <p id="hint" class="muted"></p>
 <div class="equity-actions"><button id="runButton" class="primary" type="submit">Run backtest</button><button id="refresh" type="button">Refresh</button></div>
 </form>
-<p class="scope-note">Missing higher-timeframe bars stay missing. Headlines after a bar close cannot change that bar. Eligible for bot is a lab flag, not live permission. Set MASSIVE_API_KEY on the server for Massive prices and news.</p></section>
+<p class="scope-note">Missing higher-timeframe bars stay missing. Headlines after a bar close cannot change that bar. A passing lab result is research evidence; it does not submit orders. Set MASSIVE_API_KEY on the server for Massive prices and news.</p></section>
 <section class="equity-section"><h2>Results</h2><p id="queueStatus" class="muted"></p><div id="jobs"></div></section>
 </div></main>
 <footer class="equity-footer">Strategy lab · historical US stocks · <a href="/stock-practice">Stock practice</a></footer></div></body></html>

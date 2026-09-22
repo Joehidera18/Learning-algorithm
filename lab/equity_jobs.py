@@ -72,7 +72,7 @@ class EquityJobs(ExperimentJobs):
             raise ValueError(f"Choose 1–{limit} whole days and a valid share-sizing option")
         cutoff = (int(time.time()*1000)-20*60000)//60000*60000
         manifest = {"version":VERSION, "symbol":symbol, "interval":interval, "days":days,
-            "provider":provider, "feed":feed if provider == "alpaca" else "yahoo", "mode":mode,
+            "provider":provider, "feed":feed if provider == "alpaca" else provider, "mode":mode,
             "fractional_shares":fractional, "settings":validate_costs(request.get("settings",{})),
             "cutoff_ts":cutoff, "source_sha256":self.code_hash, "asset_class":"equity"}
         job_id = digest(manifest)

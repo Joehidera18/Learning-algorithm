@@ -1,0 +1,186 @@
+# CryptO — Crypto + Stocks
+
+**V11.19: stock learning and paper practice.** Open **Stock practice** to train
+and test the existing learner on US stocks and ETFs, including your 20-company
+watchlist. Eight candle timeframes, day/swing modes, exchange calendars, separate
+stock costs, whole/fractional shares, saved comparisons, candle exports and
+registered forward paper practice are included. Data is delayed; no stock orders
+are submitted. Read [the stock practice guide](STOCK_PRACTICE.md) and
+[the recorded-data findings](research/stock-practice-v11.19-results.md).
+
+
+**V11.18: controlled experiments.** The new **Experiments** section compares
+breakout/retest entries, exit rules and continued learning under the same costs.
+It includes a saved research queue, journal-based suggestions, an optional bounded
+AI planner, entry rejection reasons and the 15-coin archive coverage inventory.
+Paper entries now check portfolio quote freshness and related-market risk.
+All seven requested timeframes are integrated. Read [the guide](EXPERIMENTS.md)
+and [the recorded-market results](research/experiments-v11.18-results.md).
+The tests do not yet demonstrate dependable profitability.
+
+**New: Stock research.** Open **Stock research** in the top navigation for the
+20-stock research universe, five growth priorities, company investment cases,
+source links, catalyst calendar, dated valuation checks, and a saved watchlist.
+The **Markets & charts** section displays updating TradingView prices, dollar and
+percentage changes, and a selectable price/volume chart for all 20 US listings.
+Stock feeds may be delayed; the provider's quote time and market-status labels apply.
+Download the full report or export the list from the same page. The research is
+dated September 20, 2026; market snapshots are September 18. See
+[the section guide](STOCK_RESEARCH.md). These stock features remain included in V11.19.
+
+A trading program that studies market history, learns which setups work in different conditions, tests its decisions on later prices, and updates from completed trades.
+
+**Complete combined package:** learning, sentiment, focused practice, stock research,
+the Reddit VWAP tester and controlled experiments. Open [START_HERE.md](START_HERE.md)
+for setup, the workflows and current evidence limits.
+
+**Goal: work toward $10–$15 a day from a $500 account. That return has not been demonstrated.** V11.16 learns how saved entry forecasts translate into later net returns, using only resolved eligible examples. It adds timestamped Alternative.me Fear & Greed inputs, displays source/freshness, publishes completed news feeds immediately, and aligns default practice and monitoring around 15 coins.
+
+**One supplied historical account improved:** XRP 15m changed from six trades losing $12.75 to one trade earning $6.35 after costs. AVAX 15m remained -$5.61; its higher-cost result improved from -$4.01 to -$2.26. DOT 15m and XRP 6h remained in cash. All four are still unqualified; the XRP gain rests on one trade, forecast errors are mixed, and these prices were already reviewed. Sentiment has no measured profit benefit yet. See [the declared design, all comparisons and reproduction](FORECAST_RESPONSE_RESEARCH.md). Engine V11.16/report 22/policy v19 require fresh practice; old reports remain viewable.
+
+V11.15's entry-bias floor, provisional downside corrections and bounded news-startup wait remain included. Its four paired replays showed no account-profit improvement; [the earlier negative findings](FORECAST_RELIABILITY_RESEARCH.md) are preserved.
+
+V11.14's registered 30-day comparison of continued learning against an identical frozen seed remains included. Each uses its own $500 candle simulation on prices following registration. The source, seed, costs and end date stay fixed; early stops and failures remain recorded. Its reconciled trade finances, loss-review questions and optional Massive downloader also remain included. Read [the forward-study guide](FORWARD_STUDY.md). Finish an ongoing learning period and preserve its exports before deploying a code change; an existing forward study cannot silently switch its registered code.
+
+V11.13's news/calendar collector remains included. V11.16 extends it to 15 sources and 20 event/sentiment inputs, including coverage, the dated Fear & Greed value and its observed daily change. Paper-trade reviews distinguish news known at the signal, at entry and received while the position was open. The main-screen Market events panel displays publications, schedules and source errors. Historical coverage begins when information is actually observed; today's news is never backdated into earlier tests. Read [the event design, limits and verification](MARKET_EVENTS.md). No event-related trading benefit has yet been demonstrated.
+
+This version also repairs stale fair-value gaps, inverse-gap retirement, repeated structure breaks and mismatched timestamps in the relative-return helper. Those structure helpers are outside the simplified adaptive training path; fixing them does not add all the screenshot concepts as learned predictors. [The concept review](NEWS_AND_CONCEPT_REVIEW.md) distinguishes implemented fixes from remaining experiments and unverified course rules.
+
+V11.11 separates relevant cost-eligible evidence from expensive rejected practice, permits only downward corrections of optimistic eligible forecasts, and studies specific failure patterns. It adds completed Bitcoin daily context, entry-regime results and persistent experiment records. These changes do not establish better returns: the paired XRP replay lost more than the previous model. See [the design, research and measured results](ELIGIBLE_CONTEXT_RESEARCH.md). Its prior models are superseded by V11.13.
+
+V11.10's continuous handoff remains included: open practice trades, waiting periods and original entry forecasts continue across the review date. The saved learner comes from the continuous primary replay, and higher-cost confirmation keeps its own costed history. See [that earlier study](CONFIRMATION_CONTINUITY_RESEARCH.md).
+
+V11.11 historical learning avoids repeated imports, unused background-practice bookkeeping and discarded model copies. Paired local runs finished in **27–29% less time** with identical complete reports except for creation timestamps. The full XRP workflow fell from 123.5 to 87.4 seconds; the primary LTC 5m workflow fell from 40.7 to 29.6 seconds. Downloads and hosted load were not part of these timings. See [the measured speed study](LEARNING_SPEED.md).
+
+The separate cost-eligible and cost-blocked practice tracks introduced in V11.9 remain included. Both learn actual net returns, including losses and break-even outcomes, only after closure. The forecast panel separates their results. See [that earlier coverage study](PRACTICE_TRACKS_RESEARCH.md).
+
+V11.7 entry-error margins and the separate conditional-selection experiment remain included. That experiment cannot control trading. [Its earlier paired replays](ENTRY_LEARNING_RESEARCH.md) showed no final-period profit improvement.
+
+The V11.5 readiness repair, main-screen finances and separate break-even exit experiment are included. Each practice run trains the independent exit model and tests its complete account path; it cannot control trading. The earlier V11.5 comparison showed no final profit improvement on the supplied DOT and AVAX candles. See [that pinned experiment and reproduction commands](EXIT_LEARNING_RESEARCH.md).
+
+The predeployment review also corrects time-based exits that ran one candle late, checks each monitored timeframe's own review date, reduces replay memory, and loads detailed dashboard reviews on demand. Those fixes remain included. See [the findings and measured limits](PREDEPLOY_REVIEW.md).
+
+## Start here
+
+**New isolated experiment:** under **Advanced research**, choose **Test the Reddit
+strategy** to compare VWAP mean-reversion variants on recorded one-minute Coinbase
+candles. It reports earlier/later windows, full costs, split exits and a higher-cost
+comparison. The delta and volume profile are explicitly candle-based proxies;
+the author's private rules cannot be reproduced exactly. It does not replace
+models or enable trading. See [the declared rules and offline runner](VWAP_RESEARCH.md).
+
+1. Open the app locally or follow [WEBSITE_SETUP.md](WEBSITE_SETUP.md) to put it on Render.
+2. Enter your actual Coinbase fee per side. The initial 0.4% is an assumption until confirmed.
+3. Edit **Coins to practice on** (or choose **Use focused 15 coins**), choose the timeframes and history length, then click **Practice on real market history**. The learning worker starts event collection and waits up to 15 seconds for an initial attempt. Check the Market events panel for source freshness and errors; empty or failed collection stays missing coverage. Starting collection earlier can build a longer observed archive.
+4. Review the historical results, then use **Start learning & paper trading** for ongoing practice on new prices.
+5. To measure whether continued learning helps, choose a saved 15m or 1h model under **Does continued learning help?** and click **Begin 30-day study**. This starts a separate research comparison, including when the seed is unqualified. Its results never install a trading profile. Download the full record for reproduction; [the study guide](FORWARD_STUDY.md) explains missing prices, open-position marks and early stops.
+
+Historical practice defaults to the same 15 Coinbase USD markets used by monitoring and automatic learning. Up to 60 tickers can be entered. Short names such as HBAR and full names such as HBAR-USD are accepted; the submitted list is saved. Suggested names are requests, not a guarantee of current availability. The app checks Coinbase product metadata at run time and reports unavailable listings individually. If metadata cannot be fetched, that failed check is recorded and the candle endpoint must still supply real prices.
+
+The dashboard defaults to separate **1m, 4m, 5m, 15m, 30m, 1h and 4h** studies,
+with five years requested. Effective practice history is capped at 90 days for 1m,
+365 days for 4m/5m, 1,825 days for 15m/30m and 2,920 days for 1h/4h. Old 6h reports
+remain readable but are no longer selected by default. Each report shows requested
+and effective history, observed dates and coverage; a listing cannot supply prices
+from before it existed. At least 3,000 candles are required. Controlled experiments
+have a separate 50,000-candle capacity limit. The downloadable full archives are
+not truncated by these processing limits. See [the candle guide](CANDLE_LIBRARY.md).
+
+Each coin/timeframe has its own model, simulated account, result, cache identity and resumable checkpoint. Practice finishes without starting monitoring or order runners. Existing runners keep their current state. Only the configured **Decision interval** in Settings may install a qualified forward profile. Secondary timeframe studies cannot overwrite or delete it. Six-hour models remain research only and cannot install a forward profile; coarser candles need a separate execution-precision review before enabling that trading interval. Changing timeframes requires that timeframe's qualification; the app does not choose a winner from the highest backtest profit. Previously reviewed prices remain reviewed across timeframe and history-length changes.
+
+The background automatic learner studies up to 15 available members of the fixed focus list at the configured decision interval, using the last selected lookback (five years by default), subject to the interval limits. Those reviews retain completed studies from other coins and timeframes. Qualified models can open paper trades and learn after closure. Unqualified markets stay out of the account.
+
+Larger plans can take hours. Coins and timeframes are processed sequentially; unavailable or insufficient data is reported while the rest continue. Completed download chunks, candidate labels and results are saved. A restart within 24 hours reuses the current study's cutoff and completed candidates; an interrupted candidate restarts. Shorter requests retain older cached candles so another report can still export its exact inputs. The dashboard counts the union of observed market hours per coin, avoiding duplicate hours across overlapping timeframes. Training examples and individual account studies may still overlap and are not independent samples or a combined portfolio.
+
+Each decision uses only information available at the past signal close, and learning waits for the outcome. Gaps are never replaced with generated prices. Indicators restart with 240 observed candles of warmup after each gap; daily-context strategies require 21 consecutive complete UTC days. A training position interrupted by missing prices has no known outcome and cannot teach the model; an account test interrupted while holding a position is incomplete and cannot qualify.
+
+Pause entries keeps existing paper positions monitored. Stop stops automatic learning and the paper runner. Closing a browser leaves a running server alone; a computer or server restart stops the runners. Reopen the app and resume them after checking its status.
+
+The separate 30-day research collector resumes a registered active study after a server restart when its code still matches. **End study early** stops that study while retaining its protocol and observations. The main paper-account Stop control and this research control have separate purposes.
+
+## Trade finances on the main screen
+
+The **Trade finances** panel above the learning controls shows completed trades,
+money won, money lost, net profit/loss, wins, losses, exact break-even results and
+win rate. Amounts use each trade's result after costs. Choose **Historical tests**,
+**Paper account**, or **Coinbase bot**; their totals stay separate. Historical tests
+can show one market or the sum of separate market simulations, with partial or
+unavailable reports clearly marked. Training examples and alternative test runs
+do not count as account trades. Test-window exits are identified separately.
+
+Paper and Coinbase totals use the entire saved closed-trade journal, including
+trades older than the visible table. Open or unfilled orders are excluded. Existing
+saved historical reports can populate the panel without retraining. Failed refreshes
+keep the last known numbers with a visible stale notice. Coinbase totals require
+the existing access-token protection. This display does not start any runner.
+
+## What learns
+
+The model learns relationships between entry-time indicators and the trade's eventual result after costs. Successful and failed trades both update its estimates. It chooses among 22 stop/target variants within seven defined trade types: trend pullback, volume breakout, range reclaim, combined confirmations, daily trend/momentum, volatility expansion, and support with RSI recovery. The three new families use completed daily context and multi-day holding limits with the existing account-risk caps. See [the strategy research review](STRATEGY_RESEARCH.md) for sources, exact rules and limitations. Each variant combines an overall estimate with evidence for rising, falling, or sideways conditions when enough examples exist. The templates remain long-only, so bearish conditions can mean no eligible trades or training examples.
+
+Historical training explores signal-matched setups even when their modeled costs or reward would block a trading entry. These independent hypothetical examples still pay all modeled fees, slippage and spread, so costly losses can be learned. They are not account returns. Policy tests and paper/live trading keep the cost and net-reward checks, evidence requirements, and account-risk limits. Historical policy tests also apply the configured daily loss halt. Reports compare the updating policy with pooled learning, frozen learning, holding cash, and buying and holding the market. These comparisons can show deterioration; they do not select a winner after seeing the final test.
+
+An affordable setup now needs its own completed cost-eligible evidence. Rejected expensive examples remain in overall memory and reports but cannot supply missing eligible samples, forecast weights or error margins. The dashboard shows those counts separately, including errors for positive affordable forecasts. Six additional models predict follow-through failure, giveback, fee-erased gains, near break-even, targets and time exits. Their saved entry estimates are scored only after closure against a historical-frequency baseline; they are diagnostics, not entry or exit controls.
+
+Historical practice and ongoing monitoring download completed BTC-USD daily candles for broader-market trend, momentum, volatility and relative strength. A model trained with that context pauses new entries when it is missing or stale. Existing position management continues. Older bundles without Bitcoin candles retain explicitly unavailable context; their replays cannot measure this feature's benefit. Each run records its data, costs, reviewed boundary and declared comparisons. Reusing a reviewed report never supplies fresh qualification.
+
+This is a small online machine-learning model. It learns entry preferences and strategy selection within those trade types; it does not autonomously invent arbitrary executable strategies or train a language model.
+
+The scanner watches up to 15 available members of the fixed focus list: BTC, ETH, SOL, HBAR, XRP, XLM, ADA, DOGE, AVAX, LINK, LTC, BCH, DOT, UNI and AAVE. Automatic learning uses the same list and capacity; old open positions remain monitored without expanding automatic practice. Existing custom historical lists remain available. The list is a research scope, not a market-cap or backtest-winner ranking. Product status and volume are checked at startup. News, calendars and the provider's Bitcoin-focused sentiment index have explicit coverage; full-article interpretation and on-chain inputs remain unavailable. See [market context](MARKET_EVENTS.md).
+
+## Learning from failed trades and fuller candle context
+
+V11.5 adds **Whole-account break-even experiment** inside the loss-study panel. Its separate model learns from its own actual simulated exits, including near-break-even rewards, and reruns later entries, cooldowns and learning after different exits. Both models pay full costs and use the same risk limits. The experiment is reported at ordinary and higher costs, with separate earlier periods and selected-trade-feedback controls; it cannot select or qualify a different trading model. Completed training checkpoints are kept separately for the two models, so practice performs more work but can resume either study. Old models require fresh practice. Reports 16, 17 and 19 are reviewed history and cannot provide fresh confirmation for a new revision.
+
+Adaptive paper monitoring and Coinbase signal export now require 241 continuous completed decision-timeframe candles, matching historical warmup. Each strategy retains its daily-data and other entry checks. The legacy non-adaptive workflow still requires all four timeframes. Newly completed signal timing, quote freshness, account controls and separate Coinbase activation remain in effect.
+
+V11.4 gives losses and near-break-even outcomes extra review attention. Under each market's learning results, open **Loss and break-even study** for outcome counts and priority examples. Near break-even is within 0.10R of zero after costs; these outcomes retain their actual positive or negative reward. Reviews show entry conditions, fee drag, net favorable/adverse marks and giveback. Fixed 1-, 4- and 24-hour after-exit windows remain pending or unknown when sufficient candles are unavailable. A report-only exit experiment tests a fee-covered break-even stop after a prior candle closes at +1 net R. It does not automatically change exits or relabel results.
+
+Independent simulated training no longer takes the longer pause after a losing streak. It keeps routine entry spacing, recorded prices and full modeled costs. Actual account pauses and risk limits remain in effect. All reviewed outcomes count once; displayed deep-review examples are a bounded sample. Paper and settled Coinbase journals retain the available close-time review, with unknown price paths left explicit. Model and report versions changed: run **Practice on historical data** again after deploying. Reviewed reports 16 and 17 cannot supply fresh confirmation for this revision.
+
+V11.3 learns recent net outcomes in comparable cost, intraday and daily-trend conditions. Its diagnostics distinguish stop losses, time-exit losses and gross gains erased by fees. A context with enough recent losing evidence blocks entries; later completed successes can restore it. The report compares the memory adjustment with the same learner without that adjustment. See [OUTCOME_MEMORY_RESEARCH.md](OUTCOME_MEMORY_RESEARCH.md) for the declared rules, research sources and measured limits. The earlier cost-model work is documented in [LEARNING_IMPROVEMENTS.md](LEARNING_IMPROVEMENTS.md).
+
+Practice now retries remaining internal gaps, first directly and then using complete smaller Coinbase candles. It also downloads separate daily candles so an intraday gap need not erase daily context. If daily retrieval fails, the report names the fallback to complete intraday days. Intraday indicators still restart at gaps, and missing daily candles still reset daily warmup. An explicit Practice action rechecks both sources before the automatic deadline; identical observations reuse completed training. New external data could not be downloaded in the development environment, so actual recovery of the supplied gaps is still unverified.
+
+Each market offers **Download candles & report** for reproducible analysis of its actual saved data. Separate daily inputs, when used, are included as `daily-candles.csv` with their own checked hash. Bitcoin inputs are exported as `bitcoin-daily-candles.csv` with a separate checked hash. Add `--daily-csv daily-candles.csv --bitcoin-csv bitcoin-daily-candles.csv` to an offline `--csv --learning` command when the bundle contains both files. Missing or changed cached inputs prevent an export from claiming an exact match.
+
+## Paper and real trading
+
+The main button starts **paper trading**. Real Coinbase orders still require account configuration and separate explicit activation. Follow [COINBASE_SETUP.md](COINBASE_SETUP.md). The existing Coinbase pilot remains limited to BTC-USD, ETH-USD, and SOL-USD, $500 maximum capital, $150 maximum entry spend, and one position at a time.
+
+Paper and Coinbase models begin from the qualifying historical model, then learn from separate journals. Simulated paper wins do not train the real Coinbase model. Real feedback is added only when the position is fully closed and its quantities, values, and fees have settled.
+
+## Run locally
+
+Use Python 3.10 or newer; offline verification used Python 3.12.
+
+- Windows: extract the ZIP into a new folder and run run_windows.bat.
+- Mac/Linux: open a terminal in the extracted folder and run chmod +x run_mac_linux.sh, then ./run_mac_linux.sh.
+
+The launcher installs dependencies and opens the app in your browser. Keep the computer awake and its Python process running. For the website route, upload all extracted files and folders to GitHub and use the included Render configuration.
+
+## Upgrading an existing installation
+
+Use the V11 source files, preserve your database and persistent storage, and stop an older process before starting another. The new engine requires fresh qualification. Do not replace a live order journal with a blank one while a Coinbase position remains.
+
+Your database is research.sqlite3 by default. Set RESEARCH_DB_PATH and RESEARCH_DATA_DIR for persistent hosted storage; the included Render template already does this. Keep Coinbase keys outside the source folder and GitHub.
+
+Qualified markets are reviewed every 28 days while the controller runs. Rejected markets retry after a day and failed downloads after an hour. Changes to tested fee, sizing, interval, or daily-loss settings require a new review. Models expire after 30 days without fresh qualification. Retried reviews may overlap old test periods; they are not independent proof of improvement. A new historical model replaces the forward model on its next use, while the old trade journal and reports remain saved. This history/exploration update requires fresh practice with the new policy and report versions. Existing downloaded candles are reused when available; older reports are labeled **Updated learner · practice again** until replaced.
+
+To download real history and run accelerated practice without starting the server:
+
+```sh
+python run_research.py --coinbase --learning --symbol BTC-USD --interval 1h --days 1095 --fee 0.004 --out learning-result.json
+```
+
+Add `--end 2025-01-01` to replay a past period ending before that UTC date. Use a different symbol or interval for a separate experiment. The command records the source and date boundaries; it does not install models or start trading. Completed download chunks are reused from `data/automatic`, or the folder specified by `--cache-dir`. [Coinbase's historical candle API](https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles) supplies the recorded prices; trades, fees and fills are modeled by this program.
+
+To evaluate an existing historical CSV:
+
+```sh
+python run_research.py --learning --csv BTC-USD_1h.csv --symbol BTC-USD --interval 1h --fee 0.004 --out learning-result.json
+```
+
+The CSV needs chronological, completed candles with `ts` in UTC milliseconds and `open,high,low,close,volume` columns. Optional `quote_volume,trades` columns are supported. Supply the actual fee fraction per side. CSV source authenticity is not independently verified and is labeled accordingly.
+
+[What the learner does and how it is tested](V11_LEARNING.md) · [Verification and limits](VERIFICATION.md) · [Change history](CHANGELOG.md)

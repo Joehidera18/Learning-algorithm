@@ -5,7 +5,7 @@
   const finite = x => typeof x === "number" && Number.isFinite(x);
   const money = x => finite(x) ? new Intl.NumberFormat(undefined,{style:"currency",currency:"USD"}).format(x) : "—";
   const number = (x,d=2) => finite(x) ? x.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
-  let token = sessionStorage.getItem("cryptoAccessToken") || "", state, refreshing = false;
+  let token = StockSession.getToken(), state, refreshing = false;
   function notice(message,error=false) {$("notice").textContent=message;$("notice").hidden=false;$("notice").className="notice"+(error?" error":"");}
   async function api(action,body) {
     const options={credentials:"same-origin",headers:{}};
@@ -13,7 +13,7 @@
     if(body!==undefined) {options.method="POST";options.headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
     const response=await fetch("/api/strategy-lab/"+action,options);
     if(!response.ok) {
-      if(response.status===401) $("accessPanel").hidden=false;
+      if(response.status===401) {$("accessPanel").hidden=false;$("content").hidden=true;}
       let message="Request failed ("+response.status+")";
       try {message=(await response.json()).error || message;} catch(_) {}
       throw Error(message);
@@ -25,6 +25,8 @@
     if(!$("strategy").options.length) {
       $("strategy").innerHTML=(cat.strategies||[]).map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join("");
       $("strategy").value="orb_15m";
+      const requested=new URLSearchParams(location.search).get("symbol");
+      if(requested && /^[A-Z]{1,5}([.\-][A-Z])?$/.test(requested)) $("symbol").value=requested;
       const providers=cat.equity.providers;
       $("provider").innerHTML=Object.keys(providers).map(name=>'<option value="'+esc(name)+'"'+(providers[name].available?'':' disabled')+'>'+esc(name)+(providers[name].available?'':' · key missing')+'</option>').join("");
     }
@@ -48,6 +50,7 @@
         html+='<p>Later trades '+esc(later.trades)+' · net '+money(verified?later.net_pnl:null)+' · mean R '+number(verified?later.mean_r:null)+' · eligible '+esc(verified?r.eligible_for_bot:false)+'</p>';
         if(!verified) html+='<p class="muted">'+esc(r.report_version===2?(later.incomplete_reason || 'Incomplete comparison. Eligibility is unavailable.'):'Earlier report: rerun with the corrected backtester to verify this result.')+'</p>';
       }
+      if(["queued","running"].includes(job.status)) html+='<button class="small" data-cancel="'+esc(job.id)+'">Cancel backtest</button>';
       return html+'</div></article>';
     }).join(""):'<div class="equity-empty"><strong>No lab runs yet.</strong>Start with SPY and orb_15m on 5-minute bars.</div>';
   }
@@ -62,9 +65,16 @@
       setup();render();
     } catch(e) {if(showError) notice(e.message,true);} finally {refreshing=false;}
   }
-  $("accessForm").addEventListener("submit",async e=>{e.preventDefault();token=$("accessToken").value.trim();sessionStorage.setItem("cryptoAccessToken",token);await refresh();});
+  $("accessForm").addEventListener("submit",async e=>{e.preventDefault();token=$("accessToken").value.trim();StockSession.setToken(token);await refresh();});
   $("provider").addEventListener("change",setup);$("decision").addEventListener("change",setup);$("strategy").addEventListener("change",setup);
   $("refresh").addEventListener("click",()=>refresh());
+  $("jobs").addEventListener("click",async e=>{
+    const button=e.target.closest("button[data-cancel]");if(!button) return;
+    button.disabled=true;
+    try {await api("cancel",{id:button.dataset.cancel});await refresh();}
+    catch(error) {notice(error.message,true);}
+    finally {button.disabled=false;}
+  });
   $("labForm").addEventListener("submit",async e=>{
     e.preventDefault();$("runButton").disabled=true;
     try {
