@@ -9,6 +9,7 @@ Rules (long only, first signal of the day):
 - Missing session metadata or an incomplete box is a skip, never a guessed range.
 """
 from .base import StrategySpec, register
+from lab.data import INTERVAL_MS
 
 RANGE_MS = 15 * 60 * 1000
 RVOL_LOOKBACK = 20
@@ -23,7 +24,8 @@ def _end(row):
 @register
 class OpeningRange15m(StrategySpec):
     name = "orb_15m"
-    version = "orb-15m-v1-news-filter"
+    version = "orb-15m-v2-complete-range"
+    allowed_intervals = ("1m", "5m", "15m")
     direction = "LONG"
     params = dict(StrategySpec.params,
                   family="orb_15m",
@@ -36,51 +38,60 @@ class OpeningRange15m(StrategySpec):
                   loss_cooldown_hours=24)
 
     def prepare(self, rows, features, interval):
+        if interval not in self.allowed_intervals:
+            raise ValueError("orb_15m requires 1m, 5m or 15m decision candles")
+        step = INTERVAL_MS[interval]
         sessions = {}
         order = []
         for i, row in enumerate(rows):
             open_ts = row.get("session_open_ts")
             session = row.get("session")
-            if not open_ts or session is None:
+            if open_ts is None or session is None:
                 continue
             bag = sessions.get(session)
             if bag is None:
                 bag = {"open_ts": int(open_ts), "high": None, "low": None,
-                       "volume": 0.0, "complete": False, "signaled": False}
+                       "volume": 0.0, "complete": False, "signaled": False,
+                       "next_ts": int(open_ts), "valid": True}
                 sessions[session] = bag
                 order.append(session)
             end = _end(row)
-            if end <= bag["open_ts"] + RANGE_MS:
+            if row["ts"] < bag["open_ts"] + RANGE_MS:
+                if (row["ts"] != bag["next_ts"] or end != row["ts"] + step
+                        or end > bag["open_ts"] + RANGE_MS or open_ts != bag["open_ts"]):
+                    bag["valid"] = False
+                bag["next_ts"] = end
                 high, low = row["high"], row["low"]
                 bag["high"] = high if bag["high"] is None else max(bag["high"], high)
                 bag["low"] = low if bag["low"] is None else min(bag["low"], low)
                 bag["volume"] += float(row.get("volume") or 0)
                 if end == bag["open_ts"] + RANGE_MS:
-                    bag["complete"] = bag["high"] is not None and bag["low"] is not None
-            elif not bag["complete"] and end > bag["open_ts"] + RANGE_MS:
-                bag["complete"] = bag["high"] is not None and bag["low"] is not None
+                    bag["complete"] = bag["valid"]
         prior = []
         rvol_by_session = {}
         for session in order:
             bag = sessions[session]
-            avg = (sum(prior) / len(prior)) if prior else None
+            avg = (sum(prior) / len(prior)) if len(prior) == RVOL_LOOKBACK else None
             rvol_by_session[session] = (bag["volume"] / avg) if avg and avg > 0 else None
             if bag["complete"]:
                 prior.append(bag["volume"])
                 if len(prior) > RVOL_LOOKBACK:
                     prior.pop(0)
+            else:
+                prior.clear()
         for i, (row, feat) in enumerate(zip(rows, features)):
-            if feat is None:
-                continue
             session = row.get("session")
             bag = sessions.get(session)
             if not bag or not bag["complete"] or _end(row) <= bag["open_ts"] + RANGE_MS:
-                feat["orb"] = {"ready": False}
+                if feat is not None:
+                    feat["orb"] = {"ready": False}
                 continue
             rvol = rvol_by_session.get(session)
-            first = (not bag["signaled"]) and feat.get("_close", 0) > bag["high"]
+            first = (not bag["signaled"]) and row["close"] > bag["high"]
             if first:
                 bag["signaled"] = True
+            if feat is None:
+                continue
             feat["orb"] = {
                 "ready": True,
                 "high": bag["high"],

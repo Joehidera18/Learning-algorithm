@@ -182,7 +182,10 @@ class EquityData:
         elif provider == "massive":
             if not self.massive_key:
                 raise ValueError("Configure MASSIVE_API_KEY on the server for stock Massive history")
-            base = {"4m":"1m", "4h":"1h"}.get(interval, interval)
+            # Massive hours start on :00; our stock bars start at the 09:30
+            # session open. Complete 30-minute bars preserve that boundary,
+            # including the shorter final bar on regular and early-close days.
+            base = {"4m":"1m", "1h":"30m", "4h":"30m"}.get(interval, interval)
             raw, extra = self._massive(symbol, base, start, cutoff, cancelled)
         else:
             if not self.key or not self.secret:
@@ -221,7 +224,7 @@ class EquityData:
         if interval not in MASSIVE_SPAN:
             raise ValueError("Massive stock download needs 1m, 5m, 15m, 30m, 1h or 1d source bars")
         multiplier, timespan = MASSIVE_SPAN[interval]
-        rows, request_ids, cursor = [], [], start
+        rows, request_ids, cursor = {}, [], start
         while cursor < end:
             if cancelled and cancelled():
                 raise InterruptedError("Stock Massive download cancelled")
@@ -244,13 +247,19 @@ class EquityData:
             for r in data.get("results") or []:
                 if type(r.get("t")) is not int:
                     raise ValueError("Massive stock candle missing timestamp")
-                rows.append({"ts":r["t"], "open":r["o"], "high":r["h"], "low":r["l"],
+                bar = {"ts":r["t"], "open":r["o"], "high":r["h"], "low":r["l"],
                              "close":r["c"], "volume":r["v"], "trades":r.get("n", 0),
-                             "split_factor":1.})
+                             "split_factor":1.}
+                # The API snaps windows outward, so adjacent requests can
+                # overlap. Deduplicate only identical observations.
+                if r["t"] in rows and rows[r["t"]] != bar:
+                    raise ValueError("Massive returned conflicting stock candles across chunks")
+                rows[r["t"]] = bar
             request_ids.append(data.get("request_id"))
             cursor = cutoff
-            time.sleep(12.2)
-        return rows, {"instrument_type":"US equity", "provider_guarantee":False,
+            if cursor < end:
+                time.sleep(12.2)
+        return sorted(rows.values(), key=lambda r:r["ts"]), {"instrument_type":"US equity", "provider_guarantee":False,
                       "request_ids":request_ids,
                       "scope":"Massive US listed aggregates mapped onto the NYSE regular session. Extended-hours prints outside session slots are dropped, not filled."}
 

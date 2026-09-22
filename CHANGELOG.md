@@ -1,3 +1,16 @@
+# Strategy Lab reliability repair — 22 September 2026 UTC
+
+- Restore Stock Practice/Strategy Lab browser scripts and strategy registration.
+- Apply the existing app token and JSON checks to every Strategy Lab API route.
+- Block eligibility for incomplete or insufficient standard/stressed tests;
+  retain unknown account P/L at position gaps and include window-end marks.
+- Reject missing opening-range candles and stale multi-timeframe context;
+  reset indicators after gaps and use stock-session coverage.
+- Build Massive hourly/four-hour bars from complete 30-minute observations.
+- Mark earlier Strategy Lab reports for a rerun. Corrected reports are version 2.
+- Validation: 507 distinct Python tests and 15 browser checks passed. See
+  [repair verification](research/strategy-lab-repair-validation.md).
+
 # V11.14 registered studies and accounting — 20 September 2026 UTC
 
 - Register a fixed 30-day comparison of an updating model, its frozen seed and cash. Save the source, model, costs, dates, immutable candle/features and every attempt. Keep both $500 candle simulations separate from trading accounts.

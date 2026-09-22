@@ -21,6 +21,20 @@ if __name__ == '__main__':
     with tempfile.TemporaryDirectory() as directory:
         service = Service(Path(__file__).resolve().parents[1], Path(directory) / 'browser.sqlite3',
                           Path(directory) / 'data', token='stock-ui-test-token')
+        from lab.website_lab import attach
+        attach(service)
+        if os.getenv('STRATEGY_LAB_UI_FIXTURES') == '1':
+            service.strategy_lab.worker.join(timeout=2)
+            service.strategy_lab.resume = lambda: None
+            first = service.strategy_lab.start({})
+            service.strategy_lab._patch(first['id'], status='complete', message='Generated incomplete test fixture',
+                result={'report_version':2, 'eligible_for_bot':False,
+                        'later':{'complete':False, 'trades':24, 'net_pnl':None, 'mean_r':None,
+                                 'incomplete_reason':'Candles went missing while a position was open.'},
+                        'later_higher_cost':{'complete':False}})
+            second = service.strategy_lab.start({})
+            service.strategy_lab._patch(second['id'], status='complete', message='Legacy test fixture',
+                result={'eligible_for_bot':True, 'later':{'complete':True, 'trades':25, 'net_pnl':99, 'mean_r':1}})
         if os.getenv('EXPERIMENT_UI_FIXTURES') == '1':
             from unittest.mock import patch
             from tests.test_execution import candles
@@ -45,6 +59,7 @@ if __name__ == '__main__':
                 print(f'http://127.0.0.1:{server.server_port}', flush=True)
                 server.serve_forever()
         finally:
+            service.strategy_lab.shutdown()
             service.experiments.shutdown()
             service.equities.shutdown()
             service.forward.shutdown()

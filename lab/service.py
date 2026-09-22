@@ -71,6 +71,11 @@ class Service:
                     return 415, {"error": "Send application/json"}, {}
                 if not isinstance(body, dict):
                     return 400, {"error": "Request body must be a JSON object"}, {}
+            if hasattr(self, "strategy_lab"):
+                from .website_lab import route
+                routed = route(self, method, path, query, body)
+                if routed is not None:
+                    return routed
             if method == "GET" and path == "/":
                 return 200, (self.base_dir / "templates/index.html").read_bytes(), {"Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and path in ("/stocks", "/stocks/"):

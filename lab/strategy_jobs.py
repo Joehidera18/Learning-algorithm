@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+import uuid
 from pathlib import Path
 
 from .paper_store import db_connect
@@ -27,9 +28,11 @@ class StrategyLabJobs:
     def catalog(self):
         from .equity_data import EquityData
         from .equity_research import DEFAULT_COSTS
-        from strategies import list_strategies
+        from strategies import list_strategies, load_strategy
         data = EquityData()
-        return {"strategies": list_strategies(), "equity": data.catalog(), "default_costs": DEFAULT_COSTS,
+        return {"strategies": list_strategies(),
+                "strategy_intervals": {name:list(load_strategy(name).allowed_intervals) for name in list_strategies()},
+                "equity": data.catalog(), "default_costs": DEFAULT_COSTS,
                 "scope": "Historical stock backtests. News is point-in-time. No live orders."}
 
     def status(self):
@@ -54,27 +57,48 @@ class StrategyLabJobs:
         if not row:
             raise ValueError("Strategy lab job not found")
         result = json.loads(row["result_json"]) if row["result_json"] else None
+        if result:
+            from .strategy_lab import REPORT_VERSION
+            if result.get("report_version") != REPORT_VERSION:
+                result["eligible_for_bot"] = False
+                result["requires_rerun"] = True
         return {"id": row["id"], "created": row["created"], "status": row["status"],
                 "message": row["message"], "request": json.loads(row["request_json"]), "result": result}
 
     def start(self, request):
         from strategies import load_strategy
+        from .equity_data import EquityData, ticker
+        from .study_plan import ACTIVE_INTERVALS
         allowed = {"strategy", "symbol", "decision", "context", "days", "provider", "news"}
         if not isinstance(request, dict) or set(request) - allowed:
             raise ValueError("Unknown strategy lab setting")
         name = request.get("strategy") or "orb_15m"
-        load_strategy(name)
-        symbol = (request.get("symbol") or "SPY").upper()
+        strategy = load_strategy(name)
+        symbol = ticker(request.get("symbol") or "SPY")
         decision = request.get("decision") or "5m"
-        context = request.get("context") or ["15m", "1h"]
+        if decision not in strategy.allowed_intervals:
+            raise ValueError("%s requires one of: %s" % (name, ", ".join(strategy.allowed_intervals)))
+        context = request.get("context", ["15m", "1h"])
         if isinstance(context, str):
             context = [part.strip() for part in context.split(",") if part.strip()]
-        days = int(request.get("days") or 59)
+        if not isinstance(context, list) or any(not isinstance(iv, str) or iv not in ACTIVE_INTERVALS for iv in context):
+            raise ValueError("Choose supported context timeframes")
+        context = list(dict.fromkeys(iv for iv in context if iv != decision))
+        days = request.get("days", 59)
         provider = request.get("provider") or "yahoo"
-        news = bool(request.get("news"))
+        catalog = EquityData().catalog()["providers"]
+        if not isinstance(provider, str) or provider not in catalog:
+            raise ValueError("Choose a supported stock data provider")
+        if not catalog[provider]["available"]:
+            raise ValueError("Configure credentials for the selected provider")
+        if type(days) is not int or not 1 <= days <= catalog[provider]["max_days"][decision]:
+            raise ValueError("Days exceed the selected provider/timeframe limit")
+        news = request.get("news", False)
+        if not isinstance(news, bool):
+            raise ValueError("News must be true or false")
         payload = {"strategy": name, "symbol": symbol, "decision": decision,
                    "context": context, "days": days, "provider": provider, "news": news}
-        ident = "%s-%s-%s-%s" % (name, symbol, decision, int(time.time()))
+        ident = "%s-%s-%s-%s" % (name, symbol, decision, uuid.uuid4().hex[:12])
         con = db_connect(self.db_path)
         try:
             with con:
@@ -157,7 +181,8 @@ class StrategyLabJobs:
             dest = self.folder / (job_id + ".json")
             write_report(report, dest)
             self._patch(job_id, status="complete", message="Strategy lab finished",
-                        result={"eligible_for_bot": report["eligible_for_bot"],
+                        result={"report_version": report["report_version"],
+                                "eligible_for_bot": report["eligible_for_bot"],
                                 "later": report["later"], "development": report["development"],
                                 "later_higher_cost": report["later_higher_cost"],
                                 "news_alignment": report.get("news_alignment"),

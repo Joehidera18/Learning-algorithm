@@ -27,15 +27,8 @@ def attach(service):
         service.strategy_lab.resume()
     except Exception as exc:
         service.strategy_lab = _OfflineLab("Strategy lab did not start: %s" % exc)
-    original = service.handle
-
-    def handle(method, path, query=None, body=None, headers=None):
-        routed = route(service, method, path, query or {}, body)
-        if routed is not None:
-            return routed
-        return original(method, path, query, body, headers)
-
-    service.handle = handle
+    # Service.handle dispatches these routes after its shared authentication
+    # and JSON validation. Do not wrap or bypass that entry point.
 
 
 def route(service, method, path, query, body):
