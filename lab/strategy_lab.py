@@ -28,11 +28,6 @@ def _index_ends(rows, interval):
 
 
 def attach_closed_context(decision_rows, decision_interval, frames):
-    """Attach the last higher-timeframe bar whose close is at or before this close.
-
-    frames: {interval: rows}. A missing closed bar is recorded as ready=False.
-    No forward-fill. No interpolation.
-    """
     catalogs = {}
     for interval, rows in frames.items():
         if interval not in INTERVAL_MS:
@@ -106,13 +101,18 @@ def _summarize(metrics, trades, window):
 
 
 def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=500.,
-                 stock_execution=False, close_at_session_end=False, cancelled=None):
+                 stock_execution=False, close_at_session_end=False, cancelled=None,
+                 articles=None):
     if interval not in DECISION_INTERVALS:
         raise ValueError("Decision interval must be one of " + ", ".join(DECISION_INTERVALS))
     if any(iv not in ACTIVE_INTERVALS for iv in (frames or {})):
         raise ValueError("Context interval not in the supported set")
     coverage = validate_history(rows, interval)
     features, alignment = attach_features(rows, interval, frames)
+    news_alignment = None
+    if articles:
+        from news.attach import attach_news
+        news_alignment = attach_news(rows, features, articles, INTERVAL_MS[interval])
     strategy.prepare(rows, features, interval)
     params = dict(strategy.params)
     params.setdefault("family", strategy.name)
@@ -161,6 +161,7 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
         "context_intervals": sorted(frames or {}),
         "coverage": coverage,
         "mtf_alignment": alignment,
+        "news_alignment": news_alignment,
         "costs": costs,
         "starting_balance": starting_balance,
         "development": _summarize(dev_metrics, dev_trades, "development"),
@@ -172,6 +173,7 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
             "Historical bars only. No live quotes.",
             "A missing decision bar skips the fill and does not invent a path.",
             "Higher-timeframe context is the last bar that already closed.",
+            "News is visible only after its published timestamp.",
             "Yahoo/Alpaca 1m history is short; do not treat a 29-day 1m test as multi-year evidence.",
         ],
     }
