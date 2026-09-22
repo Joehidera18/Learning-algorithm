@@ -27,8 +27,14 @@ class StrategySpec:
         "max_notional_fraction": 0.30,
     }
 
+    def prepare(self, rows, features, interval):
+        return
+
     def signal(self, features, params):
         raise NotImplementedError
+
+    def levels(self, features, params):
+        return None
 
 
 def register(cls):
