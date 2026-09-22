@@ -6,11 +6,7 @@ import threading
 import time
 from pathlib import Path
 
-from .equity_data import EquityData
-from .equity_research import DEFAULT_COSTS
 from .paper_store import db_connect
-from .strategy_lab import run_backtest, write_report
-from strategies import list_strategies, load_strategy
 
 
 class StrategyLabJobs:
@@ -29,6 +25,9 @@ class StrategyLabJobs:
             con.close()
 
     def catalog(self):
+        from .equity_data import EquityData
+        from .equity_research import DEFAULT_COSTS
+        from strategies import list_strategies
         data = EquityData()
         return {"strategies": list_strategies(), "equity": data.catalog(), "default_costs": DEFAULT_COSTS,
                 "scope": "Historical stock backtests. News is point-in-time. No live orders."}
@@ -59,6 +58,7 @@ class StrategyLabJobs:
                 "message": row["message"], "request": json.loads(row["request_json"]), "result": result}
 
     def start(self, request):
+        from strategies import load_strategy
         allowed = {"strategy", "symbol", "decision", "context", "days", "provider", "news"}
         if not isinstance(request, dict) or set(request) - allowed:
             raise ValueError("Unknown strategy lab setting")
@@ -124,6 +124,10 @@ class StrategyLabJobs:
             con.close()
 
     def _run(self, row):
+        from .equity_data import EquityData
+        from .equity_research import DEFAULT_COSTS
+        from .strategy_lab import run_backtest, write_report
+        from strategies import load_strategy
         job_id = row["id"]
         req = json.loads(row["request_json"])
         try:
