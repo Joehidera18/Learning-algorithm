@@ -26,6 +26,10 @@ class OpeningRange15m(StrategySpec):
     name = "orb_15m"
     version = "orb-15m-v2-complete-range"
     allowed_intervals = ("1m", "5m", "15m")
+    supported_modes = ("day",)
+    news_filter = True
+    title = "15-minute opening-range breakout"
+    description = "First close above a complete 15-minute opening range, with opening volume above the prior 20 observed sessions. Stop at the range low; partial targets at one and two range widths."
     direction = "LONG"
     params = dict(StrategySpec.params,
                   family="orb_15m",

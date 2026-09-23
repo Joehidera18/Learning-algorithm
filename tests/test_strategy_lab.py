@@ -204,7 +204,7 @@ class ReportTests(unittest.TestCase):
         result = self.run_report(self.fixture())
         self.assertTrue(result['eligible_for_bot'])
         self.assertTrue(result['later']['complete'])
-        self.assertEqual(result['report_version'], 2)
+        self.assertEqual(result['report_version'], 3)
 
     def test_window_end_loss_is_included_without_inflating_closed_trade_count(self):
         trades = [{'reason': 'T2', 'pnl': 5., 'risk_dollars': 1.} for _ in range(20)]
@@ -314,7 +314,7 @@ class WebsiteTests(unittest.TestCase):
             self.jobs._run({'id': job['id'], 'request_json': json.dumps(job['request'])})
         finished = self.jobs.get(job['id'])
         self.assertEqual(finished['status'], 'complete', finished['message'])
-        self.assertEqual(finished['result']['report_version'], 2)
+        self.assertEqual(finished['result']['report_version'], 3)
         report = json.loads(Path(finished['result']['report_path']).read_text())
         self.assertEqual(report['strategy'], 'orb_15m')
         self.assertEqual(report['coverage']['coverage_pct'], 100.)

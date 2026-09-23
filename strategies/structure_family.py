@@ -4,8 +4,14 @@ from .base import StrategySpec, register
 
 
 def _family(family_name):
+    labels = {
+        "trend_pullback_simple": ("Trend pullback", "Tests a pullback within an established upward trend using the existing price-structure and momentum checks."),
+        "breakout_volume_simple": ("Breakout with volume", "Tests long breakouts with the existing price-structure, trend and volume checks."),
+        "range_reclaim_simple": ("Range reclaim", "Tests recovery back into a range after a downside move, using the existing reclaim checks."),
+        "signal_consensus_simple": ("Signal agreement", "Tests long entries when the existing structure, momentum and trend checks agree.")}
     class Family(StrategySpec):
         name = family_name
+        title, description = labels[family_name]
         version = "structure-v1"
         params = dict(StrategySpec.params, family=family_name, direction="LONG", threshold=60)
 

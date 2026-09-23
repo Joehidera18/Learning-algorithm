@@ -6,6 +6,7 @@
   const money = value => finite(value) ? new Intl.NumberFormat(undefined, {style:"currency", currency:"USD"}).format(value) : "—";
   const number = value => finite(value) ? value.toLocaleString(undefined, {maximumFractionDigits:2}) : "—";
   const when = value => value ? new Date(value).toLocaleString(undefined, {timeZone:"America/New_York", timeZoneName:"short"}) : "Not yet observed";
+  let renderSignature = "";
   let token = StockSession.getToken(), state, loading = false, initialized = false, selectedAccount = "", chartTimer;
 
   function notice(message = "", error = false) {
@@ -20,21 +21,19 @@
       options.method = "POST"; options.headers["Content-Type"] = "application/json";
       options.body = JSON.stringify(body);
     }
-    const response = await fetch(path, options);
-    if (!response.ok) {
-      if (response.status === 401) { $("accessPanel").hidden = false; $("content").hidden = true; }
-      let message = "Request failed (" + response.status + ")";
-      try { message = (await response.json()).error || message; } catch (_) {}
-      throw Error(message);
+    try {
+      return await StockSession.request(path, options, blob ? "blob" : "json", blob ? 60000 : 20000);
+    } catch (error) {
+      if (error.status === 401) { $("accessPanel").hidden = false; $("content").hidden = true; }
+      throw error;
     }
-    return blob ? response.blob() : response.json();
   }
   function renderChart() {
     const stock = state.universe.find(s => s.ticker === $("marketSymbol").value);
     if (!stock) return;
     $("selectedTitle").textContent = "Study " + stock.ticker;
     $("learnLink").href = "/stock-practice?symbol=" + encodeURIComponent(stock.ticker);
-    $("strategyLink").href = "/strategy-lab?symbol=" + encodeURIComponent(stock.ticker);
+    $("strategyLink").href = "/backtests?symbol=" + encodeURIComponent(stock.ticker);
     $("researchLink").hidden = !stock.research;
     $("researchLink").href = "/stocks#" + encodeURIComponent(stock.ticker);
     $("externalChart").href = "https://www.tradingview.com/symbols/" + stock.market_symbol.replace(":", "-") + "/";
@@ -51,6 +50,7 @@
       utm_source:location.hostname, utm_medium:"widget", utm_campaign:"symbol-overview"
     }));
     const frame = document.createElement("iframe");
+    frame.loading = "lazy";
     frame.src = url.href;
     frame.title = stock.name + ": stock price, percentage change and chart";
     frame.referrerPolicy = "strict-origin-when-cross-origin";
@@ -101,7 +101,7 @@
   function renderJobs() {
     $("recentRuns").innerHTML = state.jobs.length ? state.jobs.map(j => '<article class="job-row"><div><a href="/stock-practice">' + esc(j.manifest.symbol + " · " + j.manifest.interval + " · " + j.manifest.mode) + '</a><span class="badge">' + esc(j.status) + '</span></div><p>' + esc(j.progress.message) + '</p></article>').join("") : '<p class="desk-empty">No stock learning runs yet. Choose a stock above to begin.</p>';
     const lab = state.strategy_lab;
-    $("recentStrategies").innerHTML = lab.error ? '<p class="desk-empty">' + esc(lab.error) + '</p>' : lab.jobs.length ? lab.jobs.map(j => '<article class="job-row"><div><a href="/strategy-lab">' + esc(j.request.symbol + " · " + j.request.strategy.replace(/_/g, " ")) + '</a><span class="badge">' + esc(j.status) + '</span></div><p>' + esc(j.message) + '</p></article>').join("") : '<p class="desk-empty">No strategy tests yet. Compare an opening-range breakout or a price-structure strategy on recorded stock candles.</p>';
+    $("recentStrategies").innerHTML = lab.error ? '<p class="desk-empty">' + esc(lab.error) + '</p>' : lab.jobs.length ? lab.jobs.map(j => '<article class="job-row"><div><a href="/backtests">' + esc(j.request.symbol + " · " + j.request.strategy.replace(/_/g, " ")) + '</a><span class="badge">' + esc(j.status) + '</span></div><p>' + esc(j.message) + '</p></article>').join("") : '<p class="desk-empty">No strategy tests yet. Compare an opening-range breakout or a price-structure strategy on recorded stock candles.</p>';
   }
   function render() {
     const market = state.market;
@@ -130,7 +130,8 @@
       if (next.error) throw Error(next.error);
       state = next;
       $("accessPanel").hidden = true; $("content").hidden = false;
-      render();
+      const signature = JSON.stringify({...state,updated_ts:0});
+      if(signature !== renderSignature) {renderSignature=signature;render();}
       $("connection").textContent = "Workspace updated " + when(state.updated_ts);
       $("connection").className = "";
       notice();
@@ -167,6 +168,5 @@
     $("connection").textContent = "Offline · displayed results and market prices may be out of date";
     $("connection").className = "stale";
   });
-  window.addEventListener("online", refresh);
-  refresh(); setInterval(() => { if (!document.hidden) refresh(); }, 15000);
+  StockSession.poll(refresh,()=>!!state?.practice.pending_jobs || state?.strategy_lab.running || state?.forward.some(f=>f.status==="running"),()=>$("accessPanel").hidden);
 })();

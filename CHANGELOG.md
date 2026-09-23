@@ -1,3 +1,21 @@
+# V12.1 — faster pages and stock backtesting
+
+- Dashboard and stock learner polling use compact job metadata. Load detailed
+  learning reports and trade journals only when requested. Keep full exports.
+- Remove per-job result queries from the strategy status route; omit paper
+  account trade arrays from routine status responses.
+- Add content-versioned static caching, ETags and gzip; keep private responses
+  uncached. Bound browser requests, pause hidden tabs, slow idle polling and
+  avoid rebuilding unchanged results. Load external charts lazily.
+- Add a prominent **Backtest stocks** section and `/backtests` page. Keep the old
+  URL. Expose five named rules, day/swing mode, balance, shares, date and costs.
+- Show development/later/higher-cost metrics, actual periods, source coverage,
+  progress, cancellation and downloadable trade journals.
+- Report version 3 requires selected context bars before entries. Context is
+  optional by default. Old reports remain saved with a rerun notice.
+- Keep the same GitHub repository, Render service, persistent disk and paper-only
+  execution. See [verification](research/stock-speed-v12.1-validation.md).
+
 # V12 — stock-only workspace
 
 - The deployed app now uses a dedicated stock service. Crypto workers, Coinbase

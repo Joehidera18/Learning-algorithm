@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from pathlib import Path
 
 from lab.data import INTERVAL_MS, load_history, validate_history
@@ -30,7 +31,7 @@ def main():
     parser.add_argument("--symbol", default="")
     parser.add_argument("--asset", choices=("equity", "crypto"), default="equity")
     parser.add_argument("--decision", default="15m", choices=DECISION_INTERVALS)
-    parser.add_argument("--context", default="1h,4h",
+    parser.add_argument("--context", default="",
                         help="Comma-separated higher timeframes, or empty")
     parser.add_argument("--days", type=int, default=59)
     parser.add_argument("--csv-dir", default="", help="For crypto: folder of SYMBOL_interval.csv files")
@@ -45,6 +46,7 @@ def main():
         raise SystemExit("Provide --strategy and --symbol, or pass --list")
     strategy = load_strategy(args.strategy)
     context = [iv for iv in _parse_intervals(args.context) if iv != args.decision]
+    strategy.require_context = tuple(context)
     frames = {}
     stock = args.asset == "equity"
     if stock:
@@ -56,11 +58,12 @@ def main():
             limit = data.catalog()["providers"][args.provider]["max_days"][args.decision]
         if args.days > limit:
             raise SystemExit("%s %s history is capped at %s days" % (args.provider, args.decision, limit))
-        snap = data.history(args.symbol, args.decision, args.days, provider=args.provider)
+        cutoff = (int(time.time()*1000)-20*60000)//60000*60000
+        snap = data.history(args.symbol, args.decision, args.days, cutoff=cutoff, provider=args.provider)
         rows = snap["rows"]
         for interval in context:
             cap = data.catalog()["providers"][args.provider]["max_days"][interval]
-            ctx = data.history(args.symbol, interval, min(args.days, cap), provider=args.provider)
+            ctx = data.history(args.symbol, interval, min(args.days, cap), cutoff=cutoff, provider=args.provider)
             frames[interval] = ctx["rows"]
         costs = dict(STOCK_COSTS)
     else:
@@ -84,6 +87,9 @@ def main():
     report["symbol"] = args.symbol
     report["asset_class"] = args.asset
     report["provider"] = args.provider if stock else "csv"
+    if stock:
+        report["market_data"] = snap.get("market_data", {})
+        report["requested_coverage"] = snap.get("quality", {})
     dest = Path(args.out or ("strategy-lab-%s-%s-%s.json" % (args.strategy, args.symbol, args.decision)))
     write_report(report, dest)
     print(json.dumps({

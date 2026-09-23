@@ -8,20 +8,20 @@
   const when = x => x ? new Date(x).toLocaleString() : "—";
   const name = x => String(x || "").replace(/_/g," ");
   const apiRoot = "/api/stocks/practice/";
+  const resultCache = new Map(), resultLoading = new Set();
+  let lastJobs = "", lastForward = "";
   let token = StockSession.getToken(), state, initialized = false, refreshing = false;
   function notice(message,error=false) {$("notice").textContent=message;$("notice").hidden=false;$("notice").className="notice"+(error?" error":"");}
   async function api(action,body,blob=false) {
     const options={credentials:"same-origin",headers:{}};
     if(token) options.headers.Authorization="Bearer "+token;
     if(body!==undefined) {options.method="POST";options.headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
-    const response=await fetch(apiRoot+action,options);
-    if(!response.ok) {
-      if(response.status===401) {$("accessPanel").hidden=false;$("content").hidden=true;}
-      let message="Request failed ("+response.status+")";
-      try {message=(await response.json()).error || message;} catch(_) {}
-      throw Error(message);
+    try {
+      return await StockSession.request(apiRoot+action, options, blob ? "blob" : "json", blob ? 60000 : 20000);
+    } catch (error) {
+      if (error.status === 401) { $("accessPanel").hidden = false; $("content").hidden = true; }
+      throw error;
     }
-    return blob ? response.blob() : response.json();
   }
   function bounds(reset=false) {
     if(!state) return;
@@ -53,13 +53,14 @@
     $("jobCount").textContent=state.total_jobs+" RUN"+(state.total_jobs===1?"":"S");
     $("queueStatus").textContent=state.blocked_by_other_research?"Waiting for the other research task to finish.":state.pending_jobs?state.pending_jobs+" run(s) queued or running.":"Saved stock learning and comparison results.";
     $("jobs").innerHTML=state.jobs.length?state.jobs.map(job=>{
-      const m=job.manifest,r=job.result,done=job.status==="complete";
+      const m=job.manifest,r=job.result || resultCache.get(job.id),done=job.status==="complete";
       let html='<article class="equity-job"><div class="job-summary"><div class="job-title"><h3>'+esc(m.symbol)+' <span class="muted">· '+esc(m.interval)+' · '+esc(m.mode)+'</span></h3><span class="badge">'+esc(name(job.status))+'</span></div><p>'+esc(job.progress.message)+'</p><p class="muted">'+esc(m.provider)+(m.provider==="alpaca"?' / '+esc(m.feed):'')+' · '+esc(m.days)+' calendar days · '+(m.fractional_shares?'fractional':'whole')+' shares</p><div class="equity-actions">';
       if(done) html+=button("forward/start",job.id,"Start forward practice")+button("export",job.id,"Export full results")+button("candles",job.id,"Download candles");
       else if(["error","cancelled"].includes(job.status)) html+=button("retry",job.id,"Retry saved run");
       else if(job.status!=="code_changed") html+=button("cancel",job.id,"Cancel");
       html+='</div></div>';
-      if(r) {
+      if(done && !r) html+='<details class="job-body" data-job="'+esc(job.id)+'"'+(opened.has(job.id)?' open':'')+'><summary>View learning, coverage & strategy results</summary><p data-result-status>Open to load this result.</p><button class="small" data-load-result="'+esc(job.id)+'">Load result</button></details>';
+      if(r && opened.has(job.id)) {
         html+='<details class="job-body" data-job="'+esc(job.id)+'"'+(opened.has(job.id)?' open':'')+'><summary>View learning, coverage & strategy results</summary>';
         html+=facts([[number(r.seed.resolved_examples,0),"earlier resolved learning examples"],[number(r.coverage.observed_candles,0),"observed stock candles"],[number(r.coverage.coverage_pct,2)+"%","requested session coverage"],[money(r.buy_hold_price_return.net_pnl),"buy & hold · price-only net"]]);
         html+='<p class="muted">Later comparison: '+esc(when(r.later_start_ts))+' → '+esc(when(r.end_ts))+'. Every row is an independent $500 simulation.</p><div class="result-table"><table><thead><tr><th>Strategy</th><th>Net P/L</th><th>Return</th><th>Higher-cost P/L</th><th>Closed trades</th><th>Drawdown</th><th>Learning updates</th></tr></thead><tbody>';
@@ -71,6 +72,7 @@
         for(const c of r.comparisons) html+='<div class="comparison"><strong>'+esc(name(c.challenger))+' vs '+esc(name(c.control))+' · '+esc(name(c.status))+'</strong><p>'+esc(c.reason)+'</p><p>Net difference '+money(c.net_difference)+' · higher-cost difference '+money(c.stress_net_difference)+'</p></div>';
         html+='<details><summary>Entry decisions, costs and data limits</summary><p>'+esc(r.market_data.adjustment)+'. '+number(r.coverage.missing_candles,0)+' scheduled candles missing. No synthetic candles.</p><pre>'+esc(JSON.stringify({costs:r.costs,source:r.market_data,training:r.training.map(t=>({family:t.family,examples:t.resolved_examples,rejections:t.signal_funnel.entry_rejections})),accounts:r.variants.map(v=>({strategy:v.id,rejections:v.windows.later.standard.metrics.signal_funnel.rejections,complete:v.windows.later.standard.metrics.complete})),limitations:r.limitations},null,2))+'</pre></details></details>';
       }
+      if(done && r && !opened.has(job.id)) html+='<details class="job-body" data-job="'+esc(job.id)+'"><summary>View learning, coverage & strategy results</summary></details>';
       return html+'</article>';
     }).join(""):'<div class="equity-empty"><strong>Your stock learner is ready to practice.</strong>Start with a stock or an ETF. The results will show whether the strategy traded, what it learned, and what it earned after assumed costs.</div>';
   }
@@ -88,12 +90,40 @@
     refreshing=true;
     try {
       state=await api("status");setup();
+      if($("notice").classList.contains("error")) {$("notice").hidden=true;$("notice").classList.remove("error");}
       $("accessPanel").hidden=true;$("content").hidden=false;
       const m=state.market;
       $("marketClock").textContent=m.open?"REGULAR SESSION OPEN · closes "+when(m.close_ts):"REGULAR SESSION CLOSED · next open "+when(m.next_open_ts);
-      renderJobs();renderForward();
+      const jobsSignature=JSON.stringify([state.jobs,state.pending_jobs,state.blocked_by_other_research]);
+      const forwardSignature=JSON.stringify(state.forward);
+      if(jobsSignature!==lastJobs) {lastJobs=jobsSignature;renderJobs();}
+      if(forwardSignature!==lastForward) {lastForward=forwardSignature;renderForward();}
     } catch(e) {if(showError) notice(e.message,true);} finally {refreshing=false;}
   }
+  async function loadResult(id) {
+    const panel=()=>[...document.querySelectorAll("details[data-job]")].find(el=>el.dataset.job===id);
+    if(resultLoading.has(id)) return;
+    if(resultCache.has(id)) { if(!panel()?.querySelector("table")) renderJobs(); return; }
+    resultLoading.add(id);
+    const status=panel()?.querySelector("[data-result-status]");
+    if(status) status.textContent="Loading saved result…";
+    try {
+      const saved=await api("result?id="+encodeURIComponent(id));
+      if(!saved.result) throw Error("This result is not available yet. Refresh and try again.");
+      resultCache.set(id,saved.result);renderJobs();
+    } catch(error) {
+      const message=panel()?.querySelector("[data-result-status]");
+      if(message) message.textContent=error.message;
+      notice(error.message,true);
+    } finally {resultLoading.delete(id);}
+  }
+  document.addEventListener("toggle",event=>{
+    if(event.target.matches("details[data-job]") && event.target.open) loadResult(event.target.dataset.job);
+  },true);
+  document.addEventListener("click",event=>{
+    const button=event.target.closest("[data-load-result]");
+    if(button) loadResult(button.dataset.loadResult);
+  });
   async function download(action,filename) {
     const blob=await api(action,undefined,true),url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -118,5 +148,5 @@
     } catch(e) {notice(e.message,true);} finally {b.disabled=false;}
   });
   $("exportForward").addEventListener("click",()=>download("forward/export","stock-forward-journal.json").catch(e=>notice(e.message,true)));
-  refresh();setInterval(()=>{if(!document.hidden) refresh(false);},12000);
+  StockSession.poll(()=>refresh(),()=>!!state?.pending_jobs || state?.forward.some(f=>f.status==="running"),()=>$("accessPanel").hidden);
 })();

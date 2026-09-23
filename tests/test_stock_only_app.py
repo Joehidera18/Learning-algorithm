@@ -59,13 +59,13 @@ class StockOnlyTests(unittest.TestCase):
         status, body, _ = self.request('/api/health', authorized=False)
         value = json.loads(body)
         self.assertEqual(status, 200)
-        self.assertEqual(value['app_version'], '12.0')
+        self.assertEqual(value['app_version'], '12.1')
         self.assertEqual(value['asset_class'], 'equity')
         for name in ('live_capable', 'live_orders_allowed', 'crypto_enabled'):
             self.assertFalse(value[name])
 
     def test_public_pages_and_only_stock_assets_are_served(self):
-        for path in ('/', '/stocks', '/stock-practice', '/strategy-lab'):
+        for path in ('/', '/stocks', '/stock-practice', '/strategy-lab', '/backtests'):
             status, body, _ = self.request(path, authorized=False)
             self.assertEqual(status, 200, path)
             self.assertIn(b'Stock Lab', body)

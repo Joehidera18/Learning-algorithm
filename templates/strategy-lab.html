@@ -1,26 +1,30 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strategy lab · stocks</title><meta name="description" content="Backtest one named stock strategy on historical US session bars. News is point-in-time. No live orders."><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/stock-practice.css"><script src="/static/stock-session.js" defer></script><script src="/static/strategy-lab.js" defer></script></head>
-<body class="equity-page"><a class="skip-link" href="#main">Skip to strategy lab</a><div class="shell">
-<header><a class="brand" href="/"><span class="brand-icon">S</span><span>Stock Lab</span></a><span class="badge">STOCK STRATEGIES</span></header>
-<nav class="market-nav" aria-label="Stock workspace"><a href="/">Dashboard</a><a href="/stocks">Markets & research</a><a href="/stock-practice">Stock learner</a><a href="/strategy-lab" aria-current="page">Strategy lab</a><a href="/#paper-account">Paper account</a></nav>
-<main id="main"><section class="equity-hero"><p class="eyebrow">RESEARCH → BACKTEST → PAPER PRACTICE</p><h1>Test a stock<br><span>strategy first.</span></h1><p>Pick a named rule, US ticker, decision timeframe, and optional Massive news filter. The later window must stay profitable after costs or it stays in the lab.</p></section>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Backtest stocks · Stock Lab</title><meta name="description" content="Test stock strategies on historical prices. Compare later returns, drawdowns, trading costs and the trade journal."><link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/stock-practice.css"><link rel="stylesheet" href="/static/backtests.css"><script src="/static/stock-session.js" defer></script><script src="/static/strategy-lab.js" defer></script></head>
+<body class="equity-page"><a class="skip-link" href="#main">Skip to stock backtesting</a><div class="shell">
+<header><a class="brand" href="/"><span class="brand-icon">S</span><span>Stock Lab</span></a><span class="badge">HISTORICAL SIMULATION</span></header>
+<nav class="market-nav" aria-label="Stock workspace"><a href="/">Dashboard</a><a href="/stocks">Markets & research</a><a href="/stock-practice">Stock learner</a><a href="/backtests" aria-current="page">Backtest stocks</a><a href="/#paper-account">Paper account</a></nav>
+<main id="main"><section class="equity-hero"><p class="eyebrow">AN IDEA. A RULE. A HISTORICAL TEST.</p><h1>Put a stock strategy<br><span>through its history.</span></h1><p>Backtesting replays past prices to see how a strategy would have traded. Choose your stock, rules and assumptions, then inspect profits, losses and the trades behind them.</p></section>
 <div id="notice" role="status" class="notice" hidden></div>
 <section id="accessPanel" class="panel" hidden><h2>Connect to your app</h2><form id="accessForm"><label>App access token<input id="accessToken" type="password" autocomplete="current-password" required></label><button class="primary">Connect</button></form></section>
-<noscript><p class="callout">Enable JavaScript to run the strategy lab.</p></noscript>
+<noscript><p class="callout">Enable JavaScript to run stock backtests.</p></noscript>
 <div id="content" hidden>
-<section class="panel"><form id="labForm"><div class="equity-fields">
+<section class="panel"><div class="equity-heading"><div><p class="eyebrow">01 / SET UP YOUR TEST</p><h2>Backtest a stock strategy</h2></div><span class="badge">US STOCKS & ETFs</span></div>
+<form id="labForm"><div class="equity-fields">
 <label>Strategy<select id="strategy"></select></label>
-<label>Symbol<input id="symbol" value="SPY" maxlength="7" required></label>
-<label>Decision bar<select id="decision"><option>1m</option><option selected>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option></select></label>
-<label>Context<input id="context" value="15m,1h"></label>
-<label>Days<input id="days" type="number" min="20" value="59" required></label>
+<label>Stock or ETF<input id="symbol" value="SPY" list="tickerList" pattern="[A-Z]{1,5}([.\-][A-Z])?" maxlength="7" autocomplete="off" required><datalist id="tickerList"></datalist></label>
+<label>Candle timeframe<select id="decision"><option>1m</option><option selected>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option></select></label>
+<label>Holding style<select id="mode"><option value="day">Day · close each session</option><option value="swing">Swing · hold overnight</option></select></label>
+<label>History in calendar days<input id="days" type="number" min="1" step="1" value="59" required></label>
 <label>Data source<select id="provider"></select></label>
-<label>News filter<select id="news"><option value="no">Price only</option><option value="yes">Massive news filter</option></select></label>
+<label>Starting paper balance ($)<input id="balance" type="number" min="100" max="1000000" step="1" value="500" required></label>
+<label>Share sizing<select id="fractional"><option value="yes">Fractional shares</option><option value="no">Whole shares</option></select></label>
 </div>
+<div class="backtest-rules"><h3 id="strategyTitle">Strategy rules</h3><p id="strategyDescription"></p></div>
 <p id="hint" class="muted"></p>
-<div class="equity-actions"><button id="runButton" class="primary" type="submit">Run backtest</button><button id="refresh" type="button">Refresh</button></div>
-</form>
-<p class="scope-note">Missing higher-timeframe bars stay missing. Headlines after a bar close cannot change that bar. A passing lab result is research evidence; it does not submit orders. Set MASSIVE_API_KEY on the server for Massive prices and news.</p></section>
-<section class="equity-section"><h2>Results</h2><p id="queueStatus" class="muted"></p><div id="jobs"></div></section>
-</div></main>
-<footer class="equity-footer">Strategy lab · historical US stocks · <a href="/stock-practice">Stock practice</a></footer></div></body></html>
+<details class="cost-details"><summary>Dates, context and news</summary><div class="equity-fields"><label>Stop before (UTC date, optional)<input id="endDate" type="date"></label><label>Required closed context bars<input id="context" placeholder="Optional, e.g. 15m,1h"></label><label>News filter<select id="news"><option value="no">Price only</option><option value="yes">ORB · Massive news filter</option></select></label></div><p class="backtest-explainer">Leave the date blank for the latest completed, delayed candles. A date ends the test at 00:00 UTC, excluding that date. Older dates still depend on your provider’s available history. Optional context requires the latest scheduled closed bars to be present before entries; it does not add a trend rule. News filtering is available for opening-range breakout when a Massive key is configured.</p></details>
+<details class="cost-details"><summary>Trading costs and risk assumptions</summary><p class="backtest-explainer">Each comparison starts with the same paper balance. The higher-cost test increases fees, spread and slippage by 50%.</p><div class="equity-fields"><label>Fees per side (%)<input id="fee" type="number" value="0.01" step="0.01" min="0" max="2" required></label><label>Slippage per side (%)<input id="slip" type="number" value="0.05" step="0.01" min="0" max="1" required></label><label>Half spread per side (%)<input id="spread" type="number" value="0.02" step="0.01" min="0" max="1" required></label><label>Risk per trade (%)<input id="risk" type="number" value="0.5" step="0.1" min="0.1" max="2" required></label><label>Maximum stock allocation (%)<input id="allocation" type="number" value="95" step="1" min="5" max="100" required></label><label>Session loss halt (%)<input id="lossLimit" type="number" value="2" step="0.1" min="0.5" max="10" required></label></div></details>
+<div class="equity-actions"><button id="runButton" class="primary" type="submit">Run stock backtest</button><button id="refresh" type="button">Refresh results</button></div>
+</form><p class="scope-note">Regular exchange sessions · Long-only, unleveraged paper trades · At least 400 observed candles required. The first 240 warm up indicators. Missing prices are reported; no candles are invented.</p></section>
+<section class="equity-section"><p class="eyebrow">02 / INSPECT THE EVIDENCE</p><h2>Backtest results</h2><p id="queueStatus" class="muted" role="status"></p><div id="jobs"></div></section>
+<section class="panel equity-section"><h2>Read the later results first</h2><div class="explain-grid"><article><h3>Earlier → later</h3><p>The first 70% of candles form the development period, including indicator warmup. The remaining 30% form a separate later test with a fresh balance.</p></article><article><h3>Allow for trading costs</h3><p>Fees, spread and slippage are deducted. The later test runs again at 1.5× those costs. Drawdown measures the largest drop from a simulated account peak.</p></article><article><h3>Inspect every trade</h3><p>Open the journal for entries, exits, fees and P/L. Boundary marks count toward account P/L but do not count as independently resolved trades.</p></article></div><p class="scope-note">A positive backtest is evidence to investigate, not a forecast. Repeatedly choosing rules from the later results can overfit. A passing result requires at least 20 resolved trades and positive P/L and mean R in both later tests. It never submits broker orders.</p></section>
+</div></main><footer class="equity-footer">Stock Lab V12.1 · Historical stock backtesting · <a href="/stock-practice">Stock learner</a></footer></div></body></html>

@@ -8,7 +8,7 @@ class _OfflineLab:
     def shutdown(self):
         return
 
-    def status(self):
+    def status(self, **kwargs):
         return {"jobs": [], "catalog": {"strategies": [], "equity": {"providers": {}},
                                         "scope": "Strategy lab unavailable on this process."},
                 "running": False, "error": self.message}
@@ -17,6 +17,9 @@ class _OfflineLab:
         raise RuntimeError(self.message)
 
     def get(self, job_id):
+        raise ValueError(self.message)
+
+    def report(self, job_id):
         raise ValueError(self.message)
 
     def cancel(self, job_id):
@@ -54,14 +57,7 @@ def route(service, method, path, query, body):
     action = path.removeprefix("/api/strategy-lab/")
     try:
         if action == "status" and method == "GET":
-            payload = service.strategy_lab.status()
-            for job in payload.get("jobs") or []:
-                if job.get("status") == "complete" and hasattr(service.strategy_lab, "get"):
-                    try:
-                        job["result"] = service.strategy_lab.get(job["id"]).get("result")
-                    except Exception:
-                        job["result"] = None
-            return 200, payload, {}
+            return 200, service.strategy_lab.status(), {}
         if action == "start" and method == "POST":
             return 202, service.strategy_lab.start(body or {}), {}
         if action == "cancel" and method == "POST":
@@ -74,6 +70,14 @@ def route(service, method, path, query, body):
             return 200, json.dumps(job, indent=2, allow_nan=False).encode(), {
                 "Content-Type": "application/json",
                 "Content-Disposition": 'attachment; filename="strategy-lab.json"'}
+        if action in ("report", "report/export") and method == "GET":
+            report = service.strategy_lab.report(query.get("id"))
+            if action == "report":
+                return 200, report, {}
+            import json
+            return 200, json.dumps(report, indent=2, allow_nan=False).encode(), {
+                "Content-Type": "application/json",
+                "Content-Disposition": 'attachment; filename="stock-backtest.json"'}
         return 404, {"error": "Strategy lab route not found"}, {}
     except (ValueError, TypeError) as exc:
         return 400, {"error": str(exc)}, {}

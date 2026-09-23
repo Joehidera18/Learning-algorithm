@@ -12,6 +12,10 @@ class StrategySpec:
     direction = "LONG"
     require_context = ()
     allowed_intervals = ALLOWED_INTERVALS
+    supported_modes = ("day", "swing")
+    news_filter = False
+    title = "Stock strategy"
+    description = "Long-only price and volume rules on completed stock candles."
     params = {
         "stop_atr": 1.5,
         "rr1": 1.0,

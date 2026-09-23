@@ -38,6 +38,7 @@
       utm_source: location.hostname, utm_medium: 'widget', utm_campaign: widget
     }));
     const frame = document.createElement('iframe');
+    frame.loading = 'lazy';
     frame.src = url.href;
     frame.title = title;
     frame.referrerPolicy = 'strict-origin-when-cross-origin';
@@ -136,14 +137,12 @@
     $('stockNotice').textContent = message;
     $('stockNotice').hidden = !message;
   }
-  async function request(path) {
-    const response = await fetch(path, {credentials: 'same-origin', headers: token ? {Authorization: `Bearer ${token}`} : {}});
-    if (response.status === 401) {
-      $('stockAccessPanel').hidden = false;
-      throw new Error('Enter a valid app access token to load this research.');
+  async function request(path, type="json") {
+    try { return await StockSession.request(path, {headers: token ? {Authorization: `Bearer ${token}`} : {}}, type, type==="blob"?60000:20000); }
+    catch(error) {
+      if(error.status===401) $('stockAccessPanel').hidden=false;
+      throw error;
     }
-    if (!response.ok) throw new Error(`Research request failed (${response.status}). Please try again.`);
-    return response;
   }
   function readSaved() {
     try {
@@ -183,7 +182,7 @@
     $('stockDetailBody').innerHTML = `<div class="detail-heading"><p class="eyebrow">RESEARCH PRIORITY ${stock.priority} · ${escape(stock.horizon)}</p><h2 id="detailTitle">${escape(stock.ticker)}</h2><p>${escape(stock.name)}</p>${profileTags(stock)}</div>
       <div class="detail-actions">${saveButton(stock)}<button class="small" data-chart-stock="${escape(stock.ticker)}">View price &amp; chart</button>${externalLink(stock.quote_url, 'Open quote source')}</div>
       <p class="detail-dates">Research: ${dateLabel(state.data.research_as_of)} · Valuation snapshot: ${dateLabel(state.data.market_data_as_of)} · Updating quotes are in Markets &amp; charts</p>
-      <p>${escape(stock.summary)}</p><p><a href="/stock-practice?symbol=${encodeURIComponent(stock.ticker)}">Train this stock ↗</a> · <a href="/strategy-lab?symbol=${encodeURIComponent(stock.ticker)}">Test a strategy ↗</a></p>
+      <p>${escape(stock.summary)}</p><p><a href="/stock-practice?symbol=${encodeURIComponent(stock.ticker)}">Train this stock ↗</a> · <a href="/backtests?symbol=${encodeURIComponent(stock.ticker)}">Test a strategy ↗</a></p>
       <div class="detail-catalyst"><span class="badge catalyst-status ${escape(stock.catalyst.calendar_status)}">${escape(statusLabel(stock.catalyst))}</span><h3>${escape(stock.catalyst.title)}</h3><p>${escape(stock.catalyst.window)}. ${escape(stock.catalyst.interpretation)}</p></div>
       ${stock.blocks.map(block => `<section class="detail-block"><h3>${escape(block.title)}</h3>${block.paragraphs.map(p => `<p>${escape(p)}</p>`).join('')}</section>`).join('')}
       ${valuation ? `<section class="detail-valuation"><h3>Dated valuation check</h3><strong>${escape(valuation.result)}</strong><p>${escape(valuation.numerator)} compared with ${escape(valuation.denominator)}.</p><p>${escape(valuation.note)} Market snapshot: ${dateLabel(valuation.price_as_of)}.</p>${sources([{title: 'Market snapshot source', url: valuation.market_source}, {title: 'Results / guidance source', url: valuation.guidance_source}])}</section>` : ''}
@@ -257,8 +256,7 @@
     $('reloadResearch').disabled = true;
     notice();
     try {
-      const response = await request('/api/stocks/research');
-      const data = await response.json();
+      const data = await request('/api/stocks/research');
       if (loadId !== state.loadId) return;
       if (!Array.isArray(data.stocks) || !data.stocks.length || !data.review || !Array.isArray(data.focus_tickers)) throw new Error('The research edition is incomplete. Please try again.');
       const sector = $('stockSector').value;
@@ -280,8 +278,8 @@
     button.disabled = true;
     notice();
     try {
-      const response = await request(path);
-      const url = URL.createObjectURL(await response.blob());
+      const data = await request(path, 'blob');
+      const url = URL.createObjectURL(data);
       const anchor = document.createElement('a');
       anchor.href = url; anchor.download = filename;
       document.body.append(anchor); anchor.click(); anchor.remove();
