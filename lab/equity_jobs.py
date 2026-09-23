@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import math
 import shutil
 import threading
@@ -38,8 +39,24 @@ class EquityJobs(ExperimentJobs):
             result["result"].pop("model", None)
         return result
 
-    def status(self):
-        value = super().status()
+    def status(self, compact=False, limit=100):
+        if compact:
+            con = db_connect(self.db_path)
+            try:
+                rows = con.execute("""SELECT id,created_at,updated_at,status,manifest_json,progress_json
+                    FROM experiment_jobs ORDER BY created_at DESC,rowid DESC LIMIT ?""", (limit,)).fetchall()
+                total = con.execute("SELECT COUNT(*) FROM experiment_jobs").fetchone()[0]
+                active = con.execute("SELECT COUNT(*) FROM experiment_jobs WHERE status IN (?,?,?,?,?)", ACTIVE).fetchone()[0]
+            finally:
+                con.close()
+            jobs = [{**{k:r[k] for k in ("id","created_at","updated_at","status")},
+                     "manifest":json.loads(r["manifest_json"]), "progress":json.loads(r["progress_json"]),
+                     "result":None, "result_available":r["status"] == "complete"} for r in rows]
+            value = {"jobs":jobs, "total_jobs":total, "pending_jobs":active, "active_id":self.active_id,
+                     "worker_alive":bool(self.worker and self.worker.is_alive()),
+                     "blocked_by_other_research":bool(self.blocked()), "eligible_for_trading":False}
+        else:
+            value = super().status()
         value.update(version=VERSION, catalog={**self.client.catalog(), "default_costs":DEFAULT_COSTS},
                      market=market_status(), forward=self.forward_list(), asset_class="equity",
                      scope="Historical learning and delayed forward paper practice for US stocks and ETFs. No stock orders.")
@@ -127,8 +144,11 @@ class EquityJobs(ExperimentJobs):
         import json
         con = db_connect(self.db_path)
         try:
+            # The UI needs account marks, not every saved trade. Remove the
+            # journal in SQLite before transferring/parsing it in Python.
+            fields = "state_json" if full else "json_remove(state_json, '$.account.trades') AS state_json"
             values = [dict(json.loads(r["state_json"]), id=r["id"], status=r["status"])
-                      for r in con.execute("SELECT * FROM equity_forward ORDER BY rowid DESC")]
+                      for r in con.execute("SELECT id,status,"+fields+" FROM equity_forward ORDER BY rowid DESC")]
         finally:
             con.close()
         if not full:

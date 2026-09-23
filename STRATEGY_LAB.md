@@ -1,7 +1,8 @@
-# Strategy lab
+# Stock backtesting
 
-Research folder for one strategy at a time. Historical bars only. Nothing here
-places a live order.
+The website section **Backtest stocks** (`/backtests`, with `/strategy-lab` kept
+as an alias) tests one named strategy at a time. Historical bars only; no broker
+orders. The CLI remains available for reproducible local research.
 
 ## What it does
 
@@ -52,7 +53,7 @@ middle or final opening candle invalidates the range. Relative volume needs
 20 prior complete observed opening ranges; an incomplete observed range resets
 that history. A whole missing session cannot be inferred from absent input.
 
-## Corrected reports (version 2)
+## Current reports (version 3)
 
 Reports from the earlier lab must be rerun. Their saved files are retained, but
 the website and export API no longer treat their old eligibility flag as valid.
@@ -74,9 +75,11 @@ be used as 09:30-based stock candles. See [Massive's timestamp documentation](ht
 Identical bars repeated by snapped chunk boundaries are deduplicated; conflicting
 observations fail the download.
 
-The optional context selector supplies completed candles to a strategy. It does
-not add a new entry filter to a strategy that never uses those fields. Strategies
-with `require_context` reject unavailable required frames in the shared runner.
+The optional context selector is empty by default, avoiding unused downloads.
+Every selected context timeframe is required to have its latest scheduled closed
+bar before an entry. This applies to the website and CLI; it is an availability
+check, not an additional trend rule. Reports before version 3 must be rerun
+because earlier website requests could download context without enforcing it.
 
 ## Add a strategy
 
@@ -93,3 +96,35 @@ only a frozen file after the later-window report passes.
 - Yahoo 5m history is about 59 days.
 - Stock day mode flattens at the regular-session close.
 - Gaps on the decision series stop that path. Coverage is written into the report.
+
+## Website settings and results
+
+The form supports ticker, decision timeframe, provider, requested calendar days,
+day/swing holding, starting balance ($100–$1,000,000), fractional/whole shares,
+and the existing validated stock fees, slippage, half-spread, risk, allocation
+and daily-loss limits. ORB supports day holding only; the four structure rules
+also support swing holding with a 120-hour time stop. All remain long-only and
+unleveraged. Whole-share sizing can prevent entries with small balances.
+
+An optional `end_date` in `YYYY-MM-DD` format ends the request at 00:00 UTC on
+that date, excluding that date. Blank means the latest cutoff, delayed at least
+20 minutes. Provider retention still applies to old requests. All decision and
+context downloads share the same frozen cutoff. The optional news filter is
+available only for ORB, requires a Massive key, and blocks sufficiently negative
+published news; absence of news is not itself a blocked entry.
+
+At least 400 observed candles are required. Candles 0–239 are indicator warmup;
+candles 240 through the 70% split are development; the last 30% are the later
+window. Each window starts independently at the chosen balance. Results include
+ending balance, net P/L, return, maximum drawdown, win rate, resolved trade count,
+mean R, fees and actual observed window timestamps. Incomplete account metrics
+remain null. Requested-session coverage and coverage within observed boundaries
+are reported separately. The UI previews the last 100 exits from any of the
+three journals; the full JSON export contains every exit and source metadata.
+
+END exits are test-boundary marks. They affect account P/L but do not count as
+resolved trades for eligibility or win rate. Profit factor includes all exits,
+including END, and is null when there are no losses. Exported P/L includes partial
+exits and fees; the journal's final exit price alone cannot reconstruct partial
+fills. Dividends are not included. Repeatedly tuning against the later window
+can overfit and does not create an untouched out-of-sample validation set.

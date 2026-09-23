@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import re
 import secrets
 import time
 from pathlib import Path
@@ -10,11 +12,12 @@ from .equity_jobs import EquityJobs
 from .stock_research import EDITION, REPORT_NAME, report_bytes, research_payload
 from .website_lab import attach, route as strategy_route
 
-APP_VERSION = "12.0"
+APP_VERSION = "12.1"
 PAGES = {"/": "stock-dashboard.html", "/stocks": "stocks.html",
-         "/stock-practice": "stock-practice.html", "/strategy-lab": "strategy-lab.html"}
+         "/stock-practice": "stock-practice.html", "/strategy-lab": "strategy-lab.html",
+         "/backtests": "strategy-lab.html"}
 ASSETS = {"style.css", "stocks.css", "stocks.js", "stock-practice.css", "stock-practice.js",
-          "strategy-lab.js", "stock-dashboard.css", "stock-dashboard.js", "stock-session.js"}
+          "strategy-lab.js", "backtests.css", "stock-dashboard.css", "stock-dashboard.js", "stock-session.js"}
 RETIRED_APIS = ("/api/coinbase/", "/api/continuous/", "/api/learning/", "/api/research/",
                 "/api/vwap/", "/api/forward/", "/api/experiments/", "/api/events/", "/api/runs")
 
@@ -25,6 +28,16 @@ class StockService:
         # Retain the old path as metadata only. Never open or change its journal.
         self.db_path, self.data_dir = Path(db_path), Path(data_dir)
         self.token = token or ""
+        self.assets = {}
+        for name in ASSETS:
+            content = (self.base_dir/"static"/name).read_bytes()
+            self.assets[name] = (content, hashlib.sha256(content).hexdigest()[:20])
+        self.pages = {}
+        for name in set(PAGES.values()):
+            page = (self.base_dir/"templates"/name).read_text()
+            page = re.sub(r'/static/([a-zA-Z0-9_.-]+)(?:\?v=[a-zA-Z0-9.]+)?',
+                lambda m: '/static/'+m[1]+'?v='+self.assets[m[1]][1] if m[1] in self.assets else m[0], page)
+            self.pages[name] = page.encode()
         self.equities = EquityJobs(self.data_dir)
         attach(self, resume=False)
         if resume:
@@ -42,8 +55,8 @@ class StockService:
             "Content-Disposition": f'attachment; filename="{filename}"'}
 
     def overview(self):
-        practice = self.equities.status()
-        lab = self.strategy_lab.status()
+        practice = self.equities.status(compact=True, limit=8)
+        lab = self.strategy_lab.status(limit=8, include_results=False)
         research = research_payload(self.base_dir)
         benchmarks = [
             ("SPY", "S&P 500 ETF", "AMEX:SPY"), ("QQQ", "Nasdaq-100 ETF", "NASDAQ:QQQ"),
@@ -79,14 +92,21 @@ class StockService:
                     return 400, {"error": "Request body must be a JSON object"}, {}
             normalized = path.rstrip("/") or "/"
             if method == "GET" and normalized in PAGES:
-                return 200, (self.base_dir/"templates"/PAGES[normalized]).read_bytes(), {
+                return 200, self.pages[PAGES[normalized]], {
                     "Content-Type": "text/html; charset=utf-8"}
             if method == "GET" and normalized in ("/experiments", "/crypto", "/coinbase"):
                 return 302, b"", {"Location": "/strategy-lab" if normalized == "/experiments" else "/"}
             if method == "GET" and path.startswith("/static/") and path.removeprefix("/static/") in ASSETS:
                 name = path.removeprefix("/static/")
                 mime = "application/javascript" if name.endswith(".js") else "text/css"
-                return 200, (self.base_dir/"static"/name).read_bytes(), {"Content-Type": mime+"; charset=utf-8"}
+                content, version = self.assets[name]
+                etag = 'W/"'+version+'"'
+                extra = {"Content-Type": mime+"; charset=utf-8", "ETag":etag,
+                         "Cache-Control": "public, max-age=31536000, immutable" if query.get("v") == version
+                         else "public, max-age=0, must-revalidate"}
+                if etag in headers.get("if-none-match", "").split(", ") or headers.get("if-none-match") == "*":
+                    return 304, b"", extra
+                return 200, content, extra
             if method == "GET" and path == "/api/health":
                 return 200, {"ok": True, "api_version": "12.0", "app_version": APP_VERSION,
                     "asset_class": "equity", "market_scope": "US stocks and ETFs",
@@ -125,7 +145,9 @@ class StockService:
 
     def practice_route(self, method, action, query, body):
         if action == "status" and method == "GET":
-            return 200, self.equities.status(), {}
+            return 200, self.equities.status(compact=True), {}
+        if action == "result" and method == "GET":
+            return 200, self.equities.get(query.get("id")), {}
         if action == "start" and method == "POST":
             return 202, self.equities.start(body), {}
         operations = {"cancel": self.equities.cancel, "retry": self.equities.retry,

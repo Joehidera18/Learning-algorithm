@@ -1,15 +1,15 @@
-# Deploy Stock Lab V12 to the existing Render service
+# Deploy Stock Lab V12.1 to the existing Render service
 
 Repository: **Joehidera18/Learning-algorithm**. Website:
 https://learning-algorithm-wah5.onrender.com.
 
 ## Update the existing service
 
-1. Merge the V12 change to the branch Render deploys, normally `main`.
+1. Merge the V12.1 change to the branch Render deploys, normally `main`.
 2. In the existing Render service, use **Manual Deploy → Deploy latest commit**.
    The repository configuration keeps automatic deployments off.
 3. Wait for the deploy to finish, then refresh the home page. It should show
-   **Stock Lab**. `/api/health` must report `app_version: 12.0`,
+   **Stock Lab**. `/api/health` must report `app_version: 12.1`,
    `asset_class: equity`, `crypto_enabled: false`, and `live_capable: false`.
 4. Use the same `APP_ACCESS_TOKEN` to open saved stock results and controls.
 
@@ -76,3 +76,25 @@ cutoff delay. There is no real-money stock execution connector in V12.
   provider cannot read the app token and its chart is not used for paper fills.
 - Missing history after restart: confirm the entire data directory is under the
   existing persistent disk mount.
+
+## V12.1 performance and backtesting
+
+The **Backtest stocks** page is `/backtests`; `/strategy-lab` remains an alias.
+Static scripts and styles receive content hashes in their URLs, ETags and public
+browser-cache headers. Pages and private API responses remain `no-store`.
+Gzip is negotiated for HTML, JS, CSS and JSON. No CDN or new infrastructure is
+required. Restart the app after changing source/templates so its asset hashes
+and in-memory page bytes update together.
+
+The dashboard and stock learner no longer read every report on each poll.
+`GET /api/stocks/practice/status` returns compact job metadata with
+`result_available`; `GET /api/stocks/practice/result?id=...` loads one summary.
+Full learner exports still include the model. Named backtest summaries come from
+`GET /api/strategy-lab/status`; the full report and journal are available at
+`GET /api/strategy-lab/report?id=...` and `GET /api/strategy-lab/report/export?id=...`.
+All these API routes retain the configured access-token requirement.
+
+Requests time out after 20 seconds (60 seconds for full reports/downloads).
+Before resubmitting a timed-out start request, refresh: the server may already
+have queued it. Slow provider downloads remain background jobs. This update does
+not change the hosting plan, worker count, persistent disk or market-data access.

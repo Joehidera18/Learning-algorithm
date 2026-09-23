@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import math
+from datetime import datetime, timezone
 import threading
 import time
 import uuid
@@ -33,26 +35,46 @@ class StrategyLabJobs:
         from .equity_data import EquityData
         from .equity_research import DEFAULT_COSTS
         from strategies import list_strategies, load_strategy
+        from .strategy_lab import REPORT_VERSION
         data = EquityData()
-        return {"strategies": list_strategies(),
-                "strategy_intervals": {name:list(load_strategy(name).allowed_intervals) for name in list_strategies()},
+        specs = {name:load_strategy(name) for name in list_strategies()}
+        return {"report_version": REPORT_VERSION, "strategies": list_strategies(),
+                "strategy_intervals": {name:list(spec.allowed_intervals) for name,spec in specs.items()},
+                "strategy_details": {name:{"title":spec.title,"description":spec.description,
+                    "modes":list(spec.supported_modes),"news_filter":spec.news_filter} for name,spec in specs.items()},
                 "equity": data.catalog(), "default_costs": DEFAULT_COSTS,
                 "scope": "Historical stock backtests. News is point-in-time. No live orders."}
 
-    def status(self):
+    def status(self, limit=40, include_results=True):
         con = db_connect(self.db_path)
         try:
-            rows = [dict(r) for r in con.execute("SELECT id, created, status, request_json, message FROM lab_jobs ORDER BY created DESC LIMIT 40")]
+            fields = "id, created, status, request_json, message" + (",result_json" if include_results else "")
+            rows = [dict(r) for r in con.execute("SELECT "+fields+" FROM lab_jobs ORDER BY created DESC,rowid DESC LIMIT ?", (limit,))]
+            pending = con.execute("SELECT COUNT(*) FROM lab_jobs WHERE status IN ('queued','running')").fetchone()[0]
         finally:
             con.close()
         jobs = []
         for row in rows:
             req = json.loads(row["request_json"])
             jobs.append({"id": row["id"], "created": row["created"], "status": row["status"],
-                         "message": row["message"], "request": req})
-        return {"jobs": jobs, "catalog": self.catalog(), "running": self.active_id is not None}
+                         "message": row["message"], "request": req,
+                         "result": self._result(row.get("result_json"))})
+        return {"jobs": jobs, "catalog": self.catalog(), "running": self.active_id is not None,
+                "pending_jobs":pending}
+
+    @staticmethod
+    def _result(raw):
+        result = json.loads(raw) if raw else None
+        if result:
+            from .strategy_lab import REPORT_VERSION
+            if result.get("report_version") != REPORT_VERSION:
+                result["eligible_for_bot"] = False
+                result["requires_rerun"] = True
+        return result
 
     def get(self, job_id):
+        if not isinstance(job_id, str) or not job_id or len(job_id) > 200:
+            raise ValueError("Choose a saved stock backtest")
         con = db_connect(self.db_path)
         try:
             row = con.execute("SELECT * FROM lab_jobs WHERE id=?", (job_id,)).fetchone()
@@ -60,12 +82,7 @@ class StrategyLabJobs:
             con.close()
         if not row:
             raise ValueError("Strategy lab job not found")
-        result = json.loads(row["result_json"]) if row["result_json"] else None
-        if result:
-            from .strategy_lab import REPORT_VERSION
-            if result.get("report_version") != REPORT_VERSION:
-                result["eligible_for_bot"] = False
-                result["requires_rerun"] = True
+        result = self._result(row["result_json"])
         return {"id": row["id"], "created": row["created"], "status": row["status"],
                 "message": row["message"], "request": json.loads(row["request_json"]), "result": result}
 
@@ -73,7 +90,8 @@ class StrategyLabJobs:
         from strategies import load_strategy
         from .equity_data import EquityData, ticker
         from .study_plan import ACTIVE_INTERVALS
-        allowed = {"strategy", "symbol", "decision", "context", "days", "provider", "news"}
+        allowed = {"strategy", "symbol", "decision", "context", "days", "provider", "news",
+                   "settings", "starting_balance", "mode", "fractional_shares", "end_date"}
         if not isinstance(request, dict) or set(request) - allowed:
             raise ValueError("Unknown strategy lab setting")
         name = request.get("strategy") or "orb_15m"
@@ -82,7 +100,7 @@ class StrategyLabJobs:
         decision = request.get("decision") or "5m"
         if decision not in strategy.allowed_intervals:
             raise ValueError("%s requires one of: %s" % (name, ", ".join(strategy.allowed_intervals)))
-        context = request.get("context", ["15m", "1h"])
+        context = request.get("context", [])
         if isinstance(context, str):
             context = [part.strip() for part in context.split(",") if part.strip()]
         if not isinstance(context, list) or any(not isinstance(iv, str) or iv not in ACTIVE_INTERVALS for iv in context):
@@ -100,9 +118,35 @@ class StrategyLabJobs:
         news = request.get("news", False)
         if not isinstance(news, bool):
             raise ValueError("News must be true or false")
+        if news and not strategy.news_filter:
+            raise ValueError("This strategy does not use a news filter")
+        if news and not catalog["massive"]["available"]:
+            raise ValueError("Configure MASSIVE_API_KEY before requesting the news filter")
+        from .equity_research import validate_costs
+        settings = validate_costs(request.get("settings", {}))
+        balance = request.get("starting_balance", 500.)
+        if (isinstance(balance, bool) or not isinstance(balance, (int, float)) or
+                not math.isfinite(balance) or not 100 <= balance <= 1000000):
+            raise ValueError("Starting paper balance must be between $100 and $1,000,000")
+        mode = request.get("mode", "day")
+        if mode not in strategy.supported_modes:
+            raise ValueError("This strategy supports: "+", ".join(strategy.supported_modes))
+        fractional = request.get("fractional_shares", True)
+        if not isinstance(fractional, bool):
+            raise ValueError("Choose fractional or whole shares")
+        cutoff = (int(time.time()*1000)-20*60000)//60000*60000
+        end_date = request.get("end_date")
+        if end_date:
+            if not isinstance(end_date, str) or len(end_date) != 10:
+                raise ValueError("Use an ending date in YYYY-MM-DD form")
+            requested_end = int(datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()*1000)
+            if requested_end > int(time.time()*1000):
+                raise ValueError("Choose an ending date in the past or today")
+            cutoff = min(cutoff, requested_end)
         payload = {"strategy": name, "symbol": symbol, "decision": decision,
                    "context": context, "days": days, "provider": provider, "news": news,
-                   "cutoff_ts": (int(time.time()*1000)-20*60000)//60000*60000}
+                   "cutoff_ts":cutoff, "settings":settings, "starting_balance":balance,
+                   "mode":mode, "fractional_shares":fractional, "end_date":end_date or None}
         ident = "%s-%s-%s-%s" % (name, symbol, decision, uuid.uuid4().hex[:12])
         con = db_connect(self.db_path)
         try:
@@ -202,8 +246,21 @@ class StrategyLabJobs:
         from strategies import load_strategy
         job_id = row["id"]
         req = json.loads(row["request_json"])
+        last_check, was_cancelled = 0., False
         def cancelled():
-            return self.stop_event.is_set() or self.get(job_id)["status"] == "cancelled"
+            nonlocal last_check, was_cancelled
+            if self.stop_event.is_set():
+                return True
+            now = time.monotonic()
+            if now-last_check >= .2:
+                con = db_connect(self.db_path)
+                try:
+                    status = con.execute("SELECT status FROM lab_jobs WHERE id=?", (job_id,)).fetchone()
+                    was_cancelled = not status or status[0] == "cancelled"
+                finally:
+                    con.close()
+                last_check = now
+            return was_cancelled
         def checkpoint():
             if cancelled():
                 raise InterruptedError("Strategy backtest interrupted; start a new run to complete it")
@@ -219,6 +276,7 @@ class StrategyLabJobs:
                 if interval == req["decision"]:
                     continue
                 cap = data.catalog()["providers"][req["provider"]]["max_days"][interval]
+                self._patch(job_id, status="running", message="Downloading "+interval+" stock context candles")
                 checkpoint()
                 frames[interval] = data.history(req["symbol"], interval, min(req["days"], cap),
                     cutoff=cutoff, provider=req["provider"], cancelled=cancelled)["rows"]
@@ -229,16 +287,23 @@ class StrategyLabJobs:
                 from news.massive_news import download
                 start = snap["rows"][0]["ts"]
                 end = snap["rows"][-1]["end_ts"]
-                articles = download(req["symbol"], start, end)
+                articles = download(req["symbol"], start, end, cancelled=cancelled)
             checkpoint()
             self._patch(job_id, status="running", message="Simulating strategy")
             strategy = load_strategy(req["strategy"])
-            report = run_backtest(strategy, snap["rows"], req["decision"], dict(DEFAULT_COSTS),
-                                  frames=frames or None, stock_execution=True, close_at_session_end=True,
-                                  articles=articles, cancelled=cancelled)
+            strategy.require_context = tuple(req.get("context") or ())
+            report = run_backtest(strategy, snap["rows"], req["decision"], req.get("settings") or dict(DEFAULT_COSTS),
+                starting_balance=req.get("starting_balance",500.), frames=frames or None,
+                stock_execution=True, close_at_session_end=req.get("mode","day") == "day",
+                fractional_shares=req.get("fractional_shares",True), articles=articles, cancelled=cancelled,
+                progress=lambda message: self._patch(job_id,status="running",message=message))
             checkpoint()
             report["symbol"] = req["symbol"]
             report["provider"] = req["provider"]
+            report["request"] = req
+            report["market_data"] = snap.get("market_data", {})
+            report["requested_coverage"] = snap.get("quality", {})
+            report["holding_mode"] = req.get("mode", "day")
             dest = self.folder / (job_id + ".json")
             write_report(report, dest)
             self._patch(job_id, status="complete", message="Strategy lab finished",
@@ -247,6 +312,22 @@ class StrategyLabJobs:
                                 "later": report["later"], "development": report["development"],
                                 "later_higher_cost": report["later_higher_cost"],
                                 "news_alignment": report.get("news_alignment"),
-                                "coverage": report["coverage"], "report_path": str(dest)})
+                                "coverage": report["coverage"], "requested_coverage":report["requested_coverage"],
+                                "market_data":report["market_data"], "starting_balance":report["starting_balance"],
+                                "costs":report["costs"], "holding_mode":report["holding_mode"],
+                                "report_path": str(dest)})
         except Exception as exc:
             self._patch(job_id, status="error", message=str(exc)[:300])
+
+    def report(self, job_id):
+        job = self.get(job_id)
+        if job["status"] != "complete":
+            raise ValueError("Wait for this backtest to finish before opening its full report")
+        path = self.folder/(job["id"]+".json")
+        if not path.exists():
+            raise ValueError("This saved run has no full report. Its summary remains available; run a new backtest for the journal.")
+        report = json.loads(path.read_text())
+        from .strategy_lab import REPORT_VERSION
+        if report.get("report_version") != REPORT_VERSION:
+            report.update(eligible_for_bot=False, requires_rerun=True)
+        return report

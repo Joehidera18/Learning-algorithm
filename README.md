@@ -1,4 +1,4 @@
-# Stock Lab V12
+# Stock Lab V12.1
 
 A stock-only research, learning and paper-trading workspace for US-listed stocks
 and ETFs. The existing Learning-algorithm repository and Render service remain
@@ -13,9 +13,11 @@ the deployment targets.
 - **Stock learner:** train on earlier stock candles; compare six strategies on
   later prices with normal and higher costs. Day or swing holding, fractional or
   whole shares, and configurable stock costs and risk limits.
-- **Strategy lab:** named stock rules, including a complete 15-minute opening
-  range, higher-timeframe context, optional point-in-time news, persisted jobs,
-  cancellation and explicit incomplete results.
+- **Backtest stocks** (`/backtests`): five named strategies, ticker and candle
+  selection, day/swing holding, paper balance, share sizing, optional end date,
+  costs and risk controls. Compare development, later and higher-cost results;
+  inspect P/L, drawdown, win rate, coverage and a downloadable trade journal.
+  Opening-range breakout supports day mode and optional point-in-time news.
 - **Paper account:** register a completed learner for new sessions, inspect its
   independently simulated equity, positions and learning updates, stop it, and
   export its journal.
@@ -68,7 +70,8 @@ a new run; partial calculations are not called complete.
 
 This release supports **long-only, unleveraged stock paper trading**. It has no
 funded stock-broker order connection. Charts are not used as an execution feed.
-Every historical comparison is an independent $500 simulation. Historical
+Stock learner comparisons start with independent $500 accounts. Named stock
+backtests let you set a paper balance from $100 to $1,000,000. Historical
 profits are never added to a forward account or combined into a portfolio.
 Incomplete account metrics remain unknown. No new profitability claim is made
 by this migration.
@@ -76,3 +79,16 @@ by this migration.
 See [stock practice](STOCK_PRACTICE.md), [strategy methodology](STRATEGY_LAB.md)
 and [change history](CHANGELOG.md). Existing dated research is retained with its
 original dates; the UI migration is not a fresh investment-research edition.
+
+## Responsiveness in V12.1
+
+Dashboard and learner polls read job metadata without loading all saved models
+and reports. Detailed learning results and backtest journals load when opened.
+Idle pages poll every 30 seconds; active jobs poll every eight seconds, with
+hidden pages paused and requests bounded by timeouts. Static assets use
+content-versioned browser caching and ETags. Text responses support gzip.
+Authenticated API responses and HTML stay `no-store`.
+
+See [validation and the local before/after benchmark](research/stock-speed-v12.1-validation.md).
+Hosted latency still depends on Render load, network conditions and market data
+providers; a code benchmark is not a production latency guarantee.

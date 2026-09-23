@@ -32,7 +32,7 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
   });
   await check('Six actual fixture comparisons and their evidence limits are visible',async()=>{
     await page.locator('details[data-job] summary').first().click();
-    assert.equal(await page.locator('.result-table tbody tr').count(),6);
+    await page.waitForFunction(()=>document.querySelectorAll('.result-table tbody tr').length===6);
     assert.match(await page.locator('#jobs').innerText(),/resolved learning examples/);
     assert.match(await page.locator('#jobs').innerText(),/insufficient evidence/);
     assert.match(await page.locator('#jobs').innerText(),/buy & hold/);
