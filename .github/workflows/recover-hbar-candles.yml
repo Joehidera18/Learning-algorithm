@@ -1,0 +1,37 @@
+name: Recover HBAR minute candles
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/download_coinbase_minutes.py
+      - tests/test_minute_download.py
+      - .github/workflows/recover-hbar-candles.yml
+permissions:
+  contents: read
+concurrency:
+  group: hbar-minute-recovery-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  download:
+    if: github.head_ref == 'research/hbar-candle-recovery' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Verify downloader
+        run: python3 -m unittest discover -s tests -p test_minute_download.py -v
+      - name: Download both public Coinbase feeds for the reported HBAR window
+        run: >-
+          python3 scripts/download_coinbase_minutes.py
+          --symbol HBAR-USD --start-ms 1774345140000 --end-ms 1789897140000
+          --out candle-recovery-output
+      - name: Retain returned observations and recovery record
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: HBAR-USD-1m-recovery
+          path: candle-recovery-output/
+          if-no-files-found: error
+          retention-days: 30
