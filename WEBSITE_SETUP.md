@@ -1,15 +1,15 @@
-# Deploy Stock Lab V12.1 to the existing Render service
+# Deploy Stock Lab V12.2 to the existing Render service
 
 Repository: **Joehidera18/Learning-algorithm**. Website:
 https://learning-algorithm-wah5.onrender.com.
 
 ## Update the existing service
 
-1. Merge the V12.1 change to the branch Render deploys, normally `main`.
+1. Merge the V12.2 change to the branch Render deploys, normally `main`.
 2. In the existing Render service, use **Manual Deploy → Deploy latest commit**.
    The repository configuration keeps automatic deployments off.
 3. Wait for the deploy to finish, then refresh the home page. It should show
-   **Stock Lab**. `/api/health` must report `app_version: 12.1`,
+   **Stock Lab**. `/api/health` must report `app_version: 12.2`,
    `asset_class: equity`, `crypto_enabled: false`, and `live_capable: false`.
 4. Use the same `APP_ACCESS_TOKEN` to open saved stock results and controls.
 
@@ -28,11 +28,20 @@ trader, even if old Coinbase environment variables remain configured.
 | `RESEARCH_DB_PATH` | Preserve the original journal path; the stock app does not open it |
 | `ALPACA_API_KEY`, `ALPACA_SECRET_KEY` | Optional Alpaca stock data credentials; `APCA_API_KEY_ID` / `APCA_API_SECRET_KEY` also supported |
 | `MASSIVE_API_KEY` | Optional Massive stock candles and news |
+| `OPENAI_API_KEY` | Enable AI research; add privately in Render, never in the browser |
+| `OPENAI_MODEL` | Responses model supporting function calls and web search; default `gpt-6-astra` |
+| `AGENT_DAILY_RUN_LIMIT` | Shared daily request cap, default 25, clamped to 1–100; resets at 00:00 UTC |
 
 Yahoo historical data requires no key. Configured credentials do not prove a
 subscription permits a particular feed or historical window. Provider errors are
 shown in the run that requested them. Do not place provider secrets in browser
 fields, source code or GitHub.
+
+AI research is optional: pages and stock simulations still work without an
+OpenAI key. Keep the existing app access token. Add `OPENAI_API_KEY` to that same
+Render service and redeploy to enable `/agent`. Use an API project with billing
+and model access. A ChatGPT subscription does not supply API credits. See
+[AI_AGENT.md](AI_AGENT.md) for privacy, limits and an initial live check.
 
 Build: `pip install -r requirements.txt`
 
@@ -48,6 +57,8 @@ release does not claim that every allowed window fits in its memory.
 - `RESEARCH_DATA_DIR/equity-practice/`: stock queue, frozen candles, forward
   account journals and snapshots.
 - `RESEARCH_DATA_DIR/strategy-lab/`: named-strategy queue and reports.
+- `RESEARCH_DATA_DIR/stock-agent/`: conversations, strategy lessons and request
+  counts. Interrupted agent work is marked as an error without a paid retry.
 - Older crypto database and candle directories: untouched, with no active web
   workflow. Keep existing backups if they are needed for your records.
 

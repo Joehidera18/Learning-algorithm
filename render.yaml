@@ -23,3 +23,9 @@ services:
         value: /var/data/research.sqlite3
       - key: RESEARCH_DATA_DIR
         value: /var/data/research-data
+      - key: OPENAI_MODEL
+        value: gpt-6-astra
+      - key: AGENT_DAILY_RUN_LIMIT
+        value: "25"
+      # Optional: add OPENAI_API_KEY privately in the existing service's
+      # Environment panel to enable /agent. No key is needed for stock pages.
