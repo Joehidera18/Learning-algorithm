@@ -64,7 +64,7 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
     await page.locator('#stockAccessForm button').click();
     await count(page, 20);
     assert.equal(await page.locator('#stockAccessPanel').isVisible(), false);
-    assert.equal(await page.evaluate(() => sessionStorage.getItem('cryptoAccessToken')), 'stock-ui-test-token');
+    assert.equal(await page.evaluate(() => sessionStorage.getItem('stockAccessToken')), 'stock-ui-test-token');
     assert.equal(await page.evaluate(() => localStorage.getItem('cryptoAccessToken')), null);
   });
   await check('All profiles, focus companies, original candidates and valuation context render', async () => {
@@ -229,13 +229,13 @@ const check = async (name, run) => { await run(); checks += 1; console.log(`PASS
     await phone.screenshot({path: path.join(artifacts, 'stocks-mobile-detail.png')});
     // Leave both contexts open until browser.close() for single-process builds.
   });
-  await check('Stock browsing makes no state-changing API calls and crypto navigation still works', async () => {
+  await check('Stock browsing makes no state-changing API calls and stock workspace navigation still works', async () => {
     assert.ok(requests.every(request => request.method === 'GET'));
     assert.ok(requests.filter(request => request.url.includes('/api/')).every(request => request.url.includes('/api/stocks/')));
     await page.locator('.market-nav a[href="/"]').click();
     await page.waitForURL(base + '/');
     assert.equal(await page.locator('.market-nav a[href="/stocks"]').count(), 1);
-    await hasText(page.locator('body'), /Trade finances/);
+    await hasText(page.locator('body'), /YOUR STOCK TRADING WORKSPACE/);
   });
   assert.deepEqual(problems, []);
   console.log(`${checks} browser checks passed. Screenshots: ${artifacts}`);

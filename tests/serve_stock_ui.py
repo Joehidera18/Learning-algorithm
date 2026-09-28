@@ -61,6 +61,48 @@ if __name__ == '__main__':
             rows = candles(3100,start=job['manifest']['cutoff_ts']-3100*900000)
             with patch.object(ExperimentHistory,'_history',return_value=rows):
                 service.experiments._run_job(job)
+        if os.getenv('AGENT_UI_FIXTURES') == '1':
+            from tests.test_stock_agent import reply, tool, TEST_REQUEST
+            from lab.strategy_lab import REPORT_VERSION
+            import time
+            service.research_agent.api_key = 'fixture-key-never-sent'
+            service.research_agent.model = 'browser-fixture'
+            service.strategy_lab.resume = lambda: None
+            def transport(payload):
+                messages=payload['input']
+                index=max(i for i,m in enumerate(messages) if m.get('role')=='user')
+                prompt=messages[index]['content'].lower()
+                current=messages[index+1:]
+                outputs=[m for m in current if m.get('type')=='function_call_output']
+                if 'slow fixture' in prompt:
+                    time.sleep(2)
+                if 'proposal fixture' in prompt and not outputs:
+                    return tool('prepare_backtest',dict(TEST_REQUEST,symbol='QQQ',days=40))
+                if 'strategy fixture' in prompt:
+                    if not outputs:
+                        return tool('get_backtest_options',{})
+                    if len(outputs)==1:
+                        return tool('run_stock_backtest',TEST_REQUEST)
+                    queued=json.loads(outputs[1]['output'])
+                    ident=queued['id']
+                    if len(outputs)==2:
+                        service.strategy_lab._patch(ident,status='complete',message='Generated browser fixture',result={
+                            'report_version':REPORT_VERSION,'eligible_for_bot':False,
+                            'later':{'complete':True,'trades':4,'net_pnl':-3,'mean_r':-.1},
+                            'later_higher_cost':{'complete':True,'trades':4,'net_pnl':-5,'mean_r':-.2}})
+                        return tool('get_backtest_result',{'id':ident})
+                    if len(outputs)==3:
+                        return tool('record_strategy_review',{'id':ident,'lesson':'Generated lesson: four trades cannot establish an edge.',
+                            'next_hypothesis':'Use a longer supported window; keep costs unchanged.'})
+                text='Generated browser fixture. No real market research or provider call. Source [1]. <img src=x onerror=alert(1)>'
+                start=text.index('[1]')
+                result=reply(text,[{'type':'url_citation','url':'https://example.org/fixture','title':'Generated fixture source',
+                    'start_index':start,'end_index':start+3},{'type':'url_citation','url':'javascript:alert(1)',
+                    'start_index':0,'end_index':1}])
+                if any(t.get('type')=='web_search' for t in payload['tools']):
+                    result['output'].insert(0,{'type':'web_search_call','status':'completed'})
+                return result
+            service.research_agent.transport=transport
         if os.getenv('EQUITY_UI_FIXTURES') == '1' or os.getenv('STOCK_DASHBOARD_UI_FIXTURES') == '1':
             from unittest.mock import Mock
             from tests.test_equity_practice import stock_rows, snapshot

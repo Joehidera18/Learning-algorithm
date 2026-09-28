@@ -12,12 +12,13 @@ from .equity_jobs import EquityJobs
 from .stock_research import EDITION, REPORT_NAME, report_bytes, research_payload
 from .website_lab import attach, route as strategy_route
 
-APP_VERSION = "12.1"
+APP_VERSION = "12.2"
 PAGES = {"/": "stock-dashboard.html", "/stocks": "stocks.html",
          "/stock-practice": "stock-practice.html", "/strategy-lab": "strategy-lab.html",
-         "/backtests": "strategy-lab.html"}
+         "/backtests": "strategy-lab.html", "/agent": "stock-agent.html"}
 ASSETS = {"style.css", "stocks.css", "stocks.js", "stock-practice.css", "stock-practice.js",
-          "strategy-lab.js", "backtests.css", "stock-dashboard.css", "stock-dashboard.js", "stock-session.js"}
+          "strategy-lab.js", "backtests.css", "stock-dashboard.css", "stock-dashboard.js", "stock-session.js",
+          "stock-agent.css", "stock-agent.js"}
 RETIRED_APIS = ("/api/coinbase/", "/api/continuous/", "/api/learning/", "/api/research/",
                 "/api/vwap/", "/api/forward/", "/api/experiments/", "/api/events/", "/api/runs")
 
@@ -40,11 +41,14 @@ class StockService:
             self.pages[name] = page.encode()
         self.equities = EquityJobs(self.data_dir)
         attach(self, resume=False)
+        from .stock_agent import StockAgent
+        self.research_agent = StockAgent(self)
         if resume:
             self.equities.resume()
             self.strategy_lab.resume()
 
     def shutdown(self):
+        self.research_agent.shutdown()
         self.equities.shutdown()
         self.strategy_lab.shutdown()
 
@@ -115,6 +119,8 @@ class StockService:
                     "stock_research_version": EDITION, "stock_practice_version": "stock-practice-v1"}, {}
             if method == "GET" and path == "/api/stocks/overview":
                 return 200, self.overview(), {}
+            if path.startswith("/api/agent/"):
+                return self.research_agent.route(method, path.removeprefix("/api/agent/"), query, body)
             if path.startswith("/api/stocks/practice/"):
                 return self.practice_route(method, path.removeprefix("/api/stocks/practice/"), query, body)
             if path.startswith("/api/strategy-lab/"):

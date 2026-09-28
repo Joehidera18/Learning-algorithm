@@ -1,3 +1,20 @@
+# V12.2 — AI research agent and strategy notebook
+
+- Add `/agent` to the existing stock website: cited stock and crypto research,
+  saved conversations, report exports, deeper research and visible progress.
+- Give the agent bounded tools to read app data, inspect stock-learning and
+  backtest results, validate proposals and optionally queue two stock tests.
+- Save lessons with server-computed evidence classifications. Preserve failed,
+  incomplete, obsolete and small-sample results; never equate a test with profit.
+- Protect all agent history and paid work with the existing app token. Keep the
+  OpenAI key server-side. Use durable daily quotas, idempotent requests, a single
+  agent worker, cancellation and interruption recovery without paid retries.
+- Run AI requests outside HTTP handlers. Keep status light, fetch only an active
+  message during polling, and use the existing shared stock computation slot.
+- Keep the same repository, Render service and stock paper engine. Crypto is
+  available for research; no funded broker connection or crypto execution added.
+- Setup and limits: [AI_AGENT.md](AI_AGENT.md).
+
 # V12.1 — faster pages and stock backtesting
 
 - Dashboard and stock learner polling use compact job metadata. Load detailed

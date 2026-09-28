@@ -86,7 +86,8 @@ class StrategyLabJobs:
         return {"id": row["id"], "created": row["created"], "status": row["status"],
                 "message": row["message"], "request": json.loads(row["request_json"]), "result": result}
 
-    def start(self, request):
+    def validate_request(self, request):
+        """Normalize a proposal without creating a job or downloading candles."""
         from strategies import load_strategy
         from .equity_data import EquityData, ticker
         from .study_plan import ACTIVE_INTERVALS
@@ -147,7 +148,11 @@ class StrategyLabJobs:
                    "context": context, "days": days, "provider": provider, "news": news,
                    "cutoff_ts":cutoff, "settings":settings, "starting_balance":balance,
                    "mode":mode, "fractional_shares":fractional, "end_date":end_date or None}
-        ident = "%s-%s-%s-%s" % (name, symbol, decision, uuid.uuid4().hex[:12])
+        return payload
+
+    def start(self, request):
+        payload = self.validate_request(request)
+        ident = "%s-%s-%s-%s" % (payload["strategy"], payload["symbol"], payload["decision"], uuid.uuid4().hex[:12])
         con = db_connect(self.db_path)
         try:
             with con:

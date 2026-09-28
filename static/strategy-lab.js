@@ -7,7 +7,7 @@
   const number = (x,d=2) => finite(x) ? x.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
   const pct = x => finite(x) ? number(x)+"%" : "—";
   const when = x => x ? new Date(x).toLocaleString(undefined,{timeZone:"America/New_York",timeZoneName:"short"}) : "Not recorded";
-  let token = StockSession.getToken(), state, initialized=false, refreshing=false, lastJobs="";
+  let token = StockSession.getToken(), state, initialized=false, refreshing=false, lastJobs="", proposalLoaded=false, focusedJob=false;
   const reports=new Map(), reportRequests=new Map(), openJournals=new Map();
   function notice(message,error=false) {$("notice").textContent=message;$("notice").hidden=!message;$("notice").className="notice"+(error?" error":"");}
   async function api(action,body,blob=false) {
@@ -51,6 +51,25 @@
     if(Number($("days").value)>limit) $("days").value=limit;
     $("hint").textContent=provider.note+" Maximum request for "+decision+": "+limit+" calendar days. The report shows the candles actually received.";
     $("runButton").disabled=!provider.available;
+  }
+  async function loadAgentProposal() {
+    if(proposalLoaded) return;
+    const params=new URLSearchParams(location.search),run=params.get("agent_run"),id=params.get("agent_proposal");
+    if(!run || !id) return;
+    const response=await StockSession.request("/api/agent/proposal?run="+encodeURIComponent(run)+"&id="+encodeURIComponent(id),{headers:{Authorization:"Bearer "+token}});
+    const req=response.request;
+    for(const [element,field] of [["strategy","strategy"],["symbol","symbol"],["provider","provider"],["decision","decision"],["context","context"],["days","days"],["balance","starting_balance"],["mode","mode"]]) $(element).value=req[field];
+    $("fractional").value=req.fractional_shares?"yes":"no";$("news").value=req.news?"yes":"no";$("endDate").value=req.end_date || "";
+    for(const [element,field] of [["fee","fee_rate"],["slip","slippage_rate"],["spread","half_spread"],["risk","risk_per_trade"],["allocation","max_notional_fraction"],["lossLimit","daily_loss_limit"]]) $(element).value=req.settings[field]*100;
+    setup();proposalLoaded=true;
+    notice("Agent proposal loaded. Review the strategy, history, costs and sizing, then choose Run stock backtest to start it.");
+  }
+  async function loadLinkedJob() {
+    const id=new URLSearchParams(location.search).get("job");
+    if(!id || state.jobs.some(job=>job.id===id)) return;
+    // A notebook can reference a test outside the recent-jobs status window.
+    const saved=await api("export?id="+encodeURIComponent(id));
+    state.jobs.unshift(saved);render();
   }
   function action(kind,id,label) {return '<button class="small" data-action="'+kind+'" data-id="'+esc(id)+'">'+esc(label)+'</button>';}
   function journal(id,windowName="later") {
@@ -105,6 +124,10 @@
       return html+'</div>'+result(job)+'</article>';
     }).join(""):'<div class="equity-empty"><strong>Your first backtest starts here.</strong>Try SPY and the 15-minute opening-range breakout on 5-minute candles. Results may be negative or inconclusive.</div>';
     for(const details of document.querySelectorAll("details[data-diagnostics]")) details.open=opened.has(details.dataset.diagnostics);
+    if(!focusedJob) {
+      const id=new URLSearchParams(location.search).get("job"),index=state.jobs.findIndex(j=>j.id===id);
+      if(index>=0){$("jobs").children[index].scrollIntoView({block:"start"});focusedJob=true;}
+    }
   }
   async function refresh(showError=true) {
     if(refreshing) return;
@@ -115,6 +138,8 @@
       state=next;$("accessPanel").hidden=true;$("content").hidden=false;
       setup();render();
       if($("notice").classList.contains("error")) notice("");
+      await loadAgentProposal();
+      await loadLinkedJob();
     } catch(error) {if(showError) notice(error.message,true);} finally {refreshing=false;}
   }
   async function loadReport(id) {

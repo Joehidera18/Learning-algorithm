@@ -1,7 +1,7 @@
-# Stock Lab V12.1
+# Stock Lab V12.2
 
-A stock-only research, learning and paper-trading workspace for US-listed stocks
-and ETFs. The existing Learning-algorithm repository and Render service remain
+A research, learning and paper-trading workspace for US-listed stocks and ETFs,
+with an AI agent for stock and crypto research. The existing Learning-algorithm repository and Render service remain
 the deployment targets.
 
 ## Use the app
@@ -21,6 +21,12 @@ the deployment targets.
 - **Paper account:** register a completed learner for new sessions, inspect its
   independently simulated equity, positions and learning updates, stop it, and
   export its journal.
+- **AI Research Agent** (`/agent`): ask for sourced company and crypto research,
+  read saved workspace evidence, prepare or optionally queue supported stock
+  backtests, and save lessons tied to completed tests. Includes deeper research,
+  saved conversations, report exports, progress, cancellation and usage limits.
+  Requires a server OpenAI API key; see [agent setup](AI_AGENT.md). The agent does
+  not place orders or promise profitable selections. Crypto execution stays retired.
 
 Historical candles support **1m, 4m, 5m, 15m, 30m, 1h, 4h and 1d**. Sessions use
 New York exchange holidays, daylight saving and early closes. Missing source
