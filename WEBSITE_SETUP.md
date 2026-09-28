@@ -1,23 +1,24 @@
-# Deploy Stock Lab V12.2 to the existing Render service
+# Deploy Stock Lab V12.3 to the existing Render service
 
 Repository: **Joehidera18/Learning-algorithm**. Website:
 https://learning-algorithm-wah5.onrender.com.
 
 ## Update the existing service
 
-1. Merge the V12.2 change to the branch Render deploys, normally `main`.
+1. Merge the V12.3 change to the branch Render deploys, normally `main`.
 2. In the existing Render service, use **Manual Deploy → Deploy latest commit**.
    The repository configuration keeps automatic deployments off.
 3. Wait for the deploy to finish, then refresh the home page. It should show
-   **Stock Lab**. `/api/health` must report `app_version: 12.2`,
+   **Stock Lab**. `/api/health` must report `app_version: 12.3`,
    `asset_class: equity`, `crypto_enabled: false`, and `live_capable: false`.
 4. Use the same `APP_ACCESS_TOKEN` to open saved stock results and controls.
 
 Keep the existing service, disk and URL. Legacy names in `render.yaml` are
 resource identifiers retained to avoid creating replacement infrastructure.
 This migration does not change the paid plan or disk size. The web process starts
-only the stock learner and named-strategy queue. It never connects a Coinbase
-trader, even if old Coinbase environment variables remain configured.
+the stock learner and named-strategy queue, plus a previously enabled read-only
+crypto watch. It never connects a Coinbase trader, even if old Coinbase
+environment variables remain configured.
 
 ## Server configuration
 
@@ -59,6 +60,8 @@ release does not claim that every allowed window fits in its memory.
 - `RESEARCH_DATA_DIR/strategy-lab/`: named-strategy queue and reports.
 - `RESEARCH_DATA_DIR/stock-agent/`: conversations, strategy lessons and request
   counts. Interrupted agent work is marked as an error without a paid retry.
+- `RESEARCH_DATA_DIR/crypto-watch.sqlite3`: optional watch settings, observations
+  and headline revisions; no brokerage credentials or orders.
 - Older crypto database and candle directories: untouched, with no active web
   workflow. Keep existing backups if they are needed for your records.
 
@@ -109,3 +112,12 @@ Requests time out after 20 seconds (60 seconds for full reports/downloads).
 Before resubmitting a timed-out start request, refresh: the server may already
 have queued it. Slow provider downloads remain background jobs. This update does
 not change the hosting plan, worker count, persistent disk or market-data access.
+
+## V12.3 crypto observations
+
+After deployment, open `/crypto-watch` and click **Start watch** using the existing
+app access token. No OpenAI key is needed for candle monitoring or the hourly
+headline feed. An enabled watch resumes after normal restarts. Stop watch persists
+a disabled state. Health continues to report `crypto_enabled: false` for execution
+and now reports `crypto_watch_available: true`. See [CRYPTO_WATCH.md](CRYPTO_WATCH.md)
+for exact rules, limited coverage, saved timing and the HBAR investigation.

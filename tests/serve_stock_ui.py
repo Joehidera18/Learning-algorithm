@@ -30,6 +30,11 @@ if __name__ == '__main__':
         if legacy:
             from lab.website_lab import attach
             attach(service)
+        if os.getenv('CRYPTO_WATCH_UI_FIXTURES') == '1':
+            from tests.test_crypto_watch import FixtureSource, fixture_news
+            from lab.crypto_watch import now_ms
+            service.breakout_watch.client = FixtureSource()
+            service.breakout_watch.news_fetch = lambda _: fixture_news(now_ms())
         if os.getenv('STRATEGY_LAB_UI_FIXTURES') == '1':
             service.strategy_lab.resume = lambda: None
             first = service.strategy_lab.start({})

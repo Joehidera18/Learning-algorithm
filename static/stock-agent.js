@@ -7,6 +7,9 @@
   const saveSession=(key,value)=>{try{if(value===null)sessionStorage.removeItem(key);else sessionStorage.setItem(key,value);}catch(_){}};
   threadId=readSession("stockAgentThread");
   try {pending=JSON.parse(readSession("stockAgentPending") || "null");} catch(_) {}
+  const watchRequest=new URLSearchParams(location.search).get("watch");
+  const watchSymbols=new Set(["HBAR-USD","BTC-USD","ETH-USD","SOL-USD","XRP-USD","XLM-USD","LINK-USD","ADA-USD","DOGE-USD","AVAX-USD","LTC-USD","BCH-USD"]);
+  const fromWatch=watchSymbols.has(watchRequest)&&!pending;
   const presets={
     stocks:"Research 5 emerging public companies in quantum computing, gene editing, medicine or AI with a plausible catalyst in the next 12 months. Prefer smaller businesses. Compare primary sources, cash runway, dilution, competition and valuation. Separate confirmed milestones from management targets. Explain the strongest bear case for each and what evidence would change your view. Do not promise returns.",
     crypto:"Research 5 cryptoassets with a credible growth thesis over the next year. Read current sources and look for contrary evidence. Compare adoption, token value capture, circulating and fully diluted valuation, unlock schedules, liquidity, security and concentration. Distinguish an interesting network from an attractive investment. Give dated catalysts and failure conditions, not guaranteed winners.",
@@ -74,9 +77,9 @@
   async function refresh(){
     if(refreshing)return;refreshing=true;
     try{
-      status=await api("status");$("accessPanel").hidden=true;$("content").hidden=false;
+      status=await api("status");syncControls();$("accessPanel").hidden=true;$("content").hidden=false;
       $("setupPanel").hidden=status.configured;$("setupMessage").textContent="Missing server configuration: "+status.missing.join(", ")+".";
-      if(!threadId && status.active)setThread(status.active.thread_id);
+      if(!threadId && status.active && !fromWatch)setThread(status.active.thread_id);
       if(threadId && !status.threads.some(t=>t.id===threadId) && status.active?.thread_id!==threadId){setThread(null);runs=[];}
       if(threadId){
         const meta=status.threads.find(t=>t.id===threadId),active=status.active?.thread_id===threadId?status.active:null;
@@ -108,5 +111,6 @@
   $("deleteChat").addEventListener("click",async()=>{if(!threadId||!confirm("Delete this conversation and its reports? Saved strategy lessons and backtests stay available."))return;try{await api("delete",{id:threadId});setThread(null);runs=[];await refresh();}catch(e){notice(e.message,true);}});
   $("refreshNotebook").addEventListener("click",notebook);
   $("starters").addEventListener("click",e=>{const b=e.target.closest("[data-preset]");if(!b)return;$("message").value=presets[b.dataset.preset];$("deepResearch").checked=["stocks","crypto","strategy"].includes(b.dataset.preset);$("webSearch").checked=["stocks","crypto"].includes(b.dataset.preset);$("allowBacktests").checked=b.dataset.preset==="strategy";$("message").focus();});
+  if(fromWatch){setThread(null);$("message").value="Read our workspace crypto watch for "+watchRequest+". Check whether observations are fresh, initial, or already extended. Research current primary news, catalysts, liquidity, token value capture and contrary evidence. Distinguish publication time from when this app actually saw information. Explain what could invalidate the signal; do not claim an early prediction or a proven edge.";$("webSearch").checked=true;$("deepResearch").checked=true;$("allowBacktests").checked=false;}
   StockSession.poll(async()=>{const wasActive=!!status?.active,first=!status;await refresh();if(status&&!status.missing.includes("APP_ACCESS_TOKEN")&&(first||wasActive&&!status.active))await notebook();},()=>!!status?.active,()=>true);
 })();
