@@ -35,7 +35,8 @@ const check = async (name, action) => { await action(); checks++; console.log('P
     assert.equal(await page.locator('#marketSymbol option').count(),26);
     assert.equal(await page.locator('#researchCount').innerText(),'20');
     assert.equal(await page.locator('#runCount').innerText(),'1');
-    assert.doesNotMatch(await page.locator('nav.market-nav').innerText(),/Crypto|Experiments/);
+    assert.doesNotMatch(await page.locator('nav.market-nav').innerText(),/Crypto trading|Experiments/);
+    assert.equal(await page.getByRole('link',{name:'Crypto watch',exact:true}).count(),1);
   });
   await check('Chart selection changes stock, timeframe and stock workflow links',async()=>{
     await page.locator('#marketSymbol').selectOption('NVDA');

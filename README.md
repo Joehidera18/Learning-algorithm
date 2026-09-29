@@ -1,4 +1,4 @@
-# Stock Lab V12.2
+# Stock Lab V12.3
 
 A research, learning and paper-trading workspace for US-listed stocks and ETFs,
 with an AI agent for stock and crypto research. The existing Learning-algorithm repository and Render service remain
@@ -27,6 +27,11 @@ the deployment targets.
   saved conversations, report exports, progress, cancellation and usage limits.
   Requires a server OpenAI API key; see [agent setup](AI_AGENT.md). The agent does
   not place orders or promise profitable selections. Crypto execution stays retired.
+- **Crypto watch** (`/crypto-watch`): optional continuous observations for HBAR and
+  11 other assets, using closed five-minute candles, relative volume, momentum,
+  BTC comparisons and an hourly headline feed. Saved timestamps distinguish
+  initial snapshots from ongoing observations. No funded orders or push alerts.
+  See [watch setup and limitations](CRYPTO_WATCH.md).
 
 Historical candles support **1m, 4m, 5m, 15m, 30m, 1h, 4h and 1d**. Sessions use
 New York exchange holidays, daylight saving and early closes. Missing source
@@ -56,8 +61,9 @@ persistent stock state. [Start here](START_HERE.md) explains the first stock run
 ## Migration from the crypto app
 
 `app.py` now constructs `StockService`. It does not construct crypto learners,
-Coinbase adapters or traders, crypto event collectors, or crypto experiment
-workers. Saved crypto settings cannot start those processes. Old crypto API
+Coinbase traders, legacy crypto event collectors, or crypto experiment
+workers. A separate public-data adapter supports the optional read-only watch.
+Saved crypto settings cannot start those processes. Old crypto API
 requests return HTTP 410 after authentication; crypto dashboard scripts are not
 served. Old Experiments links redirect to the stock Strategy Lab.
 

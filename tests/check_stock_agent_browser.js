@@ -93,8 +93,11 @@ const check=async(name,fn)=>{await fn();checks++;console.log('PASS '+name);};
   });
   await check('Missing server credentials show setup without a fake research answer',async()=>{
     await page.route('**/api/agent/status',async route=>{const response=await route.fetch(),value=await response.json();await route.fulfill({json:{...value,configured:false,missing:['OPENAI_API_KEY']}});});
+    await page.route('**/api/agent/thread**',async route=>{await new Promise(resolve=>setTimeout(resolve,300));await route.continue();});
     await page.reload();await page.locator('#setupPanel').waitFor({state:'visible'});
     assert.equal(await page.locator('#send').isDisabled(),true);assert.match(await page.locator('#setupMessage').innerText(),/OPENAI_API_KEY/);
+    await page.locator('#conversation .agent-message').first().waitFor();
+    await page.unroute('**/api/agent/thread**');
     await page.unroute('**/api/agent/status');await page.reload();await page.locator('#content').waitFor();
   });
   await check('Desktop and phone layouts remain within the viewport',async()=>{
