@@ -12,13 +12,14 @@ from .equity_jobs import EquityJobs
 from .stock_research import EDITION, REPORT_NAME, report_bytes, research_payload
 from .website_lab import attach, route as strategy_route
 
-APP_VERSION = "12.3"
+APP_VERSION = "12.4"
 PAGES = {"/": "stock-dashboard.html", "/stocks": "stocks.html",
          "/stock-practice": "stock-practice.html", "/strategy-lab": "strategy-lab.html",
-         "/backtests": "strategy-lab.html", "/agent": "stock-agent.html", "/crypto-watch": "crypto-watch.html"}
+         "/backtests": "strategy-lab.html", "/agent": "stock-agent.html", "/crypto-watch": "crypto-watch.html",
+         "/market-radar": "market-radar.html"}
 ASSETS = {"style.css", "stocks.css", "stocks.js", "stock-practice.css", "stock-practice.js",
           "strategy-lab.js", "backtests.css", "stock-dashboard.css", "stock-dashboard.js", "stock-session.js",
-          "stock-agent.css", "stock-agent.js", "crypto-watch.css", "crypto-watch.js"}
+          "stock-agent.css", "stock-agent.js", "crypto-watch.css", "crypto-watch.js", "market-radar.css", "market-radar.js"}
 RETIRED_APIS = ("/api/coinbase/", "/api/continuous/", "/api/learning/", "/api/research/",
                 "/api/vwap/", "/api/forward/", "/api/experiments/", "/api/events/", "/api/runs")
 
@@ -45,12 +46,16 @@ class StockService:
         self.research_agent = StockAgent(self)
         from .crypto_watch import CryptoWatch
         self.breakout_watch = CryptoWatch(self.data_dir, self.token)
+        from .market_radar import MarketRadar
+        self.market_radar = MarketRadar(self.data_dir, self.token, self.breakout_watch)
         if resume:
             self.equities.resume()
             self.strategy_lab.resume()
             self.breakout_watch.resume()
+            self.market_radar.resume()
 
     def shutdown(self):
+        self.market_radar.shutdown()
         self.breakout_watch.shutdown()
         self.research_agent.shutdown()
         self.equities.shutdown()
@@ -82,6 +87,7 @@ class StockService:
                 "jobs": [{k: j[k] for k in ("id", "status", "manifest", "progress", "updated_at")}
                          for j in practice["jobs"][:8]],
                 "forward": practice["forward"], "crypto_watch": self.breakout_watch.status(compact=True),
+                "market_radar": self.market_radar.status(compact=True),
                 "strategy_lab": {"running": lab["running"], "jobs": lab["jobs"][:8],
                                  "error": lab.get("error")}}
 
@@ -119,7 +125,7 @@ class StockService:
                 return 200, {"ok": True, "api_version": "12.0", "app_version": APP_VERSION,
                     "asset_class": "equity", "market_scope": "US stocks and ETFs",
                     "default_mode": "paper", "live_capable": False, "live_orders_allowed": False,
-                    "crypto_enabled": False, "crypto_watch_available": True, "starting_balance": 500,
+                    "crypto_enabled": False, "crypto_watch_available": True, "market_radar_available": True, "starting_balance": 500,
                     "stock_research_version": EDITION, "stock_practice_version": "stock-practice-v1"}, {}
             if method == "GET" and path == "/api/stocks/overview":
                 return 200, self.overview(), {}
@@ -127,6 +133,8 @@ class StockService:
                 return self.research_agent.route(method, path.removeprefix("/api/agent/"), query, body)
             if path.startswith("/api/crypto-watch/"):
                 return self.breakout_watch.route(method, path.removeprefix("/api/crypto-watch/"), body)
+            if path.startswith("/api/market-radar/"):
+                return self.market_radar.route(method, path.removeprefix("/api/market-radar/"), body, query)
             if path.startswith("/api/stocks/practice/"):
                 return self.practice_route(method, path.removeprefix("/api/stocks/practice/"), query, body)
             if path.startswith("/api/strategy-lab/"):

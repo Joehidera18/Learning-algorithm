@@ -1,23 +1,23 @@
-# Deploy Stock Lab V12.3 to the existing Render service
+# Deploy Stock Lab V12.4 to the existing Render service
 
 Repository: **Joehidera18/Learning-algorithm**. Website:
 https://learning-algorithm-wah5.onrender.com.
 
 ## Update the existing service
 
-1. Merge the V12.3 change to the branch Render deploys, normally `main`.
+1. Merge the V12.4 change to the branch Render deploys, normally `main`.
 2. In the existing Render service, use **Manual Deploy → Deploy latest commit**.
    The repository configuration keeps automatic deployments off.
 3. Wait for the deploy to finish, then refresh the home page. It should show
-   **Stock Lab**. `/api/health` must report `app_version: 12.3`,
+   **Stock Lab**. `/api/health` must report `app_version: 12.4`,
    `asset_class: equity`, `crypto_enabled: false`, and `live_capable: false`.
 4. Use the same `APP_ACCESS_TOKEN` to open saved stock results and controls.
 
 Keep the existing service, disk and URL. Legacy names in `render.yaml` are
 resource identifiers retained to avoid creating replacement infrastructure.
 This migration does not change the paid plan or disk size. The web process starts
-the stock learner and named-strategy queue, plus a previously enabled read-only
-crypto watch. It never connects a Coinbase trader, even if old Coinbase
+the stock learner and named-strategy queue, plus previously enabled read-only
+crypto and Market Radar watches. It never connects a Coinbase trader, even if old Coinbase
 environment variables remain configured.
 
 ## Server configuration
@@ -28,6 +28,7 @@ environment variables remain configured.
 | `RESEARCH_DATA_DIR` | Existing persistent data root, normally `/var/data/research-data` |
 | `RESEARCH_DB_PATH` | Preserve the original journal path; the stock app does not open it |
 | `ALPACA_API_KEY`, `ALPACA_SECRET_KEY` | Optional Alpaca stock data credentials; `APCA_API_KEY_ID` / `APCA_API_SECRET_KEY` also supported |
+| `RADAR_STOCK_FEED` | Optional radar snapshot feed: `iex` by default, or `sip` with the required subscription; independent of historical paper fills |
 | `MASSIVE_API_KEY` | Optional Massive stock candles and news |
 | `OPENAI_API_KEY` | Enable AI research; add privately in Render, never in the browser |
 | `OPENAI_MODEL` | Responses model supporting function calls and web search; default `gpt-6-astra` |
@@ -62,6 +63,8 @@ release does not claim that every allowed window fits in its memory.
   counts. Interrupted agent work is marked as an error without a paid retry.
 - `RESEARCH_DATA_DIR/crypto-watch.sqlite3`: optional watch settings, observations
   and headline revisions; no brokerage credentials or orders.
+- `RESEARCH_DATA_DIR/market-radar.sqlite3`: news revisions, source health,
+  calendar revisions, watch notes, stock observations and the in-app journal.
 - Older crypto database and candle directories: untouched, with no active web
   workflow. Keep existing backups if they are needed for your records.
 
@@ -72,7 +75,7 @@ jobs become errors; new runs get a frozen cutoff shared by all requested frames.
 Existing completed reports remain available. No migration starts a new funded
 trade or modifies a broker account.
 
-Quotes on the site are independent
+Chart widgets on the site are independent
 [TradingView displays](https://www.tradingview.com/widget-docs/widgets/charts/symbol-overview/).
 Check their [data availability and delays](https://www.tradingview.com/widget-docs/faq/data/).
 The learner uses recorded regular-session candles with a minimum 20-minute
@@ -121,3 +124,24 @@ headline feed. An enabled watch resumes after normal restarts. Stop watch persis
 a disabled state. Health continues to report `crypto_enabled: false` for execution
 and now reports `crypto_watch_available: true`. See [CRYPTO_WATCH.md](CRYPTO_WATCH.md)
 for exact rules, limited coverage, saved timing and the HBAR investigation.
+
+## V12.4 Market Radar
+
+Open `/market-radar` and click **Start news & stock watch** after deployment.
+The public news feeds and manual calendar work without provider keys. Stock price
+observations require the optional Alpaca credentials above. IEX covers one venue;
+SIP requires entitlement. Regular-session snapshots are separate from the delayed
+historical stock practice engine. Neither connection places orders.
+
+Use **Start crypto watch** separately for crypto candle observations. Both watches
+persist their enabled preference and resume after normal restarts. Stopping one
+does not stop the other. Check source health after starting: one working feed does
+not establish coverage of the entire watchlist. In this release check, Coinbase's
+public status feed returned unusable content and was correctly shown as failed.
+
+Health reports `market_radar_available: true`, which means the feature exists,
+not that it is running or that every provider works. The page shows the actual
+worker and source state. Notes tagged **Recently sold** stay covered. **Investigate
+with AI** opens a draft; submitting it uses the existing API configuration and
+request quota. Notifications from the website stay in its journal. See
+[MARKET_RADAR.md](MARKET_RADAR.md) for all limits and the dated starter calendar.
