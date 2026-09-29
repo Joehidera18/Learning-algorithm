@@ -265,8 +265,10 @@ def simulation_steps(rows, features, start, end, balance, risk, fee_rate, base_s
                         stop, target1, target2, partial_fraction = level_provider(f)
                         levels = (stop, target1, target2, partial_fraction)
                         if (not all(math.isfinite(v) for v in levels) or min(levels[:3]) <= 0
-                                or not 0 < partial_fraction < 1 or sign*(entry-stop) <= 0
-                                or sign*(target1-entry) <= 0 or sign*(target2-target1) <= 0):
+                                or not 0 <= partial_fraction < 1 or sign*(entry-stop) <= 0
+                                or sign*(target1-entry) <= 0
+                                or (partial_fraction == 0 and target1 != target2)
+                                or (partial_fraction > 0 and sign*(target2-target1) <= 0)):
                             reject("invalid_or_passed_price_levels", entry=True)
                             curve.append(cash)
                             continue

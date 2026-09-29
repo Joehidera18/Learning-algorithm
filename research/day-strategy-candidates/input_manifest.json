@@ -1,0 +1,201 @@
+{
+  "provenance": "Unmodified normalized Yahoo snapshots from the prior fixed study; not freshly downloaded.",
+  "snapshots": {
+    "SPY-5m.json.gz": {
+      "sha256": "712e4d7744bbe5d849e7e74e9a964e91fdf4adf281082fc3da4befa15f5d11ee",
+      "uncompressed_sha256": "c1248049f514f54bc8240aa38a2d29ee0f6c8f605ba9d8e879e6a14bd0d5badb",
+      "rows": 3120,
+      "first_ts": 1785763800000,
+      "last_end_ts": 1790625600000,
+      "market_data": {
+        "calendar_package_version": "5.4.0",
+        "provider": "yahoo",
+        "feed": "Yahoo consolidated historical chart",
+        "symbol": "SPY",
+        "currency": "USD",
+        "asset_class": "equity",
+        "interval": "5m",
+        "requested_start_ts": 1785542400000,
+        "cutoff_ts": 1790640000000,
+        "recorded_at": 1790662394,
+        "minimum_delay_minutes": 20,
+        "live_quotes": false,
+        "dividends_included": false,
+        "adjustment": "split-adjusted OHLC; cash dividends excluded",
+        "exchange": "PCX",
+        "instrument_type": "ETF",
+        "corporate_actions": {
+          "dividends": {
+            "1789738200": {
+              "amount": 1.889,
+              "date": 1789738200
+            }
+          }
+        },
+        "provider_guarantee": false
+      },
+      "quality": {
+        "expected_candles": 3120,
+        "observed_candles": 3120,
+        "missing_candles": 0,
+        "coverage_pct": 100.0,
+        "invalid_source_candles": 0,
+        "outside_window_or_session": 1,
+        "source_interval": "5m",
+        "interval": "5m",
+        "first_ts": 1785763800000,
+        "last_close_ts": 1790625600000,
+        "short_session_bars": 0,
+        "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+        "synthetic_candles": false
+      }
+    },
+    "QQQ-5m.json.gz": {
+      "sha256": "7b07b723fccdadb88e881dfe4e23be7b86f7a20888a7b82fe43321be9f094b6d",
+      "uncompressed_sha256": "7b406d022b3dec82691cfd59f3ac991eaa6d56c1bfbe9c706d6323b8ecdbb9c4",
+      "rows": 3120,
+      "first_ts": 1785763800000,
+      "last_end_ts": 1790625600000,
+      "market_data": {
+        "calendar_package_version": "5.4.0",
+        "provider": "yahoo",
+        "feed": "Yahoo consolidated historical chart",
+        "symbol": "QQQ",
+        "currency": "USD",
+        "asset_class": "equity",
+        "interval": "5m",
+        "requested_start_ts": 1785542400000,
+        "cutoff_ts": 1790640000000,
+        "recorded_at": 1790662388,
+        "minimum_delay_minutes": 20,
+        "live_quotes": false,
+        "dividends_included": false,
+        "adjustment": "split-adjusted OHLC; cash dividends excluded",
+        "exchange": "NGM",
+        "instrument_type": "ETF",
+        "corporate_actions": {
+          "dividends": {
+            "1789997400": {
+              "amount": 0.751,
+              "date": 1789997400
+            }
+          }
+        },
+        "provider_guarantee": false
+      },
+      "quality": {
+        "expected_candles": 3120,
+        "observed_candles": 3120,
+        "missing_candles": 0,
+        "coverage_pct": 100.0,
+        "invalid_source_candles": 0,
+        "outside_window_or_session": 1,
+        "source_interval": "5m",
+        "interval": "5m",
+        "first_ts": 1785763800000,
+        "last_close_ts": 1790625600000,
+        "short_session_bars": 0,
+        "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+        "synthetic_candles": false
+      }
+    },
+    "IWM-5m.json.gz": {
+      "sha256": "77739ee2490383c5f99450eea6f4774a7e469ea3918d242e3b1d3ac772b74f51",
+      "uncompressed_sha256": "9279c1bb46f3fbf10d87ac7e20b35a6538bf295e12ae1766f3b44c1ed91fbf32",
+      "rows": 3120,
+      "first_ts": 1785763800000,
+      "last_end_ts": 1790625600000,
+      "market_data": {
+        "calendar_package_version": "5.4.0",
+        "provider": "yahoo",
+        "feed": "Yahoo consolidated historical chart",
+        "symbol": "IWM",
+        "currency": "USD",
+        "asset_class": "equity",
+        "interval": "5m",
+        "requested_start_ts": 1785542400000,
+        "cutoff_ts": 1790640000000,
+        "recorded_at": 1790662379,
+        "minimum_delay_minutes": 20,
+        "live_quotes": false,
+        "dividends_included": false,
+        "adjustment": "split-adjusted OHLC; cash dividends excluded",
+        "exchange": "PCX",
+        "instrument_type": "ETF",
+        "corporate_actions": {
+          "dividends": {
+            "1789479000": {
+              "amount": 0.75,
+              "date": 1789479000
+            }
+          }
+        },
+        "provider_guarantee": false
+      },
+      "quality": {
+        "expected_candles": 3120,
+        "observed_candles": 3120,
+        "missing_candles": 0,
+        "coverage_pct": 100.0,
+        "invalid_source_candles": 0,
+        "outside_window_or_session": 1,
+        "source_interval": "5m",
+        "interval": "5m",
+        "first_ts": 1785763800000,
+        "last_close_ts": 1790625600000,
+        "short_session_bars": 0,
+        "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+        "synthetic_candles": false
+      }
+    },
+    "NVDA-5m.json.gz": {
+      "sha256": "d2173bf65f7b6c73db827dd3b777ff362bcff205f5bac87587f6408d75197b02",
+      "uncompressed_sha256": "bb618ffc30fd766d11f8a95231b6a033f5a99d48c4d01f8e6ec486c8f48b7137",
+      "rows": 3120,
+      "first_ts": 1785763800000,
+      "last_end_ts": 1790625600000,
+      "market_data": {
+        "calendar_package_version": "5.4.0",
+        "provider": "yahoo",
+        "feed": "Yahoo consolidated historical chart",
+        "symbol": "NVDA",
+        "currency": "USD",
+        "asset_class": "equity",
+        "interval": "5m",
+        "requested_start_ts": 1785542400000,
+        "cutoff_ts": 1790640000000,
+        "recorded_at": 1790662384,
+        "minimum_delay_minutes": 20,
+        "live_quotes": false,
+        "dividends_included": false,
+        "adjustment": "split-adjusted OHLC; cash dividends excluded",
+        "exchange": "NMS",
+        "instrument_type": "EQUITY",
+        "corporate_actions": {
+          "dividends": {
+            "1789047000": {
+              "amount": 0.25,
+              "date": 1789047000
+            }
+          }
+        },
+        "provider_guarantee": false
+      },
+      "quality": {
+        "expected_candles": 3120,
+        "observed_candles": 3120,
+        "missing_candles": 0,
+        "coverage_pct": 100.0,
+        "invalid_source_candles": 0,
+        "outside_window_or_session": 1,
+        "source_interval": "5m",
+        "interval": "5m",
+        "first_ts": 1785763800000,
+        "last_close_ts": 1790625600000,
+        "short_session_bars": 0,
+        "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+        "synthetic_candles": false
+      }
+    }
+  }
+}

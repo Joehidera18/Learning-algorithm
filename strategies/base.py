@@ -14,6 +14,11 @@ class StrategySpec:
     allowed_intervals = ALLOWED_INTERVALS
     supported_modes = ("day", "swing")
     news_filter = False
+    research_only = False
+    evidence_note = ""
+    rules = ()
+    sources = ()
+    max_signals_per_session = None
     title = "Stock strategy"
     description = "Long-only price and volume rules on completed stock candles."
     params = {

@@ -29,7 +29,7 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
     assert.equal(await page.locator('#content').isVisible(),false);
     await page.locator('#accessToken').fill('stock-ui-test-token');await page.locator('#accessForm button').click();
     await page.locator('#content').waitFor({state:'visible'});
-    assert.equal(await page.locator('#strategy option').count(),5);
+    assert.equal(await page.locator('#strategy option').count(),8);
     assert.equal(await page.locator('#jobs .equity-job').count(),3);
     assert.equal(await page.locator('#provider option[value="massive"]').evaluate(e=>e.disabled),true);
   });
@@ -62,6 +62,17 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
     assert.equal(sent.postDataJSON().context,'');
     assert.equal(sent.postDataJSON().settings.risk_per_trade,.005);
     await page.waitForFunction(()=>document.querySelectorAll('#jobs .equity-job').length===4);
+  });
+  await check('Research candidates expose exact rules and sources with correct mode limits',async()=>{
+    await page.locator('#strategy').selectOption('vwap_reclaim');
+    assert.match(await page.locator('#strategyEvidence').innerText(),/Experimental rule translation/);
+    assert.equal(await page.locator('#strategyRules li').count(),5);
+    assert.equal(await page.locator('#strategySources a').count(),1);
+    assert.match(await page.locator('#strategySources a').getAttribute('href'),/^https:\/\/bearbulltraders.com\//);
+    assert.equal(await page.locator('#decision option').filter({hasText:/^1m$/}).evaluate(e=>e.disabled),true);
+    assert.equal(await page.locator('#mode option[value="swing"]').evaluate(e=>e.disabled),true);
+    await page.locator('#strategy').selectOption('orb_15m');
+    assert.equal(await page.locator('#strategyRules').isVisible(),false);
   });
   await check('Completed reports show later metrics and load their journal only on demand',async()=>{
     const job=page.locator('#jobs .equity-job').filter({hasText:'Trend pullback'}).first();
@@ -101,6 +112,26 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
     assert.equal(await page.locator('#jobs .equity-job').count(),4);
     assert.match(await page.locator('#jobs').innerText(),/Cancelled by user/);
   });
+  await check('Research-only results cannot display a passing result and explain blocked entries',async()=>{
+    await page.route('**/api/strategy-lab/status',async route=>{
+      const response=await route.fetch(),value=await response.json();
+      const result=value.jobs.find(job=>job.request.strategy==='trend_pullback_simple').result;
+      result.research_only=true;result.eligible_for_bot=true;
+      result.sample={later_observed_sessions:12,max_signals_per_session:1};
+      result.later.signal_funnel={qualified_setups:4,entries_opened:0,entry_rejections:{trading_cost_too_high:4}};
+      await route.fulfill({json:value});
+    });
+    await page.locator('#refresh').click();
+    await page.waitForFunction(()=>document.getElementById('jobs').textContent.includes('Research candidate'));
+    const job=page.locator('#jobs .equity-job').filter({hasText:'Trend pullback'}).first();
+    assert.match(await job.innerText(),/12 observed sessions/);
+    assert.match(await job.innerText(),/4 qualifying setups · 0 opened trades/);
+    assert.match(await job.innerText(),/costs too large relative to planned risk \(4\)/);
+    assert.equal(await job.locator('.backtest-outcome.review').count(),0);
+    assert.doesNotMatch(await job.innerText(),/Passed the historical screen/);
+    await page.unroute('**/api/strategy-lab/status');
+    await page.locator('#refresh').click();
+  });
   await check('A stalled request times out and the next request succeeds',async()=>{
     await page.route('**/api/health?slow-fixture=1',()=>{});
     const message=await page.evaluate(async()=>{
@@ -129,6 +160,7 @@ const check=async(name,run)=>{await run();checks++;console.log('PASS '+name);};
     await page.locator('#refresh').click();
   });
   await check('Phone layout fits without horizontal overflow',async()=>{
+    await page.locator('#strategy').selectOption('vwap_reclaim');
     await page.setViewportSize({width:390,height:844});
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     await fs.mkdir('/tmp/stock-backtests-ui',{recursive:true});

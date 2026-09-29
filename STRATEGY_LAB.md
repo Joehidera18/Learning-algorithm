@@ -4,6 +4,14 @@ The website section **Backtest stocks** (`/backtests`, with `/strategy-lab` kept
 as an alias) tests one named strategy at a time. Historical bars only; no broker
 orders. The CLI remains available for reproducible local research.
 
+Three research-only day candidates are also available: `orb_5m_rvol`,
+`orb_15m_retest`, and `vwap_reclaim`. They require regular-session 5m candles and
+14 complete prior sessions for their volume baselines. Their exact rules and
+source links appear on the page. They cannot receive the automatic eligibility
+flag, even after a positive test. See the [fixed candidate study, data and all
+results](research/day-strategy-candidates/README.md) for the first comparison
+and its short-sample limitations.
+
 ## What it does
 
 1. You put a strategy in `strategies/` with a `signal(features, params)` function.

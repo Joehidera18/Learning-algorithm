@@ -1,0 +1,19 @@
+{
+  "study": "Three fixed day-trading candidates, continuation of the first stock screen",
+  "registered_before_results_utc": "2026-09-29",
+  "cutoff_utc": "2026-09-29T00:00:00+00:00",
+  "symbols": ["SPY", "QQQ", "IWM", "NVDA"],
+  "candidates": [
+    {"strategy": "orb_5m_rvol", "interval": "5m", "days": 59, "mode": "day"},
+    {"strategy": "orb_15m_retest", "interval": "5m", "days": 59, "mode": "day"},
+    {"strategy": "vwap_reclaim", "interval": "5m", "days": 59, "mode": "day"}
+  ],
+  "starting_balance_per_independent_test": 1000,
+  "costs": {"fee_rate": 0.0001, "slippage_rate": 0.0005, "half_spread": 0.0002, "risk_per_trade": 0.005, "max_notional_fraction": 0.95, "daily_loss_limit": 0.02},
+  "fractional_shares": true,
+  "selection": "Same four instruments as the first screen. No parameter search; retain every result. These data were previously examined with other rules, so this entire comparison is exploratory.",
+  "windows": "Same fixed 70/30 chronological split as prior study; 240-bar indicator warmup plus 14 complete prior sessions for volume baselines. Independent fresh balances for earlier and later tests. Repeat later at 1.5x costs; entry sets may differ.",
+  "data": "Reuse the exact frozen Yahoo regular-session 5m snapshots from the first study. Split-adjusted OHLC; no interpolated bars, cash dividends excluded. No point-in-time news filter or historical stock-universe ranking.",
+  "research_gate": "All three remain research-only regardless of results. A 12-session later sample cannot establish a reliable edge. Next confirmation requires at least 12-24 months of intraday data spanning varied conditions and then an untouched forward-paper period.",
+  "no_optimization": "Do not tune rules, cut losing symbols, or modify cost assumptions in response to these returns. Software correctness fixes require rerunning all cases and recording the reason."
+}

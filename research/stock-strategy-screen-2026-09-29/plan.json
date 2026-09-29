@@ -1,0 +1,18 @@
+{
+  "study": "Fixed first stock-strategy screen, 2026-09-29",
+  "cutoff_utc": "2026-09-29T00:00:00+00:00",
+  "symbols": ["SPY", "QQQ", "IWM", "NVDA"],
+  "candidates": [
+    {"strategy": "orb_15m", "interval": "5m", "days": 59, "mode": "day"},
+    {"strategy": "trend_pullback_simple", "interval": "1h", "days": 729, "mode": "swing"},
+    {"strategy": "breakout_volume_simple", "interval": "1h", "days": 729, "mode": "swing"}
+  ],
+  "starting_balance_per_independent_test": 1000,
+  "costs": {"fee_rate": 0.0001, "slippage_rate": 0.0005, "half_spread": 0.0002, "risk_per_trade": 0.005, "max_notional_fraction": 0.95, "daily_loss_limit": 0.02},
+  "fractional_shares": true,
+  "selection": "Four liquid stock/ETF instruments chosen before looking at outcomes; no parameter search.",
+  "windows": "First 240 bars warmup; first 70% development; last 30% later screening, independently reset balances. Later window repeated with 1.5x all fees/spread/slippage.",
+  "data": "Yahoo public regular-session split-adjusted bars; no invented missing candles; cash dividends excluded.",
+  "caveat": "A positive later screen is not an untouched validation set after selecting among these twelve tests. Require a separate forward paper trial and longer intraday history before trading.",
+  "pre_execution_bug": "Default structure strategy levels returned equal first/final targets with 50% partial exit, but the engine rejected equal targets. Fix will preserve a single full exit at the existing 2R target, rather than changing the entry rules or target distance."
+}

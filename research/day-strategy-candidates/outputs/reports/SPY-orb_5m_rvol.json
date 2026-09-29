@@ -1,0 +1,250 @@
+{
+  "kind": "strategy_lab",
+  "report_version": 3,
+  "strategy": "orb_5m_rvol",
+  "strategy_version": "orb-5m-rvol-close-v1",
+  "strategy_parameters": {
+    "stop_atr": 1.5,
+    "rr1": 1.0,
+    "rr2": 2.0,
+    "volume_z_min": 0.0,
+    "max_gap_atr": 0.5,
+    "max_cost_r": 0.5,
+    "time_stop_hours": 24,
+    "cooldown_minutes": 0,
+    "min_net_rr": 1.0,
+    "loss_streak_limit": 3,
+    "loss_cooldown_hours": 6,
+    "entry_mode": "MARKET_NEXT_OPEN",
+    "max_notional_fraction": 0.95,
+    "family": "orb_5m_rvol",
+    "direction": "LONG",
+    "require_context": []
+  },
+  "strategy_rules": [
+    "Use 5-minute regular-session bars and 14 complete prior sessions for the opening-volume baseline.",
+    "The 09:30\u201309:35 bar must close above its open. Its volume must be at least 1.5\u00d7 its prior-session average.",
+    "Take the first later close above that bar's high, from 09:40 through 11:00 New York time; entry is the next open.",
+    "Stop at the opening bar's low. Full target is signal close plus twice its distance to the stop; flatten at session close.",
+    "At most one signal per session. Next-open gaps and costs may reject it; there is no second attempt."
+  ],
+  "strategy_sources": [
+    {
+      "title": "Zarattini, Barbon & Aziz: opening ranges and stocks in play",
+      "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4729284"
+    }
+  ],
+  "research_only": true,
+  "evidence_note": "Experimental rule translation. Single-stock, long-only tests do not reproduce the published stock-selection studies. Longer history and forward paper results are required.",
+  "sample": {
+    "observed_sessions": 40,
+    "later_observed_sessions": 12,
+    "max_signals_per_session": 1,
+    "note": "Session counts include partial sessions; trades and coverage must also be inspected."
+  },
+  "interval": "5m",
+  "context_intervals": [],
+  "coverage": {
+    "valid": true,
+    "rows": 3120,
+    "expected_candles": 3120,
+    "missing_candles": 0,
+    "coverage_pct": 100.0,
+    "calendar": "NYSE regular sessions"
+  },
+  "mtf_alignment": {
+    "decision_bars": 3120,
+    "context_bars_attached": 0,
+    "missing_closed_context": {},
+    "rule": "No higher-timeframe frames supplied."
+  },
+  "news_alignment": null,
+  "costs": {
+    "fee_rate": 0.0001,
+    "slippage_rate": 0.0005,
+    "half_spread": 0.0002,
+    "risk_per_trade": 0.005,
+    "max_notional_fraction": 0.95,
+    "daily_loss_limit": 0.02
+  },
+  "starting_balance": 1000,
+  "fractional_shares": true,
+  "development": {
+    "window": "development",
+    "trades": 0,
+    "net_pnl": 0.0,
+    "ending_balance": 1000.0,
+    "return_pct": 0.0,
+    "max_drawdown_pct": 0,
+    "profit_factor": null,
+    "fees_paid": 0,
+    "closed_net_pnl": 0.0,
+    "window_end_exits": 0,
+    "win_rate": null,
+    "mean_r": null,
+    "sum_r": 0.0,
+    "signal_funnel": {
+      "candles_checked": 1943,
+      "features_available": 1919,
+      "qualified_setups": 0,
+      "entry_attempts": 0,
+      "entries_opened": 0,
+      "rejections": {
+        "relative_volume_not_ready": 841,
+        "overnight_signal_expired": 24,
+        "low_relative_volume": 1001,
+        "outside_entry_window": 60,
+        "no_setup": 17
+      },
+      "entry_rejections": {}
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1786024800000,
+    "end_ts": 1789070400000,
+    "observed_candles": 1944
+  },
+  "later": {
+    "window": "later",
+    "trades": 0,
+    "net_pnl": 0.0,
+    "ending_balance": 1000.0,
+    "return_pct": 0.0,
+    "max_drawdown_pct": 0,
+    "profit_factor": null,
+    "fees_paid": 0,
+    "closed_net_pnl": 0.0,
+    "window_end_exits": 0,
+    "win_rate": null,
+    "mean_r": null,
+    "sum_r": 0.0,
+    "signal_funnel": {
+      "candles_checked": 935,
+      "features_available": 924,
+      "qualified_setups": 1,
+      "entry_attempts": 1,
+      "entries_opened": 0,
+      "rejections": {
+        "outside_entry_window": 120,
+        "no_setup": 21,
+        "net_reward_too_small": 1,
+        "session_signal_already_used": 12,
+        "overnight_signal_expired": 11,
+        "low_relative_volume": 770
+      },
+      "entry_rejections": {
+        "net_reward_too_small": 1
+      }
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1789133400000,
+    "end_ts": 1790625600000,
+    "observed_candles": 936
+  },
+  "later_higher_cost": {
+    "window": "later_1.5x_costs",
+    "trades": 0,
+    "net_pnl": 0.0,
+    "ending_balance": 1000.0,
+    "return_pct": 0.0,
+    "max_drawdown_pct": 0,
+    "profit_factor": null,
+    "fees_paid": 0,
+    "closed_net_pnl": 0.0,
+    "window_end_exits": 0,
+    "win_rate": null,
+    "mean_r": null,
+    "sum_r": 0.0,
+    "signal_funnel": {
+      "candles_checked": 935,
+      "features_available": 924,
+      "qualified_setups": 1,
+      "entry_attempts": 1,
+      "entries_opened": 0,
+      "rejections": {
+        "outside_entry_window": 120,
+        "no_setup": 21,
+        "trading_cost_too_high": 1,
+        "session_signal_already_used": 12,
+        "overnight_signal_expired": 11,
+        "low_relative_volume": 770
+      },
+      "entry_rejections": {
+        "trading_cost_too_high": 1
+      }
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1789133400000,
+    "end_ts": 1790625600000,
+    "observed_candles": 936
+  },
+  "trade_journal": {
+    "development": [],
+    "later": [],
+    "later_higher_cost": []
+  },
+  "eligible_for_bot": false,
+  "promotion_rule": "Research-only candidates are never eligible. Other strategies require both later tests to complete with >=20 resolved trades, positive mean R and positive total account P/L, including at 1.5x costs. Not live authorization.",
+  "limitations": [
+    "Historical bars only. No live quotes.",
+    "Each window starts with a fresh paper balance; the first 240 candles warm up indicators. Repeatedly selecting on later results can overfit.",
+    "Day mode exits at the session close. Swing mode allows overnight positions with a 120-hour time stop. Long-only and unleveraged.",
+    "END exits mark positions at the test boundary, count toward account P/L, and are excluded from the resolved-trade evidence count.",
+    "Profit factor uses all simulated exits, including boundary marks; a missing value can mean no losses, not a guaranteed edge.",
+    "Missing decision bars reset indicator warmup; a gap during an open position makes account P/L unknown and blocks eligibility.",
+    "Higher-timeframe context must match the latest expected close; missing bars are unavailable.",
+    "News is visible only after its published timestamp.",
+    "Yahoo/Alpaca 1m history is short; do not treat a 29-day 1m test as multi-year evidence."
+  ],
+  "symbol": "SPY",
+  "source_quality": {
+    "expected_candles": 3120,
+    "observed_candles": 3120,
+    "missing_candles": 0,
+    "coverage_pct": 100.0,
+    "invalid_source_candles": 0,
+    "outside_window_or_session": 1,
+    "source_interval": "5m",
+    "interval": "5m",
+    "first_ts": 1785763800000,
+    "last_close_ts": 1790625600000,
+    "short_session_bars": 0,
+    "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+    "synthetic_candles": false
+  },
+  "market_data": {
+    "calendar_package_version": "5.4.0",
+    "provider": "yahoo",
+    "feed": "Yahoo consolidated historical chart",
+    "symbol": "SPY",
+    "currency": "USD",
+    "asset_class": "equity",
+    "interval": "5m",
+    "requested_start_ts": 1785542400000,
+    "cutoff_ts": 1790640000000,
+    "recorded_at": 1790662394,
+    "minimum_delay_minutes": 20,
+    "live_quotes": false,
+    "dividends_included": false,
+    "adjustment": "split-adjusted OHLC; cash dividends excluded",
+    "exchange": "PCX",
+    "instrument_type": "ETF",
+    "corporate_actions": {
+      "dividends": {
+        "1789738200": {
+          "amount": 1.889,
+          "date": 1789738200
+        }
+      }
+    },
+    "provider_guarantee": false
+  }
+}

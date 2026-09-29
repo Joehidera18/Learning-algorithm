@@ -37,6 +37,13 @@
     const spec=cat.strategy_details[$("strategy").value];
     $("strategyTitle").textContent=spec.title;
     $("strategyDescription").textContent=spec.description;
+    $("strategyEvidence").textContent=spec.evidence_note || "";
+    $("strategyEvidence").hidden=!spec.evidence_note;
+    $("strategyRules").innerHTML=(spec.rules || []).map(rule=>'<li>'+esc(rule)+'</li>').join("");
+    $("strategyRules").hidden=!(spec.rules || []).length;
+    const sources=(spec.sources || []).filter(source=>/^https:\/\//i.test(source.url || ""));
+    $("strategySources").innerHTML=sources.length?'Research sources: '+sources.map(source=>'<a target="_blank" rel="noopener noreferrer" href="'+esc(source.url)+'">'+esc(source.title)+'</a>').join(' · '):'';
+    $("strategySources").hidden=!sources.length;
     const allowed=cat.strategy_intervals[$("strategy").value];
     for(const option of $("decision").options) option.disabled=!allowed.includes(option.value);
     if(!allowed.includes($("decision").value)) $("decision").value=allowed.includes("5m")?"5m":allowed[0];
@@ -91,12 +98,18 @@
     let outcome;
     if(!current) outcome="Earlier report: rerun with the corrected backtester to verify this result.";
     else if(!verified) outcome="Incomplete comparison · "+(later.incomplete_reason || stress.incomplete_reason || "Account performance cannot be verified.");
+    else if(r.research_only) outcome="Research candidate · exploratory results only. This strategy cannot be promoted automatically.";
     else if(later.trades<20 || stress.trades<20) outcome="Too few resolved trades to establish an edge. At least 20 are required in each later test.";
     else if(r.eligible_for_bot) outcome="Passed the historical screen · eligible for further paper research. Future profit is unproven.";
     else outcome="Did not pass the historical screen. Later P/L and mean R must both stay positive at standard and higher costs.";
-    let html='<div class="backtest-result"><p class="backtest-outcome'+(verified && r.eligible_for_bot?' review':'')+'">'+esc(outcome)+'</p>';
+    let html='<div class="backtest-result"><p class="backtest-outcome'+(verified && r.eligible_for_bot && !r.research_only?' review':'')+'">'+esc(outcome)+'</p>';
     html+='<div class="backtest-metrics">'+[[money(verified?later.net_pnl:null),"Later net P/L"],[pct(verified?later.return_pct:null),"Later return"],[pct(verified?later.max_drawdown_pct:null),"Maximum drawdown"],[number(current?later.trades:null,0),"Resolved later trades"]].map(([value,label])=>'<div><strong>'+esc(value)+'</strong><span>'+esc(label)+'</span></div>').join("")+'</div>';
     if(current) {
+      if(r.sample?.later_observed_sessions) html+='<p class="backtest-window">'+number(r.sample.later_observed_sessions,0)+' observed sessions in the later window'+(r.sample.max_signals_per_session?' · At most '+number(r.sample.max_signals_per_session,0)+' signal per session.':'.')+' Partial sessions may be included.</p>';
+      if(r.evidence_note) html+='<p class="backtest-source">'+esc(r.evidence_note)+'</p>';
+      const funnel=later.signal_funnel || {},blockers=Object.entries(funnel.entry_rejections || {}).sort((a,b)=>b[1]-a[1]);
+      const blockerNames={trading_cost_too_high:"costs too large relative to planned risk",net_reward_too_small:"too little potential reward after costs",entry_gap_too_large:"next-open gap too large",invalid_or_passed_price_levels:"price levels invalid or already passed"};
+      if(finite(funnel.qualified_setups)) html+='<p class="backtest-window">'+number(funnel.qualified_setups,0)+' qualifying setups · '+number(funnel.entries_opened,0)+' opened trades.'+(blockers.length?' Most frequent entry rejection: '+esc(blockerNames[blockers[0][0]] || blockers[0][0].replaceAll('_',' '))+' ('+number(blockers[0][1],0)+').':'')+'</p>';
       html+='<p class="backtest-window">Later window: '+esc(when(later.start_ts))+' → '+esc(when(later.end_ts))+' · Each comparison starts at '+money(r.starting_balance)+'.</p><div class="result-table"><table><thead><tr><th>Test window</th><th>Net P/L</th><th>Return</th><th>Drawdown</th><th>Win rate</th><th>Resolved trades</th><th>Mean R</th><th>Fees</th></tr></thead><tbody>';
       for(const [label,m] of [["Development",r.development],["Later",later],["Later · 1.5× costs",stress]]) {
         const q=m?.complete?m:{};
