@@ -225,7 +225,8 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
         summary.update(start_ts=rows[first]["ts"], end_ts=_end(rows[last-1], interval),
                        observed_candles=last-first)
     promoted = bool(
-        later_summary["complete"] and stress_summary["complete"]
+        not strategy.research_only
+        and later_summary["complete"] and stress_summary["complete"]
         and later_summary["trades"] >= 20 and stress_summary["trades"] >= 20
         and (later_summary["mean_r"] or 0) > 0
         and later_summary["net_pnl"] > 0
@@ -238,6 +239,17 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
         "report_version": REPORT_VERSION,
         "strategy": strategy.name,
         "strategy_version": strategy.version,
+        "strategy_parameters": dict(params),
+        "strategy_rules": list(strategy.rules),
+        "strategy_sources": list(strategy.sources),
+        "research_only": strategy.research_only,
+        "evidence_note": strategy.evidence_note,
+        "sample": {
+            "observed_sessions": len({r["session"] for r in rows if r.get("session")}),
+            "later_observed_sessions": len({r["session"] for r in rows[later:end] if r.get("session")}),
+            "max_signals_per_session": strategy.max_signals_per_session,
+            "note": "Session counts include partial sessions; trades and coverage must also be inspected.",
+        },
         "interval": interval,
         "context_intervals": sorted(frames or {}),
         "coverage": coverage,
@@ -252,7 +264,7 @@ def run_backtest(strategy, rows, interval, costs, frames=None, starting_balance=
         "trade_journal": {key: [compact_trade(t) for t in trades] for key, trades in (
             ("development", dev_trades), ("later", later_trades), ("later_higher_cost", stress_trades))},
         "eligible_for_bot": promoted,
-        "promotion_rule": "Both later tests must complete with >=20 resolved trades, positive mean R and positive total account P/L, including at 1.5x costs. Not live authorization.",
+        "promotion_rule": "Research-only candidates are never eligible. Other strategies require both later tests to complete with >=20 resolved trades, positive mean R and positive total account P/L, including at 1.5x costs. Not live authorization.",
         "limitations": [
             "Historical bars only. No live quotes.",
             "Each window starts with a fresh paper balance; the first 240 candles warm up indicators. Repeatedly selecting on later results can overfit.",

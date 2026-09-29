@@ -1,0 +1,346 @@
+{
+  "kind": "strategy_lab",
+  "report_version": 3,
+  "strategy": "vwap_reclaim",
+  "strategy_version": "vwap-reclaim-v1",
+  "strategy_parameters": {
+    "stop_atr": 1.5,
+    "rr1": 1.0,
+    "rr2": 2.0,
+    "volume_z_min": 0.0,
+    "max_gap_atr": 0.5,
+    "max_cost_r": 0.5,
+    "time_stop_hours": 24,
+    "cooldown_minutes": 0,
+    "min_net_rr": 1.0,
+    "loss_streak_limit": 3,
+    "loss_cooldown_hours": 6,
+    "entry_mode": "MARKET_NEXT_OPEN",
+    "max_notional_fraction": 0.95,
+    "family": "vwap_reclaim",
+    "direction": "LONG",
+    "require_context": []
+  },
+  "strategy_rules": [
+    "Compute session VWAP from cumulative typical-price \u00d7 volume, resetting at 09:30 New York time. This bar approximation is not tick VWAP.",
+    "From 10:00 through 12:00, require each of the two preceding candles to close below its own then-current VWAP.",
+    "The signal must close above current VWAP, above the preceding high and above its own open.",
+    "Cumulative volume must be at least its average at the same session minute over 14 complete prior sessions.",
+    "Enter next open. Stop below the lowest low of the signal and preceding two bars by 0.1\u00d7 5-minute ATR; full target is twice the signal-close stop distance. One signal per session; flatten at close."
+  ],
+  "strategy_sources": [
+    {
+      "title": "Andrew Aziz: public VWAP teaching slides",
+      "url": "https://bearbulltraders.com/wp-content/uploads/pdfs/speedtrader.pdf"
+    }
+  ],
+  "research_only": true,
+  "evidence_note": "Experimental rule translation. Single-stock, long-only tests do not reproduce the published stock-selection studies. Longer history and forward paper results are required.",
+  "sample": {
+    "observed_sessions": 40,
+    "later_observed_sessions": 12,
+    "max_signals_per_session": 1,
+    "note": "Session counts include partial sessions; trades and coverage must also be inspected."
+  },
+  "interval": "5m",
+  "context_intervals": [],
+  "coverage": {
+    "valid": true,
+    "rows": 3120,
+    "expected_candles": 3120,
+    "missing_candles": 0,
+    "coverage_pct": 100.0,
+    "calendar": "NYSE regular sessions"
+  },
+  "mtf_alignment": {
+    "decision_bars": 3120,
+    "context_bars_attached": 0,
+    "missing_closed_context": {},
+    "rule": "No higher-timeframe frames supplied."
+  },
+  "news_alignment": null,
+  "costs": {
+    "fee_rate": 0.0001,
+    "slippage_rate": 0.0005,
+    "half_spread": 0.0002,
+    "risk_per_trade": 0.005,
+    "max_notional_fraction": 0.95,
+    "daily_loss_limit": 0.02
+  },
+  "starting_balance": 1000,
+  "fractional_shares": true,
+  "development": {
+    "window": "development",
+    "trades": 1,
+    "net_pnl": -0.7659490210190825,
+    "ending_balance": 999.2340509789809,
+    "return_pct": -0.07659490210191189,
+    "max_drawdown_pct": 0.21864621559629996,
+    "profit_factor": 0.0,
+    "fees_paid": 0.16612593867531522,
+    "closed_net_pnl": -0.7659490210190901,
+    "window_end_exits": 0,
+    "win_rate": 0.0,
+    "mean_r": -0.1531898047118561,
+    "sum_r": -0.1531898047118561,
+    "signal_funnel": {
+      "candles_checked": 1943,
+      "features_available": 1919,
+      "qualified_setups": 3,
+      "entry_attempts": 3,
+      "entries_opened": 1,
+      "rejections": {
+        "relative_volume_not_ready": 841,
+        "overnight_signal_expired": 24,
+        "outside_entry_window": 369,
+        "no_setup": 152,
+        "low_relative_volume": 455,
+        "net_reward_too_small": 2,
+        "session_signal_already_used": 41
+      },
+      "entry_rejections": {
+        "net_reward_too_small": 2
+      }
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1786024800000,
+    "end_ts": 1789070400000,
+    "observed_candles": 1944
+  },
+  "later": {
+    "window": "later",
+    "trades": 1,
+    "net_pnl": -1.8481386652882748,
+    "ending_balance": 998.1518613347117,
+    "return_pct": -0.18481386652883236,
+    "max_drawdown_pct": 0.5675662241428747,
+    "profit_factor": 0.0,
+    "fees_paid": 0.18981516372152332,
+    "closed_net_pnl": -1.8481386652883192,
+    "window_end_exits": 0,
+    "win_rate": 0.0,
+    "mean_r": -0.3986241620361494,
+    "sum_r": -0.3986241620361494,
+    "signal_funnel": {
+      "candles_checked": 935,
+      "features_available": 924,
+      "qualified_setups": 2,
+      "entry_attempts": 2,
+      "entries_opened": 1,
+      "rejections": {
+        "outside_entry_window": 322,
+        "no_setup": 117,
+        "overnight_signal_expired": 11,
+        "low_relative_volume": 413,
+        "net_reward_too_small": 1,
+        "session_signal_already_used": 18
+      },
+      "entry_rejections": {
+        "net_reward_too_small": 1
+      }
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1789133400000,
+    "end_ts": 1790625600000,
+    "observed_candles": 936
+  },
+  "later_higher_cost": {
+    "window": "later_1.5x_costs",
+    "trades": 0,
+    "net_pnl": 0.0,
+    "ending_balance": 1000.0,
+    "return_pct": 0.0,
+    "max_drawdown_pct": 0,
+    "profit_factor": null,
+    "fees_paid": 0,
+    "closed_net_pnl": 0.0,
+    "window_end_exits": 0,
+    "win_rate": null,
+    "mean_r": null,
+    "sum_r": 0.0,
+    "signal_funnel": {
+      "candles_checked": 935,
+      "features_available": 924,
+      "qualified_setups": 2,
+      "entry_attempts": 2,
+      "entries_opened": 0,
+      "rejections": {
+        "outside_entry_window": 369,
+        "no_setup": 117,
+        "overnight_signal_expired": 11,
+        "trading_cost_too_high": 2,
+        "session_signal_already_used": 23,
+        "low_relative_volume": 413
+      },
+      "entry_rejections": {
+        "trading_cost_too_high": 2
+      }
+    },
+    "complete": true,
+    "incomplete_reason": null,
+    "stopped_at_ts": null,
+    "unresolved_positions": 0,
+    "start_ts": 1789133400000,
+    "end_ts": 1790625600000,
+    "observed_candles": 936
+  },
+  "trade_journal": {
+    "development": [
+      {
+        "entry_ts": 1788447900000,
+        "exit_ts": 1788465300000,
+        "exit_time_ts": 1788465600000,
+        "signal_ts": 1788447600000,
+        "entry": 295.1664634490967,
+        "exit": 294.9533916595459,
+        "initial_stop": 293.6547613961356,
+        "stop": 293.6547613961356,
+        "target2": 297.54051382882255,
+        "qty_initial": 2.815122,
+        "risk_dollars": 4.99999998341802,
+        "pnl": -0.7659490210190901,
+        "r_multiple": -0.1531898047118561,
+        "reason": "SESSION_CLOSE",
+        "regime": "BULL",
+        "gross_pnl": -0.5998230823437749,
+        "fees_paid": 0.16612593867531522,
+        "slippage_notional": 1.1628818466260014,
+        "decision_params": {
+          "stop_atr": 1.5,
+          "rr1": 1.0,
+          "rr2": 2.0,
+          "volume_z_min": 0.0,
+          "max_gap_atr": 0.5,
+          "max_cost_r": 0.5,
+          "time_stop_hours": 24,
+          "cooldown_minutes": 0,
+          "min_net_rr": 1.0,
+          "loss_streak_limit": 3,
+          "loss_cooldown_hours": 6,
+          "entry_mode": "MARKET_NEXT_OPEN",
+          "max_notional_fraction": 0.95,
+          "family": "vwap_reclaim",
+          "direction": "LONG",
+          "require_context": []
+        },
+        "strategy_family": "vwap_reclaim",
+        "break_even_active_ts": null,
+        "planned_cost_r": 0.31149781977521934,
+        "planned_net_rr": 1.1860233736103998,
+        "actual_entry_shares": 2.815122,
+        "entry_split_factor": 1.0,
+        "share_basis": "split-adjusted units"
+      }
+    ],
+    "later": [
+      {
+        "entry_ts": 1789400100000,
+        "exit_ts": 1789415700000,
+        "exit_time_ts": 1789416000000,
+        "signal_ts": 1789399800000,
+        "entry": 288.2016,
+        "exit": 287.69846390075685,
+        "initial_stop": 287.0533891950335,
+        "stop": 287.0533891950335,
+        "target2": 289.893221609933,
+        "qty_initial": 3.295974,
+        "risk_dollars": 4.636293635207993,
+        "pnl": -1.8481386652883192,
+        "r_multiple": -0.3986241620361494,
+        "reason": "SESSION_CLOSE",
+        "regime": "BEAR",
+        "gross_pnl": -1.6583235015667959,
+        "fees_paid": 0.18981516372152332,
+        "slippage_notional": 1.3287059845379874,
+        "decision_params": {
+          "stop_atr": 1.5,
+          "rr1": 1.0,
+          "rr2": 2.0,
+          "volume_z_min": 0.0,
+          "max_gap_atr": 0.5,
+          "max_cost_r": 0.5,
+          "time_stop_hours": 24,
+          "cooldown_minutes": 0,
+          "min_net_rr": 1.0,
+          "loss_streak_limit": 3,
+          "loss_cooldown_hours": 6,
+          "entry_mode": "MARKET_NEXT_OPEN",
+          "max_notional_fraction": 0.95,
+          "family": "vwap_reclaim",
+          "direction": "LONG",
+          "require_context": []
+        },
+        "strategy_family": "vwap_reclaim",
+        "break_even_active_ts": null,
+        "planned_cost_r": 0.40066055434152614,
+        "planned_net_rr": 1.0172420437309793,
+        "actual_entry_shares": 3.295974,
+        "entry_split_factor": 1.0,
+        "share_basis": "split-adjusted units"
+      }
+    ],
+    "later_higher_cost": []
+  },
+  "eligible_for_bot": false,
+  "promotion_rule": "Research-only candidates are never eligible. Other strategies require both later tests to complete with >=20 resolved trades, positive mean R and positive total account P/L, including at 1.5x costs. Not live authorization.",
+  "limitations": [
+    "Historical bars only. No live quotes.",
+    "Each window starts with a fresh paper balance; the first 240 candles warm up indicators. Repeatedly selecting on later results can overfit.",
+    "Day mode exits at the session close. Swing mode allows overnight positions with a 120-hour time stop. Long-only and unleveraged.",
+    "END exits mark positions at the test boundary, count toward account P/L, and are excluded from the resolved-trade evidence count.",
+    "Profit factor uses all simulated exits, including boundary marks; a missing value can mean no losses, not a guaranteed edge.",
+    "Missing decision bars reset indicator warmup; a gap during an open position makes account P/L unknown and blocks eligibility.",
+    "Higher-timeframe context must match the latest expected close; missing bars are unavailable.",
+    "News is visible only after its published timestamp.",
+    "Yahoo/Alpaca 1m history is short; do not treat a 29-day 1m test as multi-year evidence."
+  ],
+  "symbol": "IWM",
+  "source_quality": {
+    "expected_candles": 3120,
+    "observed_candles": 3120,
+    "missing_candles": 0,
+    "coverage_pct": 100.0,
+    "invalid_source_candles": 0,
+    "outside_window_or_session": 1,
+    "source_interval": "5m",
+    "interval": "5m",
+    "first_ts": 1785763800000,
+    "last_close_ts": 1790625600000,
+    "short_session_bars": 0,
+    "calendar": "NYSE regular sessions, America/New_York; holidays and early closes included",
+    "synthetic_candles": false
+  },
+  "market_data": {
+    "calendar_package_version": "5.4.0",
+    "provider": "yahoo",
+    "feed": "Yahoo consolidated historical chart",
+    "symbol": "IWM",
+    "currency": "USD",
+    "asset_class": "equity",
+    "interval": "5m",
+    "requested_start_ts": 1785542400000,
+    "cutoff_ts": 1790640000000,
+    "recorded_at": 1790662379,
+    "minimum_delay_minutes": 20,
+    "live_quotes": false,
+    "dividends_included": false,
+    "adjustment": "split-adjusted OHLC; cash dividends excluded",
+    "exchange": "PCX",
+    "instrument_type": "ETF",
+    "corporate_actions": {
+      "dividends": {
+        "1789479000": {
+          "amount": 0.75,
+          "date": 1789479000
+        }
+      }
+    },
+    "provider_guarantee": false
+  }
+}

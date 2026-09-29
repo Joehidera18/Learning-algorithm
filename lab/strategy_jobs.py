@@ -41,7 +41,9 @@ class StrategyLabJobs:
         return {"report_version": REPORT_VERSION, "strategies": list_strategies(),
                 "strategy_intervals": {name:list(spec.allowed_intervals) for name,spec in specs.items()},
                 "strategy_details": {name:{"title":spec.title,"description":spec.description,
-                    "modes":list(spec.supported_modes),"news_filter":spec.news_filter} for name,spec in specs.items()},
+                    "modes":list(spec.supported_modes),"news_filter":spec.news_filter,
+                    "research_only":spec.research_only,"evidence_note":spec.evidence_note,
+                    "rules":list(spec.rules),"sources":list(spec.sources)} for name,spec in specs.items()},
                 "equity": data.catalog(), "default_costs": DEFAULT_COSTS,
                 "scope": "Historical stock backtests. News is point-in-time. No live orders."}
 
@@ -320,6 +322,9 @@ class StrategyLabJobs:
                                 "coverage": report["coverage"], "requested_coverage":report["requested_coverage"],
                                 "market_data":report["market_data"], "starting_balance":report["starting_balance"],
                                 "costs":report["costs"], "holding_mode":report["holding_mode"],
+                                "research_only":report.get("research_only",False),
+                                "evidence_note":report.get("evidence_note", ""),
+                                "sample":report.get("sample",{}),
                                 "report_path": str(dest)})
         except Exception as exc:
             self._patch(job_id, status="error", message=str(exc)[:300])

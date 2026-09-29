@@ -40,7 +40,7 @@ def opening_session(day=0, indices=(0, 1, 2, 3, 4), volume=100.):
 
 class RegistryTests(unittest.TestCase):
     def test_all_strategies_load_with_independent_family_parameters(self):
-        self.assertEqual(len(list_strategies()), 5)
+        self.assertEqual(len(list_strategies()), 8)
         for name in list_strategies():
             strategy = load_strategy(name)
             self.assertEqual(strategy.name, name)
