@@ -1,4 +1,4 @@
-# Stock Lab V12.3
+# Stock Lab V12.4
 
 A research, learning and paper-trading workspace for US-listed stocks and ETFs,
 with an AI agent for stock and crypto research. The existing Learning-algorithm repository and Render service remain
@@ -10,6 +10,12 @@ the deployment targets.
   strategy jobs and a selected forward paper account.
 - **Markets & research:** the existing 20-company research watchlist, catalysts,
   source references, provider market boards, price changes and charts.
+- **Market Radar** (`/market-radar`): a shared watch for 21 stocks and 12
+  cryptoassets, including assets tagged recently sold. Read sourced headlines,
+  record dated catalysts, keep thesis notes, inspect feed health and hand the
+  evidence to the AI agent. News collection runs in the background when enabled;
+  optional Alpaca stock observations use a separate read-only connection.
+  See [setup and coverage](MARKET_RADAR.md).
 - **Stock learner:** train on earlier stock candles; compare six strategies on
   later prices with normal and higher costs. Day or swing holding, fractional or
   whole shares, and configurable stock costs and risk limits.
@@ -104,3 +110,8 @@ Authenticated API responses and HTML stay `no-store`.
 See [validation and the local before/after benchmark](research/stock-speed-v12.1-validation.md).
 Hosted latency still depends on Render load, network conditions and market data
 providers; a code benchmark is not a production latency guarantee.
+
+V12.4 keeps news downloads outside page requests and adds a compact radar summary
+to the dashboard. [Validation](research/market-radar-v12.4-validation.md) includes
+source failures and the limits of the live checks. The [HBAR review](research/hbar-catalyst-review-2026-09-29.md)
+explains the evidence behind the changes without claiming a profitable prediction.

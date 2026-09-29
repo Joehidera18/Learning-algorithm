@@ -18,7 +18,7 @@ The agent is an optional addition to the existing app.
    `AGENT_DAILY_RUN_LIMIT` (default 25 requests per UTC day, valid 1–100).
    Use a Responses API model that supports strict function calls and web search.
 5. Save environment changes and deploy the latest commit. Automatic deployment
-   remains off. Confirm `/api/health` reports `app_version: 12.2`.
+   remains off. Confirm `/api/health` reports `app_version: 12.4`.
 6. Open `/agent`, connect using the **app token**, and try “Read our workspace
    and explain which saved results are available” with web search off. Then
    try a small sourced company research question with web search on. Inspect
@@ -39,6 +39,12 @@ in OpenAI as well. Provider errors do not reveal raw responses or secrets.
   The stock execution engine remains stock-only.
 - **Read my results:** inspect recent stock learning, paper summaries and named
   strategy reports. The saved watchlist retains its original research date.
+- **Investigate a catalyst:** read `get_market_radar` for a watched ticker or
+  crypto pair, including publication and discovery times, source failures,
+  calendar revisions, saved thesis notes and price observations. The Market
+  Radar link fills a research draft and does not automatically spend API credits.
+  Recently sold assets remain in coverage. Verify the underlying announcement
+  before treating a headline as economically important.
 - **Test a strategy:** inspect the supported catalog, run an authorized test,
   review later-period and higher-cost evidence, and save a lesson. Novel ideas
   can be researched and specified, but must be implemented and separately

@@ -1,3 +1,19 @@
+# V12.4 — Market Radar and persistent catalyst research
+
+- Add a shared Market Radar for 21 stocks and 12 cryptoassets with watch,
+  holding and recently-sold tags, persistent thesis notes and AI investigation.
+- Collect bounded public feeds off request threads. Preserve publication,
+  publisher-update and discovery times; show failures, coverage gaps, reprints
+  and initial snapshots. Detect incident-body changes even with the same title.
+- Add an editable, sourced catalyst calendar, once-per-revision 72-hour journal
+  entries, optimistic edit conflicts and retained cancellation history.
+- Add optional read-only Alpaca snapshots for regular-session stock observations,
+  with IEX/SIP coverage, stale-data checks and already-observed move labels.
+- Keep the dashboard payload compact and the existing paper engine separate.
+  No funded orders, automatic paid research or server phone alerts are added.
+- Document the HBAR case, setup, partial news coverage and validation:
+  [MARKET_RADAR.md](MARKET_RADAR.md).
+
 # V12.2 — AI research agent and strategy notebook
 
 - Add `/agent` to the existing stock website: cited stock and crypto research,

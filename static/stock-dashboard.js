@@ -104,6 +104,8 @@
     $("recentStrategies").innerHTML = lab.error ? '<p class="desk-empty">' + esc(lab.error) + '</p>' : lab.jobs.length ? lab.jobs.map(j => '<article class="job-row"><div><a href="/backtests">' + esc(j.request.symbol + " · " + j.request.strategy.replace(/_/g, " ")) + '</a><span class="badge">' + esc(j.status) + '</span></div><p>' + esc(j.message) + '</p></article>').join("") : '<p class="desk-empty">No strategy tests yet. Compare an opening-range breakout or a price-structure strategy on recorded stock candles.</p>';
   }
   function render() {
+    const radar=state.market_radar;
+    $("radarSummary").textContent=radar?(radar.running?"Radar running":"Radar stopped or needs attention")+" · "+radar.watch_count+" stocks & cryptoassets · "+radar.source_issues+" news sources need attention · "+radar.upcoming.length+" approaching catalysts. Recently sold assets stay on watch.":"Open Market Radar to review news and upcoming catalysts.";
     const market = state.market;
     $("marketClock").textContent = market.open ? "Regular session open" : "Regular session closed";
     $("sessionDot").classList.toggle("open", market.open);

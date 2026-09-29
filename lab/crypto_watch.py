@@ -145,8 +145,8 @@ def evaluate(symbol, rows, benchmark, observed):
 
 
 class CryptoWatch:
-    def __init__(self, data_dir, token="", client=None, news_fetch=None):
-        self.path = Path(data_dir) / "crypto-watch.sqlite3"
+    def __init__(self, data_dir, token="", client=None, news_fetch=None, *, database_name="crypto-watch.sqlite3"):
+        self.path = Path(data_dir) / database_name
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.token = token
         self.client = client or CandleSource()

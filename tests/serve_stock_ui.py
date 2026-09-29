@@ -35,6 +35,16 @@ if __name__ == '__main__':
             from lab.crypto_watch import now_ms
             service.breakout_watch.client = FixtureSource()
             service.breakout_watch.news_fetch = lambda _: fixture_news(now_ms())
+        if os.getenv('RADAR_UI_FIXTURES') == '1':
+            from tests.test_market_radar import fixture_news
+            from lab.crypto_watch import now_ms, HOUR
+            def radar_news(source):
+                if source == 'crispr':
+                    raise TimeoutError('Generated source outage')
+                return fixture_news(now_ms()-4*HOUR,
+                    'Hedera announces generated fixture partnership <img src=x onerror=alert(1)>',
+                    url='https://example.org/fixture/'+source)
+            service.market_radar.news_fetch = radar_news
         if os.getenv('STRATEGY_LAB_UI_FIXTURES') == '1':
             service.strategy_lab.resume = lambda: None
             first = service.strategy_lab.start({})
