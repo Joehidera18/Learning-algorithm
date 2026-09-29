@@ -274,7 +274,10 @@ def _default_levels(feat, params):
     distance = max(atr * params["stop_atr"], close * 0.0015)
     stop = close - distance
     target = close + distance * params["rr2"]
-    return stop, target, target, 0.5
+    # The structure families have one full-position target. A zero fraction
+    # explicitly disables partial exits; their entry and 2R target rules stay
+    # unchanged.
+    return stop, target, target, 0.
 
 
 def write_report(report, path):

@@ -12,7 +12,7 @@ def _family(family_name):
     class Family(StrategySpec):
         name = family_name
         title, description = labels[family_name]
-        version = "structure-v1"
+        version = "structure-v2-single-target"
         params = dict(StrategySpec.params, family=family_name, direction="LONG", threshold=60)
 
         def signal(self, features, params):
